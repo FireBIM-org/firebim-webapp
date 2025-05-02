@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { components } from '../types/api';
 
 const API_URL = 'https://api.firebim.org';
@@ -7,6 +7,59 @@ const API_URL = 'https://api.firebim.org';
 export type User = components['schemas']['User'];
 export type UserCreate = components['schemas']['UserCreate'];
 export type Token = components['schemas']['Token'];
+
+// Define IFC Model and IDS File interfaces
+export interface IFCModel {
+  id: string;
+  filename: string;
+  created_at: string;
+  size?: number;
+  schema_version?: string;
+  entity_count?: number;
+  user_id: string;
+}
+
+export interface IDSFile {
+  id: string;
+  filename: string;
+  created_at: string;
+  size?: number;
+  specification_version?: string;
+  rule_count?: number;
+  user_id: string;
+  specifications?: IDSSpecification[];
+}
+
+export interface IDSSpecification {
+  entity_type?: string;
+  property?: string;
+  requirement?: string;
+}
+
+export interface CheckResult {
+  total_entities: number;
+  compliant_entities: number;
+  non_compliant_entities: number;
+  compliance_rate?: number;
+  issues?: CheckIssue[];
+}
+
+export interface CheckIssue {
+  entity_id: string;
+  entity_type: string;
+  description: string;
+}
+
+export interface AsyncCheckResponse {
+  check_id: string;
+  status: string;
+}
+
+export interface AsyncCheckResult {
+  status: string;
+  result?: CheckResult;
+  error?: string;
+}
 
 // API client class
 export class ApiClient {
@@ -78,12 +131,12 @@ export class ApiClient {
   }
 
   // IFC Models endpoints
-  async getModels() {
+  async getModels(): Promise<IFCModel[]> {
     const response = await this.axiosInstance.get('/ifc-models');
     return response.data;
   }
 
-  async uploadModel(file: File) {
+  async uploadModel(file: File): Promise<IFCModel> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -95,12 +148,12 @@ export class ApiClient {
     return response.data;
   }
 
-  async getModel(id: string) {
+  async getModel(id: string): Promise<IFCModel> {
     const response = await this.axiosInstance.get(`/ifc-models/${id}`);
     return response.data;
   }
 
-  async downloadModel(id: string) {
+  async downloadModel(id: string): Promise<Blob> {
     const response = await this.axiosInstance.get(`/ifc-models/${id}/download`, {
       responseType: 'blob',
     });
@@ -108,12 +161,12 @@ export class ApiClient {
   }
 
   // IDS Files endpoints
-  async getIdsFiles() {
+  async getIdsFiles(): Promise<IDSFile[]> {
     const response = await this.axiosInstance.get('/ids-files');
     return response.data;
   }
 
-  async uploadIds(file: File) {
+  async uploadIds(file: File): Promise<IDSFile> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -125,12 +178,12 @@ export class ApiClient {
     return response.data;
   }
 
-  async getIdsFile(id: string) {
+  async getIdsFile(id: string): Promise<IDSFile> {
     const response = await this.axiosInstance.get(`/ids-files/${id}`);
     return response.data;
   }
 
-  async downloadIdsFile(id: string) {
+  async downloadIdsFile(id: string): Promise<Blob> {
     const response = await this.axiosInstance.get(`/ids-files/${id}/download`, {
       responseType: 'blob',
     });
@@ -138,19 +191,19 @@ export class ApiClient {
   }
 
   // Analysis endpoints
-  async asyncCheckModelWithIds(modelId: string, idsId: string) {
+  async asyncCheckModelWithIds(modelId: string, idsId: string): Promise<AsyncCheckResponse> {
     const response = await this.axiosInstance.post('/async/check-model-with-ids', null, {
       params: { model_id: modelId, ids_id: idsId },
     });
     return response.data;
   }
 
-  async getAsyncCheckResult(checkId: string) {
+  async getAsyncCheckResult(checkId: string): Promise<AsyncCheckResult> {
     const response = await this.axiosInstance.get(`/async/check-result/${checkId}`);
     return response.data;
   }
 
-  async syncCheckModelWithIds(modelId: string, idsId: string, timeout = 300) {
+  async syncCheckModelWithIds(modelId: string, idsId: string, timeout = 300): Promise<CheckResult> {
     const response = await this.axiosInstance.get(`/ifc-models/${modelId}/check`, {
       params: { ids_id: idsId, timeout },
     });

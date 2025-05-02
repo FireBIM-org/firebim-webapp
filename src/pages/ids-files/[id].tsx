@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient from '../../utils/api-client';
+import apiClient, { IDSSpecification } from '../../utils/api-client';
 
 export default function IdsFileDetail() {
   const router = useRouter();
@@ -185,7 +185,7 @@ export default function IdsFileDetail() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {idsFile.specifications.map((spec: any, index: number) => (
+                      {idsFile.specifications.map((spec: IDSSpecification, index: number) => (
                         <tr key={index}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {spec.entity_type || 'Any'}

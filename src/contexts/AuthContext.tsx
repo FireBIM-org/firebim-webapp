@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Fetch user data with token
           const userData = await apiClient.getCurrentUser();
           setUser(userData);
-        } catch (error) {
+        } catch {
           // Clear token if invalid
           apiClient.clearToken();
         }

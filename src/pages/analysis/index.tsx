@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient from '../../utils/api-client';
+import apiClient, { IFCModel, IDSFile, CheckResult, CheckIssue } from '../../utils/api-client';
 
 export default function Analysis() {
   const { user, isLoading: authLoading } = useAuth();
@@ -12,7 +12,7 @@ export default function Analysis() {
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [selectedIdsId, setSelectedIdsId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<CheckResult | null>(null);
   const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('async');
   const [checkId, setCheckId] = useState<string>('');
   const [poolingInterval, setPoolingInterval] = useState<NodeJS.Timeout | null>(null);
@@ -73,7 +73,12 @@ export default function Analysis() {
           try {
             const checkResult = await apiClient.getAsyncCheckResult(response.check_id);
             if (checkResult.status === 'completed') {
-              setResults(checkResult.result);
+              // Add null check for result
+              if (checkResult.result) {
+                setResults(checkResult.result);
+              } else {
+                toast.error('Analysis completed but no results were returned');
+              }
               clearInterval(interval);
               setPoolingInterval(null);
               setIsProcessing(false);
@@ -165,7 +170,7 @@ export default function Analysis() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {results.issues.map((issue: any, index: number) => (
+                  {results.issues.map((issue: CheckIssue, index: number) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {issue.entity_id}
@@ -225,7 +230,7 @@ export default function Analysis() {
                   {modelsLoading ? (
                     <option>Loading models...</option>
                   ) : models && models.length > 0 ? (
-                    models.map((model) => (
+                    models.map((model: IFCModel) => (
                       <option key={model.id} value={model.id}>
                         {model.filename}
                       </option>
@@ -251,7 +256,7 @@ export default function Analysis() {
                   {idsLoading ? (
                     <option>Loading IDS files...</option>
                   ) : idsFiles && idsFiles.length > 0 ? (
-                    idsFiles.map((idsFile) => (
+                    idsFiles.map((idsFile: IDSFile) => (
                       <option key={idsFile.id} value={idsFile.id}>
                         {idsFile.filename}
                       </option>

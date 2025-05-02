@@ -26,6 +26,8 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
+      // We need to destructure confirmPassword to exclude it from userData
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...userData } = data;
       await registerUser(userData);
       toast.success('Registration successful! You are now logged in.');
