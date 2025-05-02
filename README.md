@@ -1,5 +1,9 @@
-# firebim-webapp
-FireBIM webapp - Example frontend for firebim-api-server
+# FireBIM webapp
+[![Docker](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/docker-publish.yml)
+[![Lint](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/Lint.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/Lint.yml)
+
+Example frontend for firebim-api-server.
+
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
