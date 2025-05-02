@@ -47,7 +47,8 @@ export default function IdsFileDetail() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = idsFile.filename || `ids-${id}.ids`;
+      // Add null check to prevent TypeScript error
+      a.download = idsFile?.filename || `ids-${id}.ids`;
       
       // Need to append to the document
       document.body.appendChild(a);

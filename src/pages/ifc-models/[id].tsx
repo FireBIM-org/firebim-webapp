@@ -47,7 +47,8 @@ export default function ModelDetail() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = model.filename || `model-${id}.ifc`;
+      // Add null check to prevent TypeScript error
+      a.download = model?.filename || `model-${id}.ifc`;
       
       // Need to append to the document
       document.body.appendChild(a);
