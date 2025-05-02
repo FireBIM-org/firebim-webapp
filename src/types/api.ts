@@ -88,9 +88,29 @@ export interface paths {
         };
         /**
          * Get Model
-         * @description Download an IFC-STEP file by its ID.
+         * @description Get metadata for an IFC model by its ID.
          */
         get: operations["get_model_ifc_models__id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ifc-models/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Model
+         * @description Download an IFC-STEP file by its ID.
+         */
+        get: operations["download_model_ifc_models__id__download_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -132,9 +152,29 @@ export interface paths {
         };
         /**
          * Get Ids
-         * @description Download an IDS file by its ID.
+         * @description Get metadata for an IDS file by its ID.
          */
         get: operations["get_ids_ids_files__id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ids-files/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Ids
+         * @description Download an IDS file by its ID.
+         */
+        get: operations["download_ids_ids_files__id__download_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -476,6 +516,37 @@ export interface operations {
             };
         };
     };
+    download_model_ifc_models__id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_ids_files_ids_files_get: {
         parameters: {
             query?: never;
@@ -530,6 +601,37 @@ export interface operations {
         };
     };
     get_ids_ids_files__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_ids_ids_files__id__download_get: {
         parameters: {
             query?: never;
             header?: never;
