@@ -3,6 +3,19 @@ FireBIM webapp - Example frontend for firebim-api-server
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
+## Features
+
+* Register user
+* Login/logout
+* Upload IFC file
+* View list of IFC files
+* View IFC file details (including download)
+* Upload IDS file
+* View list of IDS files
+* View IDS file details (including download)
+* Make analysis of IFC file using IDS file
+
+
 ## Getting Started
 
 First, run the development server:
