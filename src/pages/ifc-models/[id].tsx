@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ export default function ModelDetail() {
   const router = useRouter();
   const { id } = router.query;
   const { user, isLoading: authLoading } = useAuth();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -32,11 +33,38 @@ export default function ModelDetail() {
 
   const handleDownload = async () => {
     try {
-      await apiClient.downloadModel(id as string);
-      toast.success('Model download started');
+      setIsDownloading(true);
+      console.log(`Initiating download for model: ${id}`);
+      const blob = await apiClient.downloadModel(id as string);
+      
+      // Determine the correct MIME type for IFC files
+      const mimeType = 'application/ifc';
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(new Blob([blob], { type: mimeType }));
+      
+      // Create a temporary anchor element and trigger the download
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = model.filename || `model-${id}.ifc`;
+      
+      // Need to append to the document
+      document.body.appendChild(a);
+      
+      // Trigger the download
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Failed to download model');
+      toast.error('Failed to download model. Please try again.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -104,8 +132,9 @@ export default function ModelDetail() {
               type="button"
               onClick={handleDownload}
               className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isDownloading}
             >
-              Download
+              {isDownloading ? 'Downloading...' : 'Download'}
             </button>
           </div>
         </div>
