@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { components } from '../types/api';
 
-const API_URL = 'https://api.firebim.org';
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8000/';
 
 // Define User and Token types based on the API schema
 export type User = components['schemas']['User'];
@@ -68,7 +68,7 @@ export class ApiClient {
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: API_URL,
+      baseURL: API_HOST,
       headers: {
         'Content-Type': 'application/json',
       },
