@@ -13,6 +13,7 @@ RUN npm ci
 # Copy the rest of the application code
 COPY . .
 
+COPY .docker/.env .env
 # Build the application
 RUN npm run build
 
@@ -22,7 +23,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Set to production environment
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Add a non-root user to run the app
 RUN addgroup --system --gid 1001 nodejs && \
@@ -40,8 +41,13 @@ USER nextjs
 EXPOSE 3000
 
 # Environment variables must be redefined at run time
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+COPY .docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# Set the entrypoint to the newly added script.
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Start the application
 CMD ["node", "server.js"]
