@@ -42,8 +42,6 @@ EXPOSE 3000
 # Environment variables must be redefined at run time
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
-# Add API_HOST environment variable with a default value
-ENV NEXT_PUBLIC_API_HOST=NEXT_PUBLIC_API_HOST
 
 # Start the application
 CMD ["node", "server.js"]
