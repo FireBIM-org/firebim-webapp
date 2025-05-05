@@ -1,7 +1,14 @@
 import axios, { AxiosInstance } from 'axios';
 import { components } from '../types/api';
+import getConfig from 'next/config';
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8000/';
+// Get runtime config
+const { publicRuntimeConfig } = getConfig() || { publicRuntimeConfig: {} };
+
+// Use runtime config with fallback
+const API_HOST = publicRuntimeConfig.NEXT_PUBLIC_API_HOST || 
+                process.env.NEXT_PUBLIC_API_HOST || 
+                'http://localhost:8000/';
 
 // Define User and Token types based on the API schema
 export type User = components['schemas']['User'];
