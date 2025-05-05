@@ -34,6 +34,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy docker-entrypoint.sh script
+COPY .docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Switch to non-root user
 USER nextjs
 
@@ -43,9 +47,6 @@ EXPOSE 3000
 # Environment variables must be redefined at run time
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-
-COPY .docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set the entrypoint to the newly added script.
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
