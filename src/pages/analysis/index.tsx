@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient, { IFCModel, IDSFile, CheckResult } from '../../utils/api-client';
+import apiClient, { IFCModel, IDSFile } from '../../utils/api-client';
 
 export default function Analysis() {
   const { user, isLoading: authLoading } = useAuth();
@@ -12,10 +12,8 @@ export default function Analysis() {
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [selectedIdsId, setSelectedIdsId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<CheckResult | null>(null);
   const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('async');
   const [checkId, setCheckId] = useState<string>('');
-  const [poolingInterval, setPoolingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -33,15 +31,6 @@ export default function Analysis() {
       setSelectedIdsId(router.query.ids as string);
     }
   }, [router.query]);
-
-  // Cleanup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (poolingInterval) {
-        clearInterval(poolingInterval);
-      }
-    };
-  }, [poolingInterval]);
 
   // Fetch user's IFC models
   const { 
@@ -70,7 +59,6 @@ export default function Analysis() {
     }
 
     setIsProcessing(true);
-    setResults(null);
 
     try {
       if (processingMethod === 'async') {

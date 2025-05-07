@@ -49,7 +49,7 @@ interface Specification {
 
 interface Requirement {
   facet_type: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   label: string;
   value: string;
   description: string;
@@ -106,19 +106,24 @@ export default function AnalysisResults() {
   }, [authLoading, user, router]);
 
   // If we have a checkId from an async check
-  const { data: asyncResult, isLoading: asyncLoading } = useQuery({
+  const { data: checkResult } = useQuery({
     queryKey: ['async-check-result', checkId],
     queryFn: () => apiClient.getAsyncCheckResult(checkId as string),
     enabled: !!user && !!checkId,
-    refetchInterval: (data) => data?.status === 'completed' ? false : 2000,
-    onSuccess: (data) => {
-      if (data.status === 'completed' && data.result) {
-        setAnalysisResult(data.result as unknown as AnalysisResult);
-      } else if (data.status === 'failed') {
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true
+  });
+
+  // Process async check result
+  useEffect(() => {
+    if (checkResult) {
+      if (checkResult.status === 'completed' && checkResult.result) {
+        setAnalysisResult(checkResult.result as unknown as AnalysisResult);
+      } else if (checkResult.status === 'failed') {
         toast.error('Analysis failed. Please try again.');
       }
     }
-  });
+  }, [checkResult]);
 
   // If we don't have a checkId but have modelId and idsId, perform a sync check
   useEffect(() => {
@@ -134,15 +139,15 @@ export default function AnalysisResults() {
       }
     };
 
-    if (user && !asyncLoading) {
+    if (user && !authLoading) {
       fetchSyncResult();
     }
-  }, [user, checkId, modelId, idsId, asyncLoading]);
+  }, [user, checkId, modelId, idsId, authLoading]);
 
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleString();
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };
@@ -175,7 +180,7 @@ export default function AnalysisResults() {
     );
   }
 
-  if (asyncLoading || (!asyncLoading && !analysisResult)) {
+  if (!analysisResult) {
     return (
       <Layout title="Loading Analysis Results | FireBIM">
         <div className="flex flex-col items-center justify-center h-64">
