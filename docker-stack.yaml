@@ -27,7 +27,7 @@ services:
       - .env
 
   webapp:
-    image: ghcr.io/firebim-org/firebim-webapp:main
+    image: ghcr.io/firebim-org/firebim-webapp:${GIT_COMMIT_HASH:-main}
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.web.loadbalancer.server.port=3000"

@@ -21,7 +21,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       <Head>
         <title>{title}</title>
         <meta name="description" content="FireBIM webapp - BIM model analysis" />
@@ -91,13 +91,13 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
         </div>
       </nav>
 
-      <main className="py-6">
+      <main className="py-6 flex-grow bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>
       
-      <footer className="bg-white border-t border-gray-200 py-8">
+      <footer className="bg-white border-t border-gray-200 py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
