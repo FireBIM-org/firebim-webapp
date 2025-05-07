@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient, { IFCModel, IDSFile, CheckResult, CheckIssue } from '../../utils/api-client';
+import apiClient, { IFCModel, IDSFile, CheckResult } from '../../utils/api-client';
 
 export default function Analysis() {
   const { user, isLoading: authLoading } = useAuth();
@@ -23,6 +23,16 @@ export default function Analysis() {
       router.push('/login');
     }
   }, [authLoading, user, router]);
+
+  // Check query parameters for pre-selected model and/or ids
+  useEffect(() => {
+    if (router.query.model) {
+      setSelectedModelId(router.query.model as string);
+    }
+    if (router.query.ids) {
+      setSelectedIdsId(router.query.ids as string);
+    }
+  }, [router.query]);
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -68,128 +78,17 @@ export default function Analysis() {
         const response = await apiClient.asyncCheckModelWithIds(selectedModelId, selectedIdsId);
         setCheckId(response.check_id);
         
-        // Start polling for results
-        const interval = setInterval(async () => {
-          try {
-            const checkResult = await apiClient.getAsyncCheckResult(response.check_id);
-            if (checkResult.status === 'completed') {
-              // Add null check for result
-              if (checkResult.result) {
-                setResults(checkResult.result);
-              } else {
-                toast.error('Analysis completed but no results were returned');
-              }
-              clearInterval(interval);
-              setPoolingInterval(null);
-              setIsProcessing(false);
-              toast.success('Analysis completed!');
-            } else if (checkResult.status === 'failed') {
-              clearInterval(interval);
-              setPoolingInterval(null);
-              setIsProcessing(false);
-              toast.error('Analysis failed. Please try again.');
-            }
-          } catch (error) {
-            console.error('Error fetching check result:', error);
-          }
-        }, 2000);
-        
-        setPoolingInterval(interval);
+        // Navigate to results page with checkId
+        router.push(`/analysis/results?checkId=${response.check_id}`);
       } else {
-        // Synchronous processing
-        const result = await apiClient.syncCheckModelWithIds(selectedModelId, selectedIdsId);
-        setResults(result);
-        setIsProcessing(false);
-        toast.success('Analysis completed!');
+        // For synchronous processing, navigate to results with modelId and idsId
+        router.push(`/analysis/results?modelId=${selectedModelId}&idsId=${selectedIdsId}`);
       }
     } catch (error) {
       console.error('Analysis error:', error);
       toast.error('Failed to perform analysis. Please try again.');
       setIsProcessing(false);
     }
-  };
-
-  const renderResults = () => {
-    if (!results) return null;
-
-    return (
-      <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Analysis Results</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            IFC model validation against IDS specifications
-          </p>
-        </div>
-        <div className="border-t border-gray-200">
-          <dl>
-            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Total Entities</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {results.total_entities || 0}
-              </dd>
-            </div>
-            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Compliant Entities</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {results.compliant_entities || 0}
-              </dd>
-            </div>
-            <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Non-compliant Entities</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {results.non_compliant_entities || 0}
-              </dd>
-            </div>
-            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Compliance Rate</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {((results.compliant_entities / results.total_entities) * 100).toFixed(2)}%
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        {results.issues && results.issues.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 px-4 py-5 sm:px-6">
-              Compliance Issues
-            </h3>
-            <div className="overflow-hidden overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Entity ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Entity Type
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Issue
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {results.issues.map((issue: CheckIssue, index: number) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {issue.entity_id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {issue.entity_type}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {issue.description}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   if (authLoading || !user) {
@@ -325,7 +224,7 @@ export default function Analysis() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
             <p className="text-gray-700">
               {processingMethod === 'async' 
-                ? 'Analysis in progress. This might take a few minutes for large models.' 
+                ? 'Analysis in progress. Redirecting to results page...' 
                 : 'Processing your request...'}
             </p>
             {checkId && (
@@ -334,8 +233,6 @@ export default function Analysis() {
           </div>
         </div>
       )}
-
-      {renderResults()}
     </Layout>
   );
 }
