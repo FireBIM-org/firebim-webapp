@@ -12,7 +12,7 @@ export default function Analysis() {
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [selectedIdsId, setSelectedIdsId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('async');
+  const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('sync');
   const [checkId, setCheckId] = useState<string>('');
 
   // Redirect if not authenticated
@@ -161,19 +161,6 @@ export default function Analysis() {
                 <div className="mt-2">
                   <div className="flex items-center">
                     <input
-                      id="async"
-                      name="processing-method"
-                      type="radio"
-                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
-                      checked={processingMethod === 'async'}
-                      onChange={() => setProcessingMethod('async')}
-                    />
-                    <label htmlFor="async" className="ml-3 block text-sm font-medium text-gray-700">
-                      Asynchronous (recommended for large files)
-                    </label>
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <input
                       id="sync"
                       name="processing-method"
                       type="radio"
@@ -183,6 +170,21 @@ export default function Analysis() {
                     />
                     <label htmlFor="sync" className="ml-3 block text-sm font-medium text-gray-700">
                       Synchronous (faster for small files)
+                    </label>
+                  </div>
+                  {/* TODO: Enable this option and make async submission work */}
+                  <div className="flex items-center mt-2">
+                    <input
+                      id="async"
+                      name="processing-method"
+                      type="radio"
+                      disabled={true}
+                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
+                      checked={processingMethod === 'async'}
+                      onChange={() => setProcessingMethod('async')}
+                    />
+                    <label htmlFor="async" className="ml-3 block text-sm font-medium text-gray-400">
+                      Asynchronous (recommended for large files)
                     </label>
                   </div>
                 </div>
