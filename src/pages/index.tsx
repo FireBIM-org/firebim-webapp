@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
+import Image from 'next/image';
 
 export default function Home() {
   const { user } = useAuth();
@@ -47,10 +48,13 @@ export default function Home() {
               <div className="mt-12 sm:mt-16 lg:col-span-6 lg:mt-0">
                 <div className="relative mx-auto w-full rounded-lg shadow-xl lg:max-w-md">
                   <div className="relative block w-full overflow-hidden rounded-lg bg-white">
-                    <img
+                    <Image
                       src="/window.svg"
                       alt="BIM Model Visualization"
                       className="w-full h-64 object-cover"
+                      width={800}
+                      height={256}
+                      priority
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-xl font-medium text-white bg-black bg-opacity-50 px-4 py-2 rounded">
