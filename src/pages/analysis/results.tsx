@@ -369,13 +369,17 @@ export default function AnalysisResults() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <div className="flex items-center">
-                                <span className={getPercentageColorClass(spec.percent_checks_pass)}>
-                                  {spec.percent_checks_pass.toFixed(1)}%
+                                <span className={getPercentageColorClass(
+                                  typeof spec.percent_checks_pass === 'number' ? spec.percent_checks_pass : Number(spec.percent_checks_pass)
+                                )}>
+                                  {typeof spec.percent_checks_pass === 'number' && !isNaN(spec.percent_checks_pass)
+                                    ? spec.percent_checks_pass.toFixed(1)
+                                    : Number(spec.percent_checks_pass).toFixed(1)}%
                                 </span>
                                 <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
                                   <div 
                                     className={`${spec.status ? 'bg-green-600' : 'bg-red-600'} h-2 rounded-full`}
-                                    style={{ width: `${spec.percent_checks_pass}%` }}
+                                    style={{ width: `${typeof spec.percent_checks_pass === 'number' ? spec.percent_checks_pass : Number(spec.percent_checks_pass)}%` }}
                                   ></div>
                                 </div>
                               </div>
