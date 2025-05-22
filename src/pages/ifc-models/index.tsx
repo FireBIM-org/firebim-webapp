@@ -6,6 +6,7 @@ import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient, { type IFCModel } from '../../utils/api-client';
 import Image from 'next/image';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IfcModels() {
   const { user, isLoading: authLoading } = useAuth();
@@ -31,9 +32,7 @@ export default function IfcModels() {
   if (authLoading || !user) {
     return (
       <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -63,7 +62,7 @@ export default function IfcModels() {
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
               {modelsLoading ? (
                 <div className="py-12 flex justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+                  <LoadingSpinner />
                 </div>
               ) : !models || models.length === 0 ? (
                 <div className="bg-white px-4 py-12 text-center">

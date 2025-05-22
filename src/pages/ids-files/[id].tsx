@@ -6,6 +6,10 @@ import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient, { IDSSpecification } from '../../utils/api-client';
+import FileInfo from '../../components/FileInfo';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import BackLink from '../../components/BackLink';
+import PrimaryButton from '../../components/PrimaryButton';
 
 export default function IdsFileDetail() {
   const router = useRouter();
@@ -72,9 +76,7 @@ export default function IdsFileDetail() {
   if (authLoading || !user) {
     return (
       <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -105,9 +107,7 @@ export default function IdsFileDetail() {
   if (idsLoading || !idsFile) {
     return (
       <Layout title="Loading IDS File... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -122,13 +122,9 @@ export default function IdsFileDetail() {
             </h2>
           </div>
           <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
-            <button
-              type="button"
-              onClick={() => router.push(`/analysis?ids=${idsFile.id}`)}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-            >
+            <PrimaryButton onClick={() => router.push(`/analysis?ids=${idsFile.id}`)} className="ml-3">
               Use for Analysis
-            </button>
+            </PrimaryButton>
             <button
               type="button"
               onClick={handleDownload}
@@ -140,52 +136,18 @@ export default function IdsFileDetail() {
           </div>
         </div>
 
-        <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              IDS File Information
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Details about your Information Delivery Specification file
-            </p>
-          </div>
-          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Filename</dt>
-                <dd className="mt-1 text-sm text-gray-900">{idsFile.filename}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">File ID</dt>
-                <dd className="mt-1 text-sm text-gray-900">{idsFile.id}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Size</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {idsFile.size ? `${Math.round(idsFile.size / 1024)} KB` : 'Unknown'}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Uploaded</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(idsFile.created_at).toLocaleDateString()} {new Date(idsFile.created_at).toLocaleTimeString()}
-                </dd>
-              </div>
-              {idsFile.specification_version && (
-                <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">IDS Version</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{idsFile.specification_version}</dd>
-                </div>
-              )}
-              {idsFile.rule_count && (
-                <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">Rule Count</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{idsFile.rule_count}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        </div>
+        <FileInfo
+          title="IDS File Information"
+          description="Details about your Information Delivery Specification file"
+          fields={[
+            { label: 'Filename', value: idsFile.filename },
+            { label: 'File ID', value: idsFile.id },
+            { label: 'Size', value: idsFile.size ? `${Math.round(idsFile.size / 1024)} KB` : 'Unknown' },
+            { label: 'Uploaded', value: `${new Date(idsFile.created_at).toLocaleDateString()} ${new Date(idsFile.created_at).toLocaleTimeString()}` },
+            ...(idsFile.specification_version ? [{ label: 'IDS Version', value: idsFile.specification_version }] : []),
+            ...(idsFile.rule_count ? [{ label: 'Rule Count', value: idsFile.rule_count }] : []),
+          ]}
+        />
 
         {idsFile.specifications && (
           <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
@@ -237,12 +199,7 @@ export default function IdsFileDetail() {
         )}
 
         <div className="mt-8">
-          <Link
-            href="/ids-files"
-            className="text-orange-600 hover:text-orange-900"
-          >
-            &larr; Back to IDS Files
-          </Link>
+          <BackLink href="/ids-files">&larr; Back to IDS Files</BackLink>
         </div>
       </div>
     </Layout>

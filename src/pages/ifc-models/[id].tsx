@@ -6,6 +6,10 @@ import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../utils/api-client';
+import FileInfo from '../../components/FileInfo';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import BackLink from '../../components/BackLink';
+import PrimaryButton from '../../components/PrimaryButton';
 
 export default function ModelDetail() {
   const router = useRouter();
@@ -72,9 +76,7 @@ export default function ModelDetail() {
   if (authLoading || !user) {
     return (
       <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -105,9 +107,7 @@ export default function ModelDetail() {
   if (modelLoading || !model) {
     return (
       <Layout title="Loading Model... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -122,13 +122,9 @@ export default function ModelDetail() {
             </h2>
           </div>
           <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
-            <button
-              type="button"
-              onClick={() => router.push(`/analysis?model=${model.id}`)}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-            >
+            <PrimaryButton onClick={() => router.push(`/analysis?model=${model.id}`)} className="ml-3">
               Analyze Model
-            </button>
+            </PrimaryButton>
             <button
               type="button"
               onClick={handleDownload}
@@ -142,58 +138,23 @@ export default function ModelDetail() {
 
         <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Model Information
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Details about your IFC model
-            </p>
-          </div>
-          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Filename</dt>
-                <dd className="mt-1 text-sm text-gray-900">{model.filename}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">File ID</dt>
-                <dd className="mt-1 text-sm text-gray-900">{model.id}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Size</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown'}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Uploaded</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(model.created_at).toLocaleDateString()} {new Date(model.created_at).toLocaleTimeString()}
-                </dd>
-              </div>
-              {model.schema_version && (
-                <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">IFC Schema Version</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{model.schema_version}</dd>
-                </div>
-              )}
-              {model.entity_count && (
-                <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">Entity Count</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{model.entity_count}</dd>
-                </div>
-              )}
-            </dl>
+            <FileInfo
+              title="Model Information"
+              description="Details about your IFC model"
+              fields={[
+                { label: 'Filename', value: model.filename },
+                { label: 'File ID', value: model.id },
+                { label: 'Size', value: model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown' },
+                { label: 'Uploaded', value: `${new Date(model.created_at).toLocaleDateString()} ${new Date(model.created_at).toLocaleTimeString()}` },
+                ...(model.schema_version ? [{ label: 'IFC Schema Version', value: model.schema_version }] : []),
+                ...(model.entity_count ? [{ label: 'Entity Count', value: model.entity_count }] : []),
+              ]}
+            />
           </div>
         </div>
 
         <div className="mt-8">
-          <Link
-            href="/ifc-models"
-            className="text-orange-600 hover:text-orange-900"
-          >
-            &larr; Back to Models
-          </Link>
+          <BackLink href="/ifc-models">&larr; Back to Models</BackLink>
         </div>
       </div>
     </Layout>
