@@ -4,6 +4,17 @@ FROM node:20-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Build arguments (defaults keep local rebuilds happy)
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+ARG BUILD_TIME=unknown
+
+# Next.js only embeds env-vars that exist *while* `next build` runs,
+# so turn the build args into ENV values:
+ENV NEXT_PUBLIC_GIT_COMMIT=$GIT_COMMIT \
+    NEXT_PUBLIC_GIT_BRANCH=$GIT_BRANCH \
+    NEXT_PUBLIC_BUILD_TIME=$BUILD_TIME
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
