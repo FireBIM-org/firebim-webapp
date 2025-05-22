@@ -10,30 +10,30 @@
     "generate:api": "openapi-typescript openapi.json --output src/types/api.ts"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.2",
+    "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
     "@tailwindcss/forms": "^0.5.10",
-    "@tanstack/react-query": "^5.75.1",
+    "@tanstack/react-query": "^5.76.1",
     "axios": "^1.9.0",
-    "next": "15.3.1",
-    "openapi-typescript": "^7.6.1",
+    "next": "^15.3.2",
+    "openapi-typescript": "^7.8.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
-    "react-hook-form": "^7.56.1",
+    "react-hook-form": "^7.56.4",
     "react-toastify": "^11.0.5",
-    "zod": "^3.24.3"
+    "zod": "^3.25.20"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "tailwindcss": "^4.1.5",
+    "@tailwindcss/postcss": "^4.1.7",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "^15.3.2",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
 }

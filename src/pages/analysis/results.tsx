@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../utils/api-client';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import BackLink from '../../components/BackLink';
 
 interface AnalysisResult {
   title: string;
@@ -174,7 +175,7 @@ export default function AnalysisResults() {
     return (
       <Layout title="Loading... | FireBIM">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+          <LoadingSpinner />
         </div>
       </Layout>
     );
@@ -184,7 +185,7 @@ export default function AnalysisResults() {
     return (
       <Layout title="Loading Analysis Results | FireBIM">
         <div className="flex flex-col items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
+          <LoadingSpinner className="mb-4" />
           <p className="text-gray-700">Loading analysis results...</p>
         </div>
       </Layout>
@@ -521,12 +522,7 @@ export default function AnalysisResults() {
       )}
 
       <div className="mt-8">
-        <Link
-          href="/analysis"
-          className="text-orange-600 hover:text-orange-900"
-        >
-          &larr; Back to Analysis
-        </Link>
+        <BackLink href="/analysis">&larr; Back to Analysis</BackLink>
       </div>
     </Layout>
   );

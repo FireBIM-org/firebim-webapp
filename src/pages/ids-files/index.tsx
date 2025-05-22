@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient from '../../utils/api-client';
+import apiClient, { type IDSFile } from '../../utils/api-client';
+import Image from 'next/image';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IdsFiles() {
   const { user, isLoading: authLoading } = useAuth();
@@ -30,9 +32,7 @@ export default function IdsFiles() {
   if (authLoading || !user) {
     return (
       <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadingSpinner />
       </Layout>
     );
   }
@@ -95,12 +95,12 @@ export default function IdsFiles() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {idsFiles.map((idsFile) => (
+                    {idsFiles.map((idsFile: IDSFile) => (
                       <tr key={idsFile.id}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                           <div className="flex items-center">
                             <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-md">
-                              <img src="/file.svg" alt="" className="h-6 w-6" />
+                              <Image src="/file.svg" alt="" className="h-6 w-6" width={24} height={24} />
                             </div>
                             <div className="ml-4">
                               <div className="font-medium text-gray-900">{idsFile.filename}</div>

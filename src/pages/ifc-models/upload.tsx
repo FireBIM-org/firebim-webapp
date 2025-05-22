@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../utils/api-client';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function UploadModel() {
   const { user, isLoading: authLoading } = useAuth();
@@ -55,10 +56,8 @@ export default function UploadModel() {
 
   if (authLoading || !user) {
     return (
-      <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-        </div>
+      <Layout title="Uploading... | FireBIM">
+        <LoadingSpinner />
       </Layout>
     );
   }
