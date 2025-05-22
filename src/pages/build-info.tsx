@@ -6,7 +6,7 @@ const buildInfo = {
   apiEndpoint: process.env.NEXT_PUBLIC_API_HOST || 'Not set',
   gitBranch: process.env.NEXT_PUBLIC_GIT_BRANCH || 'Unknown',
   gitCommit: process.env.NEXT_PUBLIC_GIT_COMMIT || 'Unknown',
-  buildTime: process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toISOString(),
+  buildTime: process.env.NEXT_PUBLIC_BUILD_TIME || 'Unknown',
   nodeEnv: process.env.NODE_ENV || 'Unknown',
 };
 
