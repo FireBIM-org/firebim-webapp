@@ -424,7 +424,9 @@ export default function AnalysisResults() {
                             {spec.total_checks} checks
                           </span>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {spec.percent_checks_pass.toFixed(1)}% pass rate
+                            {Number.isFinite(Number(spec.percent_checks_pass))
+                              ? Number(spec.percent_checks_pass).toFixed(1)
+                              : '0.0'}% pass rate
                           </span>
                         </div>
                       </div>
