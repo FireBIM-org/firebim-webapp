@@ -37,6 +37,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Set BUILD_TIME to current UTC time and export as environment variable
+      - name: Set build time
+        id: buildtime
+        run: echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
@@ -84,7 +89,7 @@ jobs:
           build-args: |
             GIT_COMMIT=${{ github.sha }}
             GIT_BRANCH=${{ github.ref_name }}
-            BUILD_TIME=${{ github.run_started_at }}
+            BUILD_TIME=${{ env.BUILD_TIME }}
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
