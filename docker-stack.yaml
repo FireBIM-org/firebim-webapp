@@ -36,6 +36,7 @@ services:
       - "traefik.http.routers.web.tls.certresolver=myresolver"
     environment:
       - NEXT_PUBLIC_API_HOST=${NEXT_PUBLIC_API_HOST:-https://api.firebim.org}
+      - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID}
     deploy:
       update_config:
         order: start-first
