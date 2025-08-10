@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 
+import Analytics from "@/components/Analytics";
+
 interface LayoutProps {
   children: ReactNode;
   title?: string;
@@ -26,6 +28,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
         <title>{title}</title>
         <meta name="description" content="FireBIM webapp - BIM model analysis" />
         <link rel="icon" href="/favicon.ico" />
+        <Analytics />
       </Head>
 
       <nav className="bg-white shadow-sm">
