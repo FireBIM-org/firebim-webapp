@@ -99,7 +99,7 @@ export class ApiClient {
       password,
     });
     
-    if (response.data.success !== true) {
+    if (!response.data.success) {
       throw new Error(response.data.message || 'Login failed - unexpected response from server');
     }
   }

@@ -3,6 +3,9 @@ import axios from 'axios';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8000/';
 
+// Cookie configuration
+const COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -37,7 +40,7 @@ export default async function handler(
     const isProduction = process.env.NODE_ENV === 'production';
     res.setHeader(
       'Set-Cookie',
-      `auth_token=${access_token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 7}${isProduction ? '; Secure' : ''}`
+      `auth_token=${access_token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE_SECONDS}${isProduction ? '; Secure' : ''}`
     );
 
     return res.status(200).json({ success: true });

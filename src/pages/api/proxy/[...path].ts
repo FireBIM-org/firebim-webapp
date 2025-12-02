@@ -82,19 +82,17 @@ export default async function handler(
       headers['Content-Type'] = req.headers['content-type'] as string;
     }
     
+    // Filter out the 'path' parameter from query string
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { path: _pathParam, ...queryParams } = req.query;
+    
     // Forward the request to the backend API
     const response = await axios({
       method: req.method,
       url,
       headers,
       data: requestData,
-      params: (() => {
-        // Filter out the 'path' parameter from query string
-        // Create new object without 'path' key
-        const queryParams = { ...req.query };
-        delete queryParams.path;
-        return Object.keys(queryParams).length > 0 ? queryParams : undefined;
-      })(),
+      params: Object.keys(queryParams).length > 0 ? queryParams : undefined,
       responseType: isDownload ? 'arraybuffer' : 'json',
       maxBodyLength: Infinity,
       maxContentLength: Infinity,
