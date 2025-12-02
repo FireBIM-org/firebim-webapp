@@ -67,7 +67,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
                     {user.username}
                   </span>
                   <button
-                    onClick={logout}
+                    onClick={() => logout()}
                     className="text-sm text-gray-700 hover:text-gray-900"
                   >
                     Logout
