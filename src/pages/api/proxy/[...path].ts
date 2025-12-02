@@ -7,6 +7,18 @@ import FormData from 'form-data';
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8000/';
 
 /**
+ * Helper to read the request body as a buffer
+ */
+async function readBody(req: NextApiRequest): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+/**
  * API proxy handler that forwards requests to the backend API
  * and includes the auth token from HttpOnly cookie
  */
@@ -35,8 +47,9 @@ export default async function handler(
     // Determine response type based on the endpoint
     const isDownload = apiPath?.includes('/download');
     const isMultipart = req.headers['content-type']?.includes('multipart/form-data');
+    const isJson = req.headers['content-type']?.includes('application/json');
 
-    let requestData = req.body;
+    let requestData: Buffer | FormData | Record<string, unknown> | undefined = undefined;
     
     // Handle file uploads
     if (isMultipart) {
@@ -58,6 +71,13 @@ export default async function handler(
       requestData = formData;
       // Set proper headers from FormData
       Object.assign(headers, formData.getHeaders());
+    } else if (isJson && req.method !== 'GET') {
+      // Parse JSON body manually since bodyParser is disabled
+      const bodyBuffer = await readBody(req);
+      if (bodyBuffer.length > 0) {
+        requestData = JSON.parse(bodyBuffer.toString('utf8'));
+      }
+      headers['Content-Type'] = 'application/json';
     } else if (req.headers['content-type']) {
       headers['Content-Type'] = req.headers['content-type'] as string;
     }
