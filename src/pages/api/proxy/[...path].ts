@@ -90,9 +90,10 @@ export default async function handler(
       data: requestData,
       params: (() => {
         // Filter out the 'path' parameter from query string
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { path: _, ...otherParams } = req.query;
-        return Object.keys(otherParams).length > 0 ? otherParams : undefined;
+        // Create new object without 'path' key
+        const queryParams = { ...req.query };
+        delete queryParams.path;
+        return Object.keys(queryParams).length > 0 ? queryParams : undefined;
       })(),
       responseType: isDownload ? 'arraybuffer' : 'json',
       maxBodyLength: Infinity,

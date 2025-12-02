@@ -100,7 +100,7 @@ export class ApiClient {
     });
     
     if (response.data.success !== true) {
-      throw new Error('Login failed');
+      throw new Error(response.data.message || 'Login failed - unexpected response from server');
     }
   }
 
