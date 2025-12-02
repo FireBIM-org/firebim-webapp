@@ -19,17 +19,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const initAuth = async () => {
-      // Check if token exists in local storage
-      const hasToken = apiClient.initToken();
-      if (hasToken) {
-        try {
-          // Fetch user data with token
-          const userData = await apiClient.getCurrentUser();
-          setUser(userData);
-        } catch {
-          // Clear token if invalid
-          apiClient.clearToken();
-        }
+      // Try to fetch user data - cookie will be sent automatically
+      try {
+        const userData = await apiClient.getCurrentUser();
+        setUser(userData);
+      } catch {
+        // No valid session, user stays null
       }
       setIsLoading(false);
     };
@@ -70,7 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    apiClient.clearToken();
+    apiClient.logout();
     setUser(null);
     router.push('/');
   };
