@@ -1,89 +1,80 @@
-name: Docker
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: CI/CD
 
 on:
-  schedule:
-    - cron: '31 15 * * 1'
   push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    branches: [main, develop]
+    tags: ["v*.*.*"]
+    paths-ignore:
+      - "**.md"
   pull_request:
-    branches: [ "main" ]
+    branches: [main, develop]
+    paths-ignore:
+      - "**.md"
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
-  build:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npx eslint .
+
+  build-and-push:
+    name: Build & Push
+    needs: lint
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
       id-token: write
-
+    outputs:
+      image-tag: ${{ steps.tag.outputs.version }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Set BUILD_TIME to current UTC time and export as environment variable
-      - name: Set build time
-        id: buildtime
-        run: echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
-        with:
-          cosign-release: 'v2.2.4'
-
-      # Set up BuildKit Docker container builder to be able to build
-      # multi-platform images and export cache
-      # https://github.com/docker/setup-buildx-action
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
-
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+      - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Compute image tag
+        id: tag
+        run: |
+          SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "version=sha-${SHA_SHORT}" >> "$GITHUB_OUTPUT"
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
+      - name: Set build time
+        run: echo "BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.2.4"
+
+      - name: Build & push image
         id: build-and-push
-        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.version }}
+            ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -91,17 +82,113 @@ jobs:
             GIT_BRANCH=${{ github.ref_name }}
             BUILD_TIME=${{ env.BUILD_TIME }}
 
-      # Sign the resulting Docker image digest except on PRs.
-      # This will only write to the public Rekor transparency log when the Docker
-      # repository is public to avoid leaking data.  If you would like to publish
-      # transparency data even for private images, pass --force to cosign below.
-      # https://github.com/sigstore/cosign
       - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
         env:
-          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-          TAGS: ${{ steps.meta.outputs.tags }}
+          TAGS: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.version }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        # This step uses the identity token to provision an ephemeral certificate
-        # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+  # ── Deploy to dev (on merge to develop) ──────────────────────────
+  deploy-dev:
+    name: Deploy → Dev
+    needs: build-and-push
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update dev image tag in GitOps repo
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITOPS_PAT }}
+          script: |
+            const tag = '${{ needs.build-and-push.outputs.image-tag }}';
+            const owner = 'FireBIM-org';
+            const repo = 'firebim-deploy';
+            const path = 'apps/firebim-webapp/overlays/dev/kustomization.yaml';
+            const imageName = 'ghcr.io/firebim-org/firebim-webapp';
+
+            const {data} = await github.rest.repos.getContent({owner, repo, path});
+            const content = Buffer.from(data.content, 'base64').toString();
+            const updated = content.replace(
+              new RegExp(`(name: ${imageName.replace(/[/]/g, '\\/')}\\n\\s+newTag: ).*`),
+              `$1${tag}  # Updated by CI pipeline`
+            );
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo, path,
+              message: `chore(dev): update webapp to ${tag}`,
+              content: Buffer.from(updated).toString('base64'),
+              sha: data.sha,
+            });
+
+  # ── Deploy to staging (on merge to main) ─────────────────────────
+  deploy-staging:
+    name: Deploy → Staging
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update staging image tag in GitOps repo
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITOPS_PAT }}
+          script: |
+            const tag = '${{ needs.build-and-push.outputs.image-tag }}';
+            const owner = 'FireBIM-org';
+            const repo = 'firebim-deploy';
+            const path = 'apps/firebim-webapp/overlays/staging/kustomization.yaml';
+            const imageName = 'ghcr.io/firebim-org/firebim-webapp';
+
+            const {data} = await github.rest.repos.getContent({owner, repo, path});
+            const content = Buffer.from(data.content, 'base64').toString();
+            const updated = content.replace(
+              new RegExp(`(name: ${imageName.replace(/[/]/g, '\\/')}\\n\\s+newTag: ).*`),
+              `$1${tag}  # Updated by CI pipeline`
+            );
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo, path,
+              message: `chore(staging): update webapp to ${tag}`,
+              content: Buffer.from(updated).toString('base64'),
+              sha: data.sha,
+            });
+
+  # ── Deploy to production (on version tag → creates PR) ───────────
+  deploy-production:
+    name: Deploy → Production (PR)
+    needs: build-and-push
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create production deployment PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITOPS_PAT }}
+          script: |
+            const tag = '${{ needs.build-and-push.outputs.image-tag }}';
+            const owner = 'FireBIM-org';
+            const repo = 'firebim-deploy';
+            const branch = `deploy/production-webapp-${tag}`;
+            const path = 'apps/firebim-webapp/overlays/production/kustomization.yaml';
+            const imageName = 'ghcr.io/firebim-org/firebim-webapp';
+
+            // Create branch from main
+            const {data: ref} = await github.rest.git.getRef({owner, repo, ref: 'heads/main'});
+            await github.rest.git.createRef({owner, repo, ref: `refs/heads/${branch}`, sha: ref.object.sha});
+
+            const {data} = await github.rest.repos.getContent({owner, repo, path, ref: branch});
+            const content = Buffer.from(data.content, 'base64').toString();
+            const updated = content.replace(
+              new RegExp(`(name: ${imageName.replace(/[/]/g, '\\/')}\\n\\s+newTag: ).*`),
+              `$1${tag}  # Updated by CI pipeline`
+            );
+            await github.rest.repos.createOrUpdateFileContents({
+              owner, repo, path, branch,
+              message: `chore(production): update webapp to ${tag}`,
+              content: Buffer.from(updated).toString('base64'),
+              sha: data.sha,
+            });
+
+            await github.rest.pulls.create({
+              owner, repo,
+              title: `🚀 Production: Webapp ${process.env.GITHUB_REF_NAME} (${tag})`,
+              body: `## Production Deployment\n\n**Tag:** \`${process.env.GITHUB_REF_NAME}\`  **Image:** \`${tag}\`\n\n### Image\n- \`${imageName}:${tag}\`\n\n### Checklist\n- [ ] Staging verified\n- [ ] Approved by platform team`,
+              head: branch, base: 'main',
+            });
