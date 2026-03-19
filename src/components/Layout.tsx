@@ -20,6 +20,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
     { name: 'IFC Models', href: '/ifc-models', requiresAuth: true },
     { name: 'IDS Files', href: '/ids-files', requiresAuth: true },
     { name: 'Analysis', href: '/analysis', requiresAuth: true },
+    { name: 'RuleBuilder', href: '/rulebuilder', requiresAuth: true },
   ];
 
   return (
