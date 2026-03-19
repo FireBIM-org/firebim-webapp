@@ -34,6 +34,13 @@ export type PublishRuleElementResponse = {
   node_type?: string;
 };
 
+export type DetailedRuleElementListItem = {
+  element_id: string;
+  graph_uri: string;
+  node_type: 'start' | 'decision' | 'end';
+  label: string;
+};
+
 export async function getRulesHealth(): Promise<RuleHealthResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/health`);
   if (!res.ok) {
@@ -62,7 +69,7 @@ export async function listRuleElements(): Promise<RuleElementListItem[]> {
       return {
         element_id: id,
         graph_uri: graphUri,
-        node_type: 'decision',
+        node_type: 'decision' as const,
       };
     });
   }
@@ -78,44 +85,37 @@ export async function getRuleElementJson(id: string): Promise<{ rule_element: Ru
   return res.json();
 }
 
-export async function listRuleElementsDetailed(): Promise<
-  Array<{
-    element_id: string;
-    graph_uri: string;
-    node_type: 'start' | 'decision' | 'end';
-    label: string;
-  }>
-> {
+export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
   const basic = await listRuleElements();
+  const detailed: DetailedRuleElementListItem[] = [];
 
-  const detailed = await Promise.all(
-    basic.map(async (item, index) => {
-      const id = item.element_id || item.id || `rule-element-${index}`;
-      const nodeType =
-        item.node_type === 'start' || item.node_type === 'end'
-          ? item.node_type
-          : 'decision';
+  for (let index = 0; index < basic.length; index += 1) {
+    const item = basic[index];
+    const id = item.element_id || item.id || `rule-element-${index}`;
+    const nodeType: 'start' | 'decision' | 'end' =
+      item.node_type === 'start' || item.node_type === 'end'
+        ? item.node_type
+        : 'decision';
 
-      try {
-        const res = await getRuleElementJson(id);
-        const rule = res.rule_element;
+    try {
+      const res = await getRuleElementJson(id);
+      const rule = res.rule_element;
 
-        return {
-          element_id: id,
-          graph_uri: item.graph_uri || rule.graph_uri || '',
-          node_type: nodeType,
-          label: rule.label || rule.id || id,
-        };
-      } catch {
-        return {
-          element_id: id,
-          graph_uri: item.graph_uri || '',
-          node_type: nodeType,
-          label: id,
-        };
-      }
-    })
-  );
+      detailed.push({
+        element_id: id,
+        graph_uri: item.graph_uri || rule.graph_uri || '',
+        node_type: nodeType,
+        label: rule.label || rule.id || id,
+      });
+    } catch {
+      detailed.push({
+        element_id: id,
+        graph_uri: item.graph_uri || '',
+        node_type: nodeType,
+        label: id,
+      });
+    }
+  }
 
   return detailed;
 }

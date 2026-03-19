@@ -68,8 +68,8 @@ type Props = {
   deriveRequest: DeriveRequest;
 };
 
-function nextGenericLabel(nodes: Node[]) {
-  const base = 'New rule element';
+function nextLabelWithBase(base: string, nodes: Node[]) {
+  const cleanBase = (base || '').trim() || 'New rule element';
 
   const used = new Set(
     nodes
@@ -81,13 +81,13 @@ function nextGenericLabel(nodes: Node[]) {
       .filter(Boolean)
   );
 
-  if (!used.has(base)) return base;
+  if (!used.has(cleanBase)) return cleanBase;
 
   let i = 2;
-  while (used.has(`${base} ${i}`)) {
+  while (used.has(`${cleanBase} ${i}`)) {
     i += 1;
   }
-  return `${base} ${i}`;
+  return `${cleanBase} ${i}`;
 }
 
 function RuleCanvasInner({
@@ -162,17 +162,22 @@ function RuleCanvasInner({
       }
 
       const id = `${payload.nodeType}-${crypto.randomUUID()}`;
-      const isStoredItem = payload.source === 'api';
 
-      const label =
-        isStoredItem &&
+      const templateLabel =
         typeof template === 'object' &&
         template !== null &&
         'label' in template &&
         typeof template.label === 'string' &&
         template.label
           ? template.label
-          : nextGenericLabel(nodes);
+          : payload.label;
+
+      const baseLabel =
+        payload.source === 'api' && templateLabel
+          ? templateLabel
+          : 'New rule element';
+
+      const label = nextLabelWithBase(baseLabel, nodes);
 
       const rule: RuleData = {
         ...(template as RuleData),
@@ -229,10 +234,13 @@ function RuleCanvasInner({
       if (!sourceRule) return current;
 
       const newId = `${sourceRule.node_type}-${crypto.randomUUID()}`;
+      const copiedBaseLabel = sourceRule.label || sourceRule.id || 'New rule element';
+      const copiedLabel = nextLabelWithBase(copiedBaseLabel, current);
+
       const copiedRule: RuleData = {
         ...sourceRule,
         id: newId,
-        label: sourceRule.label ? `${sourceRule.label} copy` : `${sourceRule.id} copy`,
+        label: copiedLabel,
         true_path: null,
         false_path: null,
         unknown_path: null,
@@ -292,7 +300,10 @@ function RuleCanvasInner({
     const derivedRule = deriveRequest.derivedRule;
 
     setNodes((current) => {
-      const label = derivedRule.label || nextGenericLabel(current);
+      const label = nextLabelWithBase(
+        derivedRule.label || derivedRule.id || 'New rule element',
+        current
+      );
 
       const newNode: Node = {
         id: derivedRule.id,

@@ -35,6 +35,7 @@ export default function RuleBuilderPage() {
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [storedElements, setStoredElements] = useState<RuleLibraryCategory['items']>([]);
+  const [storedLabelOverrides, setStoredLabelOverrides] = useState<Record<string, string>>({});
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedRule, setSelectedRule] = useState<RuleData | null>(null);
@@ -61,15 +62,18 @@ export default function RuleBuilderPage() {
     const items = await listRuleElementsDetailed();
 
     const mapped = items.map((item) => {
+      const effectiveLabel =
+        storedLabelOverrides[item.element_id] || item.label || item.element_id;
+
       return {
         type: item.node_type,
-        label: item.label,
+        label: effectiveLabel,
         description: item.graph_uri || 'Stored rule element',
         source: 'api' as const,
         element_id: item.element_id,
         template: {
           node_type: item.node_type,
-          label: item.label,
+          label: effectiveLabel,
           graph_uri: item.graph_uri || null,
           config: {},
         },
@@ -77,7 +81,7 @@ export default function RuleBuilderPage() {
     });
 
     setStoredElements(mapped);
-  }, []);
+  }, [storedLabelOverrides]);
 
   useEffect(() => {
     let active = true;
@@ -184,7 +188,7 @@ export default function RuleBuilderPage() {
         new_id: newId,
         preserve_paths: false,
         overrides: {
-          label: selectedRule.label ? `${selectedRule.label} copy` : `${sourceId} copy`,
+          label: selectedRule.label || `${sourceId} copy`,
         },
       });
 
@@ -216,8 +220,16 @@ export default function RuleBuilderPage() {
 
       const result = await publishRuleElement(payload);
 
+      const publishedId = result.element_id || payload.id;
+      const effectiveLabel = payload.label || payload.id;
+
+      setStoredLabelOverrides((current) => ({
+        ...current,
+        [publishedId]: effectiveLabel,
+      }));
+
       setPublishState('success');
-      setPublishMessage(`Published ${result.element_id || payload.id}`);
+      setPublishMessage(`Published ${publishedId}`);
 
       await loadStoredRuleElements();
 
