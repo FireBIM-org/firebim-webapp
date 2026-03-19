@@ -5,6 +5,7 @@ export type RuleNodeTemplate = {
   label: string;
   description?: string;
   source?: 'local' | 'api';
+  element_id?: string;
   template: {
     node_type: RuleNodeType;
     label: string;

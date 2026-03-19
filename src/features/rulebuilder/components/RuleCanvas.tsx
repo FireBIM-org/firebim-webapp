@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Background,
   Controls,
@@ -11,26 +11,98 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type NodeMouseHandler,
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { getRuleElementJson } from '../api';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
+
+type RuleData = {
+  id: string;
+  node_type: 'start' | 'decision' | 'end';
+  label?: string | null;
+  target_class?: string | null;
+  property_path?: string | null;
+  operator?: string | null;
+  value?: unknown;
+  true_path?: string | null;
+  false_path?: string | null;
+  unknown_path?: string | null;
+  config?: Record<string, unknown>;
+  graph_uri?: string | null;
+};
 
 type DragPayload = {
   kind: 'rule-node-template';
   nodeType: 'start' | 'decision' | 'end';
   label: string;
   template: Record<string, unknown>;
+  source?: 'local' | 'api';
+  element_id?: string;
 };
 
-function makeNodeLabel(payload: DragPayload) {
-  return String(payload.template?.label || payload.label || payload.nodeType);
+type DuplicateRequest = {
+  requestId: number;
+  sourceNodeId: string;
+} | null;
+
+type DeleteRequest = {
+  requestId: number;
+  sourceNodeId: string;
+} | null;
+
+type DeriveRequest = {
+  requestId: number;
+  derivedRule: RuleData;
+} | null;
+
+type Props = {
+  selectedNodeId: string | null;
+  onSelectedNodeChange: (nodeId: string | null, rule: RuleData | null) => void;
+  editedRule: RuleData | null;
+  duplicateRequest: DuplicateRequest;
+  deleteRequest: DeleteRequest;
+  deriveRequest: DeriveRequest;
+};
+
+function nextGenericLabel(nodes: Node[]) {
+  const base = 'New rule element';
+
+  const used = new Set(
+    nodes
+      .map((node) => {
+        const rule = node.data?.rule as RuleData | undefined;
+        const label = rule?.label || node.data?.label;
+        return typeof label === 'string' ? label.trim() : '';
+      })
+      .filter(Boolean)
+  );
+
+  if (!used.has(base)) return base;
+
+  let i = 2;
+  while (used.has(`${base} ${i}`)) {
+    i += 1;
+  }
+  return `${base} ${i}`;
 }
 
-function RuleCanvasInner() {
+function RuleCanvasInner({
+  selectedNodeId,
+  onSelectedNodeChange,
+  editedRule,
+  duplicateRequest,
+  deleteRequest,
+  deriveRequest,
+}: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const lastHandledDuplicateRequestId = useRef<number | null>(null);
+  const lastHandledDeleteRequestId = useRef<number | null>(null);
+  const lastHandledDeriveRequestId = useRef<number | null>(null);
+
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -46,8 +118,19 @@ function RuleCanvasInner() {
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
+  const onNodeClick = useCallback<NodeMouseHandler>(
+    (_event, node) => {
+      onSelectedNodeChange(node.id, (node.data?.rule as RuleData) || null);
+    },
+    [onSelectedNodeChange]
+  );
+
+  const onPaneClick = useCallback(() => {
+    onSelectedNodeChange(null, null);
+  }, [onSelectedNodeChange]);
+
   const onDrop = useCallback(
-    (event: React.DragEvent) => {
+    async (event: React.DragEvent) => {
       event.preventDefault();
 
       const raw = event.dataTransfer.getData('application/firebim-rule-node');
@@ -62,31 +145,176 @@ function RuleCanvasInner() {
 
       if (payload.kind !== 'rule-node-template') return;
 
-      const bounds = wrapperRef.current.getBoundingClientRect();
       const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+        x: event.clientX,
+        y: event.clientY,
       });
 
+      let template = payload.template;
+
+      if (payload.source === 'api' && payload.element_id) {
+        try {
+          const res = await getRuleElementJson(payload.element_id);
+          template = res.rule_element;
+        } catch (error) {
+          console.error('Failed to fetch stored rule element JSON:', error);
+        }
+      }
+
       const id = `${payload.nodeType}-${crypto.randomUUID()}`;
+      const isStoredItem = payload.source === 'api';
+
+      const label =
+        isStoredItem &&
+        typeof template === 'object' &&
+        template !== null &&
+        'label' in template &&
+        typeof template.label === 'string' &&
+        template.label
+          ? template.label
+          : nextGenericLabel(nodes);
+
+      const rule: RuleData = {
+        ...(template as RuleData),
+        id,
+        label,
+      };
 
       const newNode: Node = {
         id,
         type: 'default',
         position,
         data: {
-          label: makeNodeLabel(payload),
-          rule: {
-            id,
-            ...payload.template,
-          },
+          label,
+          rule,
         },
       };
 
       setNodes((current) => current.concat(newNode));
+      onSelectedNodeChange(id, rule);
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, nodes, setNodes, onSelectedNodeChange]
   );
+
+  useEffect(() => {
+    if (!selectedNodeId || !editedRule) return;
+
+    setNodes((current) =>
+      current.map((node) => {
+        if (node.id !== selectedNodeId) return node;
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            label: editedRule.label || editedRule.id || node.data?.label,
+            rule: editedRule,
+          },
+        };
+      })
+    );
+  }, [editedRule, selectedNodeId, setNodes]);
+
+  useEffect(() => {
+    if (!duplicateRequest) return;
+    if (lastHandledDuplicateRequestId.current === duplicateRequest.requestId) return;
+
+    lastHandledDuplicateRequestId.current = duplicateRequest.requestId;
+
+    setNodes((current) => {
+      const sourceNode = current.find((node) => node.id === duplicateRequest.sourceNodeId);
+      if (!sourceNode) return current;
+
+      const sourceRule = (sourceNode.data?.rule as RuleData) || null;
+      if (!sourceRule) return current;
+
+      const newId = `${sourceRule.node_type}-${crypto.randomUUID()}`;
+      const copiedRule: RuleData = {
+        ...sourceRule,
+        id: newId,
+        label: sourceRule.label ? `${sourceRule.label} copy` : `${sourceRule.id} copy`,
+        true_path: null,
+        false_path: null,
+        unknown_path: null,
+        graph_uri: null,
+      };
+
+      const copiedNode: Node = {
+        ...sourceNode,
+        id: newId,
+        position: {
+          x: sourceNode.position.x + 40,
+          y: sourceNode.position.y + 40,
+        },
+        data: {
+          ...sourceNode.data,
+          label: copiedRule.label || copiedRule.id,
+          rule: copiedRule,
+        },
+        selected: false,
+      };
+
+      queueMicrotask(() => {
+        onSelectedNodeChange(newId, copiedRule);
+      });
+
+      return current.concat(copiedNode);
+    });
+  }, [duplicateRequest, setNodes, onSelectedNodeChange]);
+
+  useEffect(() => {
+    if (!deleteRequest) return;
+    if (lastHandledDeleteRequestId.current === deleteRequest.requestId) return;
+
+    lastHandledDeleteRequestId.current = deleteRequest.requestId;
+
+    setNodes((current) => current.filter((node) => node.id !== deleteRequest.sourceNodeId));
+
+    setEdges((current) =>
+      current.filter(
+        (edge) =>
+          edge.source !== deleteRequest.sourceNodeId &&
+          edge.target !== deleteRequest.sourceNodeId
+      )
+    );
+
+    queueMicrotask(() => {
+      onSelectedNodeChange(null, null);
+    });
+  }, [deleteRequest, setNodes, setEdges, onSelectedNodeChange]);
+
+  useEffect(() => {
+    if (!deriveRequest) return;
+    if (lastHandledDeriveRequestId.current === deriveRequest.requestId) return;
+
+    lastHandledDeriveRequestId.current = deriveRequest.requestId;
+
+    const derivedRule = deriveRequest.derivedRule;
+
+    setNodes((current) => {
+      const label = derivedRule.label || nextGenericLabel(current);
+
+      const newNode: Node = {
+        id: derivedRule.id,
+        type: 'default',
+        position: { x: 120, y: 120 },
+        data: {
+          label,
+          rule: {
+            ...derivedRule,
+            label,
+            graph_uri: null,
+          },
+        },
+      };
+
+      queueMicrotask(() => {
+        onSelectedNodeChange(newNode.id, newNode.data.rule as RuleData);
+      });
+
+      return current.concat(newNode);
+    });
+  }, [deriveRequest, setNodes, onSelectedNodeChange]);
 
   return (
     <div ref={wrapperRef} className="h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
@@ -97,6 +325,8 @@ function RuleCanvasInner() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
         fitView
       >
         <MiniMap />
@@ -107,10 +337,10 @@ function RuleCanvasInner() {
   );
 }
 
-export default function RuleCanvas() {
+export default function RuleCanvas(props: Props) {
   return (
     <ReactFlowProvider>
-      <RuleCanvasInner />
+      <RuleCanvasInner {...props} />
     </ReactFlowProvider>
   );
 }

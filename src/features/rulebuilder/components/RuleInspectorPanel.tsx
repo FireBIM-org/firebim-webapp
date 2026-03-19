@@ -1,0 +1,226 @@
+import { ChangeEvent } from 'react';
+
+type RuleData = {
+  id: string;
+  node_type: 'start' | 'decision' | 'end';
+  label?: string | null;
+  target_class?: string | null;
+  property_path?: string | null;
+  operator?: string | null;
+  value?: unknown;
+  true_path?: string | null;
+  false_path?: string | null;
+  unknown_path?: string | null;
+  config?: Record<string, unknown>;
+  graph_uri?: string | null;
+};
+
+type Props = {
+  selectedRule: RuleData | null;
+  onChange: (patch: Partial<RuleData>) => void;
+  onPublish: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  onDerive: () => void;
+  publishState: 'idle' | 'saving' | 'success' | 'error';
+  publishMessage: string | null;
+};
+
+function inputValue(value: unknown) {
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
+
+export default function RuleInspectorPanel({
+  selectedRule,
+  onChange,
+  onPublish,
+  onDuplicate,
+  onDelete,
+  onDerive,
+  publishState,
+  publishMessage,
+}: Props) {
+  const handleTextChange =
+    (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
+      onChange({ [field]: event.target.value });
+    };
+
+  if (!selectedRule) {
+    return (
+      <aside className="w-80 border-l border-gray-200 bg-white">
+        <div className="flex h-full items-center justify-center p-6 text-sm text-gray-400">
+          Select a node to inspect and edit its properties.
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="w-80 border-l border-gray-200 bg-white">
+      <div className="flex h-full flex-col">
+        <div className="border-b border-gray-200 px-4 py-3">
+          <h2 className="text-sm font-semibold text-gray-900">Inspector</h2>
+          <p className="text-xs text-gray-500">Edit the selected rule node</p>
+        </div>
+
+        <div className="space-y-2 border-b border-gray-200 px-4 py-3">
+          <button
+            type="button"
+            onClick={onDuplicate}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+          >
+            Duplicate selected node
+          </button>
+
+          {selectedRule.graph_uri && (
+            <button
+              type="button"
+              onClick={onDerive}
+              className="w-full rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+            >
+              Derive from stored element
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onDelete}
+            className="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+          >
+            Delete selected node
+          </button>
+
+          <button
+            type="button"
+            onClick={onPublish}
+            disabled={publishState === 'saving'}
+            className="w-full rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {publishState === 'saving' ? 'Publishing...' : 'Publish selected node'}
+          </button>
+
+          {publishMessage && (
+            <p
+              className={`text-xs ${
+                publishState === 'error'
+                  ? 'text-red-600'
+                  : publishState === 'success'
+                  ? 'text-green-600'
+                  : 'text-gray-500'
+              }`}
+            >
+              {publishMessage}
+            </p>
+          )}
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                ID
+              </label>
+              <input
+                value={inputValue(selectedRule.id)}
+                disabled
+                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Node type
+              </label>
+              <input
+                value={inputValue(selectedRule.node_type)}
+                disabled
+                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Label
+              </label>
+              <input
+                value={inputValue(selectedRule.label)}
+                onChange={handleTextChange('label')}
+                placeholder="Node label"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Target class
+              </label>
+              <input
+                value={inputValue(selectedRule.target_class)}
+                onChange={handleTextChange('target_class')}
+                placeholder="e.g. Room"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Property path
+              </label>
+              <input
+                value={inputValue(selectedRule.property_path)}
+                onChange={handleTextChange('property_path')}
+                placeholder="http://example.org/..."
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Operator
+              </label>
+              <input
+                value={inputValue(selectedRule.operator)}
+                onChange={handleTextChange('operator')}
+                placeholder=">, <, ==, etc."
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Value
+              </label>
+              <input
+                value={inputValue(selectedRule.value)}
+                onChange={handleTextChange('value')}
+                placeholder="Comparison value"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Graph URI
+              </label>
+              <input
+                value={inputValue(selectedRule.graph_uri)}
+                disabled
+                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+              />
+            </div>
+
+            <div className="pt-2">
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                JSON preview
+              </label>
+              <pre className="max-h-72 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+                {JSON.stringify(selectedRule, null, 2)}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
