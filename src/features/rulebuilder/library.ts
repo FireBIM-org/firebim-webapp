@@ -5,7 +5,7 @@ import {
   RuleNodeTemplate,
 } from './types';
 
-export const RULE_LIBRARY_STORAGE_KEY = 'firebim-rule-library-v1';
+export const RULE_LIBRARY_STORAGE_KEY = 'firebim-rule-library-v2';
 
 export const DEFAULT_CATEGORY_META: RuleLibraryCategoryMeta[] = [
   {
@@ -69,8 +69,7 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
 ];
 
 /**
- * Temporary backward-compatible export so existing rulebuilder.tsx
- * can still import RULE_LIBRARY while we refactor the parent page.
+ * Temporary backward-compatible export.
  */
 export const RULE_LIBRARY: RuleLibraryCategory[] = [
   {
@@ -91,14 +90,18 @@ export function createDefaultLibraryState(
   items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
 ): RuleLibraryState {
   const itemCategory: Record<string, string> = {};
+  const itemLabels: Record<string, string> = {};
 
   for (const item of items) {
     itemCategory[item.id] = 'under-development';
+    itemLabels[item.id] = item.label;
   }
 
   return {
     categories: DEFAULT_CATEGORY_META,
     itemCategory,
+    itemLabels,
+    deletedItemIds: [],
   };
 }
 
@@ -126,17 +129,32 @@ export function loadLibraryState(
         ? parsed.itemCategory
         : {};
 
+    const itemLabels =
+      parsed.itemLabels && typeof parsed.itemLabels === 'object'
+        ? parsed.itemLabels
+        : {};
+
+    const deletedItemIds = Array.isArray(parsed.deletedItemIds)
+      ? parsed.deletedItemIds
+      : [];
+
     const mergedItemCategory: Record<string, string> = { ...itemCategory };
+    const mergedItemLabels: Record<string, string> = { ...itemLabels };
 
     for (const item of items) {
       if (!mergedItemCategory[item.id]) {
         mergedItemCategory[item.id] = 'under-development';
+      }
+      if (!mergedItemLabels[item.id]) {
+        mergedItemLabels[item.id] = item.label;
       }
     }
 
     return {
       categories,
       itemCategory: mergedItemCategory,
+      itemLabels: mergedItemLabels,
+      deletedItemIds,
     };
   } catch {
     return createDefaultLibraryState(items);

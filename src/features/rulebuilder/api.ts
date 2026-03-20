@@ -57,7 +57,17 @@ export type PublishRuleElementResponse = {
   node_type?: string;
 };
 
+export type DeleteRuleElementRequest = {
+  graph_uri: string;
+};
+
+export type DeleteRuleElementResponse = {
+  deleted: boolean;
+  graph_uri: string;
+};
+
 export type DetailedRuleElementListItem = {
+  item_id: string;
   element_id: string;
   graph_uri: string;
   node_type: RuleNodeType;
@@ -168,6 +178,7 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
       const rule = res.rule_element;
 
       detailed.push({
+        item_id: `api:${id}`,
         element_id: id,
         graph_uri: item.graph_uri || rule.graph_uri || '',
         node_type: nodeType,
@@ -175,6 +186,7 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
       });
     } catch {
       detailed.push({
+        item_id: `api:${id}`,
         element_id: id,
         graph_uri: item.graph_uri || '',
         node_type: nodeType,
@@ -200,6 +212,25 @@ export async function publishRuleElement(
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Publish rule element failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function deleteRuleElement(
+  payload: DeleteRuleElementRequest
+): Promise<DeleteRuleElementResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Delete rule element failed: ${res.status} ${text}`);
   }
 
   return res.json();

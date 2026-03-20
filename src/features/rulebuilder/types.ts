@@ -38,15 +38,11 @@ export type RuleLibraryCategoryMeta = {
   order: number;
 };
 
-export type RuleLibraryItemMeta = {
-  item_id: string;
-  category_id: string;
-  deleted?: boolean;
-};
-
 export type RuleLibraryState = {
   categories: RuleLibraryCategoryMeta[];
   itemCategory: Record<string, string>;
+  itemLabels: Record<string, string>;
+  deletedItemIds: string[];
 };
 
 export type RuleLibrarySelection = Record<string, boolean>;

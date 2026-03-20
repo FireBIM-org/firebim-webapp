@@ -3,24 +3,15 @@ import Layout from '@/components/Layout';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
+import { RULE_LIBRARY } from '@/features/rulebuilder/library';
 import {
-  createCategoryId,
-  createDefaultLibraryState,
-  DEFAULT_LOCAL_TEMPLATES,
-  loadLibraryState,
-  saveLibraryState,
-} from '@/features/rulebuilder/library';
-import {
+  deleteRuleElement,
   deriveRuleElement,
   getRulesHealth,
   listRuleElementsDetailed,
   publishRuleElement,
 } from '@/features/rulebuilder/api';
-import {
-  RuleLibraryCategory,
-  RuleLibraryState,
-  RuleNodeTemplate,
-} from '@/features/rulebuilder/types';
+import { RuleLibraryCategory } from '@/features/rulebuilder/types';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 
@@ -41,6 +32,44 @@ type RuleData = {
 
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
 
+type LibraryItem = RuleLibraryCategory['items'][number] & {
+  id: string;
+  source?: 'local' | 'api';
+  element_id?: string;
+  template: RuleLibraryCategory['items'][number]['template'] & {
+    graph_uri?: string | null;
+  };
+};
+
+type CategoryMeta = {
+  id: string;
+  label: string;
+  system?: boolean;
+  order: number;
+};
+
+type LibraryState = {
+  categories: CategoryMeta[];
+  itemCategory: Record<string, string>;
+  itemLabels: Record<string, string>;
+};
+
+const LIBRARY_STORAGE_KEY = 'firebim-rule-library-v3';
+const DEFAULT_CATEGORY_META: CategoryMeta[] = [
+  { id: 'under-development', label: 'Under development', system: true, order: 0 },
+  { id: 'trash', label: 'Waste bin', system: true, order: 999 },
+];
+
+function createCategoryId(label: string) {
+  const normalized = label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return normalized || `category-${Date.now()}`;
+}
+
 function dedupeCategoryId(baseId: string, existingIds: string[]) {
   if (!existingIds.includes(baseId)) return baseId;
 
@@ -55,14 +84,109 @@ function dedupeCategoryId(baseId: string, existingIds: string[]) {
   return candidate;
 }
 
+function normalizeLocalLibraryItems(): LibraryItem[] {
+  const localCategory = RULE_LIBRARY.find((category) => category.id === 'under-development');
+  const items = localCategory?.items || [];
+
+  return items.map((item, index) => {
+    const baseId =
+      item.type === 'start'
+        ? 'local:start'
+        : item.type === 'end'
+        ? 'local:end'
+        : index === 0
+        ? 'local:decision'
+        : `local:${item.type}:${index}`;
+
+    return {
+      ...item,
+      id: baseId,
+      source: 'local',
+      template: {
+        ...item.template,
+        label: item.template.label || item.label,
+      },
+    };
+  });
+}
+
+function createDefaultLibraryState(localItems: LibraryItem[]): LibraryState {
+  const itemCategory: Record<string, string> = {};
+  const itemLabels: Record<string, string> = {};
+
+  for (const item of localItems) {
+    itemCategory[item.id] = 'under-development';
+    itemLabels[item.id] = item.label;
+  }
+
+  return {
+    categories: DEFAULT_CATEGORY_META,
+    itemCategory,
+    itemLabels,
+  };
+}
+
+function loadLibraryState(localItems: LibraryItem[]): LibraryState {
+  if (typeof window === 'undefined') {
+    return createDefaultLibraryState(localItems);
+  }
+
+  try {
+    const raw = window.localStorage.getItem(LIBRARY_STORAGE_KEY);
+    if (!raw) {
+      return createDefaultLibraryState(localItems);
+    }
+
+    const parsed = JSON.parse(raw) as Partial<LibraryState>;
+
+    const categories = Array.isArray(parsed.categories)
+      ? parsed.categories
+      : DEFAULT_CATEGORY_META;
+
+    const itemCategory =
+      parsed.itemCategory && typeof parsed.itemCategory === 'object'
+        ? parsed.itemCategory
+        : {};
+
+    const itemLabels =
+      parsed.itemLabels && typeof parsed.itemLabels === 'object'
+        ? parsed.itemLabels
+        : {};
+
+    const mergedItemCategory: Record<string, string> = { ...itemCategory };
+    const mergedItemLabels: Record<string, string> = { ...itemLabels };
+
+    for (const item of localItems) {
+      if (!mergedItemCategory[item.id]) {
+        mergedItemCategory[item.id] = 'under-development';
+      }
+      if (!mergedItemLabels[item.id]) {
+        mergedItemLabels[item.id] = item.label;
+      }
+    }
+
+    return {
+      categories,
+      itemCategory: mergedItemCategory,
+      itemLabels: mergedItemLabels,
+    };
+  } catch {
+    return createDefaultLibraryState(localItems);
+  }
+}
+
+function saveLibraryState(state: LibraryState) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(state));
+}
+
 export default function RuleBuilderPage() {
+  const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
-  const [storedElements, setStoredElements] = useState<RuleNodeTemplate[]>([]);
-  const [storedLabelOverrides, setStoredLabelOverrides] = useState<Record<string, string>>({});
-
-  const [libraryState, setLibraryState] = useState<RuleLibraryState>(() =>
-    createDefaultLibraryState(DEFAULT_LOCAL_TEMPLATES)
+  const [storedElements, setStoredElements] = useState<LibraryItem[]>([]);
+  const [libraryState, setLibraryState] = useState<LibraryState>(() =>
+    createDefaultLibraryState(localLibraryItems)
   );
   const [libraryHydrated, setLibraryHydrated] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -88,20 +212,21 @@ export default function RuleBuilderPage() {
     derivedRule: RuleData;
   } | null>(null);
 
-  const allLibraryItems = useMemo<RuleNodeTemplate[]>(
-    () => [...DEFAULT_LOCAL_TEMPLATES, ...storedElements],
-    [storedElements]
+  const allLibraryItems = useMemo<LibraryItem[]>(
+    () => [...localLibraryItems, ...storedElements],
+    [localLibraryItems, storedElements]
   );
 
   const loadStoredRuleElements = useCallback(async () => {
     const items = await listRuleElementsDetailed();
 
-    const mapped: RuleNodeTemplate[] = items.map((item) => {
+    const mapped: LibraryItem[] = items.map((item) => {
+      const itemId = item.item_id || `api:${item.element_id}`;
       const effectiveLabel =
-        storedLabelOverrides[item.element_id] || item.label || item.element_id;
+        libraryState.itemLabels[itemId] || item.label || item.element_id;
 
       return {
-        id: item.item_id || `api:${item.element_id}`,
+        id: itemId,
         type: item.node_type,
         label: effectiveLabel,
         description: item.graph_uri || 'Stored rule element',
@@ -117,13 +242,13 @@ export default function RuleBuilderPage() {
     });
 
     setStoredElements(mapped);
-  }, [storedLabelOverrides]);
+  }, [libraryState.itemLabels]);
 
   useEffect(() => {
-    const loaded = loadLibraryState(DEFAULT_LOCAL_TEMPLATES);
+    const loaded = loadLibraryState(localLibraryItems);
     setLibraryState(loaded);
     setLibraryHydrated(true);
-  }, []);
+  }, [localLibraryItems]);
 
   useEffect(() => {
     let active = true;
@@ -159,16 +284,21 @@ export default function RuleBuilderPage() {
   useEffect(() => {
     setLibraryState((current) => {
       const nextItemCategory = { ...current.itemCategory };
+      const nextItemLabels = { ...current.itemLabels };
 
       for (const item of allLibraryItems) {
         if (!nextItemCategory[item.id]) {
           nextItemCategory[item.id] = 'under-development';
+        }
+        if (!nextItemLabels[item.id]) {
+          nextItemLabels[item.id] = item.label;
         }
       }
 
       return {
         ...current,
         itemCategory: nextItemCategory,
+        itemLabels: nextItemLabels,
       };
     });
   }, [allLibraryItems]);
@@ -182,10 +312,19 @@ export default function RuleBuilderPage() {
     const sortedMeta = [...libraryState.categories].sort((a, b) => a.order - b.order);
 
     return sortedMeta.map((categoryMeta) => {
-      const items = allLibraryItems.filter((item) => {
-        const assignedCategory = libraryState.itemCategory[item.id] || 'under-development';
-        return assignedCategory === categoryMeta.id;
-      });
+      const items = allLibraryItems
+        .filter((item) => {
+          const assignedCategory = libraryState.itemCategory[item.id] || 'under-development';
+          return assignedCategory === categoryMeta.id;
+        })
+        .map((item) => ({
+          ...item,
+          label: libraryState.itemLabels[item.id] || item.label,
+          template: {
+            ...item.template,
+            label: libraryState.itemLabels[item.id] || item.template.label || item.label,
+          },
+        }));
 
       return {
         id: categoryMeta.id,
@@ -213,14 +352,20 @@ export default function RuleBuilderPage() {
 
     setLibraryState((current) => {
       const nextItemCategory = { ...current.itemCategory };
+      const nextItemLabels = { ...current.itemLabels };
 
       for (const itemId of selectedItemIds) {
+        const item = allLibraryItems.find((candidate) => candidate.id === itemId);
+        if (!item) continue;
+
         nextItemCategory[itemId] = categoryId;
+        nextItemLabels[itemId] = item.label;
       }
 
       return {
         ...current,
         itemCategory: nextItemCategory,
+        itemLabels: nextItemLabels,
       };
     });
 
@@ -228,28 +373,86 @@ export default function RuleBuilderPage() {
   };
 
   const handleMoveSelectedToTrash = () => {
-    handleMoveSelectedToCategory('trash');
-  };
+    const apiOnlyIds = selectedItemIds.filter((itemId) => itemId.startsWith('api:'));
+    if (apiOnlyIds.length === 0) return;
 
-  const handleEmptyTrash = () => {
     setLibraryState((current) => {
       const nextItemCategory = { ...current.itemCategory };
+      const nextItemLabels = { ...current.itemLabels };
 
-      for (const [itemId, categoryId] of Object.entries(nextItemCategory)) {
-        if (categoryId === 'trash') {
-          delete nextItemCategory[itemId];
-        }
+      for (const itemId of apiOnlyIds) {
+        const item = allLibraryItems.find((candidate) => candidate.id === itemId);
+        if (!item) continue;
+
+        nextItemCategory[itemId] = 'trash';
+        nextItemLabels[itemId] = item.label;
       }
 
       return {
         ...current,
         itemCategory: nextItemCategory,
+        itemLabels: nextItemLabels,
       };
     });
 
-    setSelectedItemIds((current) =>
-      current.filter((itemId) => libraryState.itemCategory[itemId] !== 'trash')
+    setSelectedItemIds([]);
+  };
+
+  const handleEmptyTrash = async () => {
+    const trashedApiItems = allLibraryItems.filter(
+      (item) =>
+        item.source === 'api' &&
+        (libraryState.itemCategory[item.id] || 'under-development') === 'trash' &&
+        item.template.graph_uri
     );
+
+    if (trashedApiItems.length === 0) {
+      setPublishState('idle');
+      setPublishMessage('Waste bin is empty');
+      return;
+    }
+
+    try {
+      setPublishState('saving');
+      setPublishMessage('Deleting rule elements from API...');
+
+      await Promise.all(
+        trashedApiItems.map((item) =>
+          deleteRuleElement({
+            graph_uri: item.template.graph_uri as string,
+          })
+        )
+      );
+
+      setLibraryState((current) => {
+        const nextItemCategory = { ...current.itemCategory };
+        const nextItemLabels = { ...current.itemLabels };
+
+        for (const item of trashedApiItems) {
+          delete nextItemCategory[item.id];
+          delete nextItemLabels[item.id];
+        }
+
+        return {
+          ...current,
+          itemCategory: nextItemCategory,
+          itemLabels: nextItemLabels,
+        };
+      });
+
+      setSelectedItemIds((current) =>
+        current.filter((itemId) => !trashedApiItems.some((item) => item.id === itemId))
+      );
+
+      await loadStoredRuleElements();
+
+      setPublishState('success');
+      setPublishMessage(`Deleted ${trashedApiItems.length} rule element(s) from API`);
+    } catch (error) {
+      console.error('deleteRuleElement failed:', error);
+      setPublishState('error');
+      setPublishMessage(error instanceof Error ? error.message : 'Delete failed');
+    }
   };
 
   const handleCreateCategory = () => {
@@ -415,11 +618,15 @@ export default function RuleBuilderPage() {
       const result = await publishRuleElement(payload);
 
       const publishedId = result.element_id || payload.id;
+      const publishedItemId = `api:${publishedId}`;
       const effectiveLabel = payload.label || payload.id;
 
-      setStoredLabelOverrides((current) => ({
+      setLibraryState((current) => ({
         ...current,
-        [publishedId]: effectiveLabel,
+        itemLabels: {
+          ...current.itemLabels,
+          [publishedItemId]: effectiveLabel,
+        },
       }));
 
       setPublishState('success');
