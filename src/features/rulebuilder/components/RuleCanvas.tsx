@@ -1,21 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   Controls,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
-  addEdge,
-  useEdgesState,
-  useNodesState,
+  applyEdgeChanges,
+  applyNodeChanges,
   type Connection,
   type Edge,
+  type EdgeChange,
   type Node,
+  type NodeChange,
   type NodeMouseHandler,
+  type NodeTypes,
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+
 import { getRuleElementJson } from '../api';
+import RuleElementNode from './RuleElementNode';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
@@ -68,6 +72,13 @@ type Props = {
   deriveRequest: DeriveRequest;
 };
 
+type BranchHandle = 'true' | 'false' | 'unknown';
+type RuleBranch = 'true_path' | 'false_path' | 'unknown_path';
+
+const nodeTypes: NodeTypes = {
+  ruleElement: RuleElementNode,
+};
+
 function nextLabelWithBase(base: string, nodes: Node[]) {
   const cleanBase = (base || '').trim() || 'New rule element';
 
@@ -90,6 +101,80 @@ function nextLabelWithBase(base: string, nodes: Node[]) {
   return `${cleanBase} ${i}`;
 }
 
+function handleToBranch(handle: BranchHandle): RuleBranch {
+  if (handle === 'true') return 'true_path';
+  if (handle === 'false') return 'false_path';
+  return 'unknown_path';
+}
+
+function branchToHandle(branch: RuleBranch): BranchHandle {
+  if (branch === 'true_path') return 'true';
+  if (branch === 'false_path') return 'false';
+  return 'unknown';
+}
+
+function buildEdgeId(sourceId: string, handle: BranchHandle, targetId: string) {
+  return `${sourceId}::${handle}::${targetId}`;
+}
+
+function clearTargetReferences(rule: RuleData, targetId: string): RuleData {
+  return {
+    ...rule,
+    true_path: rule.true_path === targetId ? null : rule.true_path,
+    false_path: rule.false_path === targetId ? null : rule.false_path,
+    unknown_path: rule.unknown_path === targetId ? null : rule.unknown_path,
+  };
+}
+
+function updateRuleBranch(rule: RuleData, branch: RuleBranch, targetId: string | null): RuleData {
+  if (branch === 'true_path') {
+    return { ...rule, true_path: targetId };
+  }
+  if (branch === 'false_path') {
+    return { ...rule, false_path: targetId };
+  }
+  return { ...rule, unknown_path: targetId };
+}
+
+function buildEdgesFromNodes(nodes: Node[]): Edge[] {
+  const nextEdges: Edge[] = [];
+
+  for (const node of nodes) {
+    const rule = node.data?.rule as RuleData | undefined;
+    if (!rule) continue;
+
+    const branches: Array<{ branch: RuleBranch; targetId: string | null | undefined }> = [
+      { branch: 'true_path', targetId: rule.true_path },
+      { branch: 'false_path', targetId: rule.false_path },
+      { branch: 'unknown_path', targetId: rule.unknown_path },
+    ];
+
+    for (const item of branches) {
+      if (!item.targetId) continue;
+
+      const handle = branchToHandle(item.branch);
+
+      nextEdges.push({
+        id: buildEdgeId(node.id, handle, item.targetId),
+        source: node.id,
+        sourceHandle: handle,
+        target: item.targetId,
+        targetHandle: 'in',
+        animated: false,
+        data: {
+          branch: item.branch,
+        },
+      });
+    }
+  }
+
+  return nextEdges;
+}
+
+function currentEdgeById(edges: Edge[], edgeId: string) {
+  return edges.find((edge) => edge.id === edgeId) || null;
+}
+
 function RuleCanvasInner({
   selectedNodeId,
   onSelectedNodeChange,
@@ -104,13 +189,155 @@ function RuleCanvasInner({
   const lastHandledDeriveRequestId = useRef<number | null>(null);
 
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const selectedRule = useMemo(() => {
+    if (!selectedNodeId) return null;
+    const node = nodes.find((item) => item.id === selectedNodeId);
+    return (node?.data?.rule as RuleData | undefined) || null;
+  }, [nodes, selectedNodeId]);
+
+  const syncEdgesFromNodes = useCallback((nextNodes: Node[]) => {
+    setEdges(buildEdgesFromNodes(nextNodes));
+  }, []);
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((current) => applyNodeChanges(changes, current));
+  }, []);
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      const removedEdges = changes
+        .filter((change) => change.type === 'remove')
+        .map((change) => currentEdgeById(edges, change.id))
+        .filter((edge): edge is Edge => Boolean(edge));
+
+      if (removedEdges.length > 0) {
+        setNodes((current) => {
+          const nextNodes = current.map((node) => {
+            const rule = node.data?.rule as RuleData | undefined;
+            if (!rule) return node;
+
+            let nextRule = rule;
+
+            for (const edge of removedEdges) {
+              if (edge.source !== node.id) continue;
+              const handle = edge.sourceHandle as BranchHandle | undefined;
+              if (!handle) continue;
+
+              const branch = handleToBranch(handle);
+              const targetId = edge.target;
+
+              if (nextRule[branch] === targetId) {
+                nextRule = updateRuleBranch(nextRule, branch, null);
+              }
+            }
+
+            if (nextRule === rule) return node;
+
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                label: nextRule.label || nextRule.id,
+                rule: nextRule,
+              },
+            };
+          });
+
+          syncEdgesFromNodes(nextNodes);
+
+          queueMicrotask(() => {
+            if (!selectedNodeId) return;
+            const selected = nextNodes.find((node) => node.id === selectedNodeId);
+            onSelectedNodeChange(
+              selected?.id || null,
+              (selected?.data?.rule as RuleData | undefined) || null
+            );
+          });
+
+          return nextNodes;
+        });
+
+        return;
+      }
+
+      setEdges((current) => applyEdgeChanges(changes, current));
+    },
+    [edges, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
+  );
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((current) => addEdge(params, current)),
-    [setEdges]
+    (params: Connection) => {
+      if (!params.source || !params.target || !params.sourceHandle) return;
+      if (params.targetHandle !== 'in') return;
+      if (params.source === params.target) return;
+      if (
+        params.sourceHandle !== 'true' &&
+        params.sourceHandle !== 'false' &&
+        params.sourceHandle !== 'unknown'
+      ) {
+        return;
+      }
+
+      const handle = params.sourceHandle as BranchHandle;
+      const branch = handleToBranch(handle);
+      const sourceId = params.source;
+      const targetId = params.target;
+
+      setNodes((current) => {
+        const nextNodes = current.map((node) => {
+          const rule = node.data?.rule as RuleData | undefined;
+          if (!rule) return node;
+
+          if (node.id === sourceId) {
+            const nextRule = updateRuleBranch(rule, branch, targetId);
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                label: nextRule.label || nextRule.id,
+                rule: nextRule,
+              },
+            };
+          }
+
+          const isCurrentIncomingTarget =
+            rule.true_path === targetId ||
+            rule.false_path === targetId ||
+            rule.unknown_path === targetId;
+
+          if (isCurrentIncomingTarget) {
+            const nextRule = clearTargetReferences(rule, targetId);
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                label: nextRule.label || nextRule.id,
+                rule: nextRule,
+              },
+            };
+          }
+
+          return node;
+        });
+
+        syncEdgesFromNodes(nextNodes);
+
+        queueMicrotask(() => {
+          if (!selectedNodeId) return;
+          const selected = nextNodes.find((node) => node.id === selectedNodeId);
+          onSelectedNodeChange(
+            selected?.id || null,
+            (selected?.data?.rule as RuleData | undefined) || null
+          );
+        });
+
+        return nextNodes;
+      });
+    },
+    [onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -161,7 +388,7 @@ function RuleCanvasInner({
         }
       }
 
-      const id = `${payload.nodeType}-${crypto.randomUUID()}`;
+      const canvasNodeId = `${payload.nodeType}-${crypto.randomUUID()}`;
 
       const templateLabel =
         typeof template === 'object' &&
@@ -173,39 +400,51 @@ function RuleCanvasInner({
           : payload.label;
 
       const baseLabel =
-        payload.source === 'api' && templateLabel
-          ? templateLabel
-          : 'New rule element';
+        payload.source === 'api' && templateLabel ? templateLabel : 'New rule element';
 
-      const label = nextLabelWithBase(baseLabel, nodes);
+      setNodes((current) => {
+        const label = nextLabelWithBase(baseLabel, current);
 
-      const rule: RuleData = {
-        ...(template as RuleData),
-        id,
-        label,
-      };
-
-      const newNode: Node = {
-        id,
-        type: 'default',
-        position,
-        data: {
+        const rule: RuleData = {
+          ...(template as RuleData),
+          id: canvasNodeId,
           label,
-          rule,
-        },
-      };
+          true_path: null,
+          false_path: null,
+          unknown_path: null,
+          graph_uri: null,
+        };
 
-      setNodes((current) => current.concat(newNode));
-      onSelectedNodeChange(id, rule);
+        const newNode: Node = {
+          id: canvasNodeId,
+          type: 'ruleElement',
+          position,
+          data: {
+            label,
+            rule,
+          },
+        };
+
+        const nextNodes = current.concat(newNode);
+
+        syncEdgesFromNodes(nextNodes);
+
+        queueMicrotask(() => {
+          onSelectedNodeChange(canvasNodeId, rule);
+        });
+
+        return nextNodes;
+      });
     },
-    [reactFlowInstance, nodes, setNodes, onSelectedNodeChange]
+    [reactFlowInstance, onSelectedNodeChange, syncEdgesFromNodes]
   );
 
   useEffect(() => {
     if (!selectedNodeId || !editedRule) return;
+    if (editedRule.id !== selectedNodeId) return;
 
-    setNodes((current) =>
-      current.map((node) => {
+    setNodes((current) => {
+      const nextNodes = current.map((node) => {
         if (node.id !== selectedNodeId) return node;
 
         return {
@@ -216,9 +455,12 @@ function RuleCanvasInner({
             rule: editedRule,
           },
         };
-      })
-    );
-  }, [editedRule, selectedNodeId, setNodes]);
+      });
+
+      syncEdgesFromNodes(nextNodes);
+      return nextNodes;
+    });
+  }, [editedRule, selectedNodeId, syncEdgesFromNodes]);
 
   useEffect(() => {
     if (!duplicateRequest) return;
@@ -250,6 +492,7 @@ function RuleCanvasInner({
       const copiedNode: Node = {
         ...sourceNode,
         id: newId,
+        type: 'ruleElement',
         position: {
           x: sourceNode.position.x + 40,
           y: sourceNode.position.y + 40,
@@ -262,13 +505,17 @@ function RuleCanvasInner({
         selected: false,
       };
 
+      const nextNodes = current.concat(copiedNode);
+
+      syncEdgesFromNodes(nextNodes);
+
       queueMicrotask(() => {
         onSelectedNodeChange(newId, copiedRule);
       });
 
-      return current.concat(copiedNode);
+      return nextNodes;
     });
-  }, [duplicateRequest, setNodes, onSelectedNodeChange]);
+  }, [duplicateRequest, onSelectedNodeChange, syncEdgesFromNodes]);
 
   useEffect(() => {
     if (!deleteRequest) return;
@@ -276,20 +523,35 @@ function RuleCanvasInner({
 
     lastHandledDeleteRequestId.current = deleteRequest.requestId;
 
-    setNodes((current) => current.filter((node) => node.id !== deleteRequest.sourceNodeId));
+    setNodes((current) => {
+      const nextNodes = current
+        .filter((node) => node.id !== deleteRequest.sourceNodeId)
+        .map((node) => {
+          const rule = node.data?.rule as RuleData | undefined;
+          if (!rule) return node;
 
-    setEdges((current) =>
-      current.filter(
-        (edge) =>
-          edge.source !== deleteRequest.sourceNodeId &&
-          edge.target !== deleteRequest.sourceNodeId
-      )
-    );
+          const nextRule = clearTargetReferences(rule, deleteRequest.sourceNodeId);
+
+          if (nextRule === rule) return node;
+
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              label: nextRule.label || nextRule.id,
+              rule: nextRule,
+            },
+          };
+        });
+
+      syncEdgesFromNodes(nextNodes);
+      return nextNodes;
+    });
 
     queueMicrotask(() => {
       onSelectedNodeChange(null, null);
     });
-  }, [deleteRequest, setNodes, setEdges, onSelectedNodeChange]);
+  }, [deleteRequest, onSelectedNodeChange, syncEdgesFromNodes]);
 
   useEffect(() => {
     if (!deriveRequest) return;
@@ -305,33 +567,56 @@ function RuleCanvasInner({
         current
       );
 
+      const normalizedRule: RuleData = {
+        ...derivedRule,
+        id: derivedRule.id,
+        label,
+        graph_uri: null,
+      };
+
       const newNode: Node = {
         id: derivedRule.id,
-        type: 'default',
+        type: 'ruleElement',
         position: { x: 120, y: 120 },
         data: {
           label,
-          rule: {
-            ...derivedRule,
-            label,
-            graph_uri: null,
-          },
+          rule: normalizedRule,
         },
       };
 
+      const nextNodes = current.concat(newNode);
+
+      syncEdgesFromNodes(nextNodes);
+
       queueMicrotask(() => {
-        onSelectedNodeChange(newNode.id, newNode.data.rule as RuleData);
+        onSelectedNodeChange(newNode.id, normalizedRule);
       });
 
-      return current.concat(newNode);
+      return nextNodes;
     });
-  }, [deriveRequest, setNodes, onSelectedNodeChange]);
+  }, [deriveRequest, onSelectedNodeChange, syncEdgesFromNodes]);
+
+  useEffect(() => {
+    if (!selectedNodeId) return;
+    const node = nodes.find((item) => item.id === selectedNodeId);
+    if (!node) {
+      onSelectedNodeChange(null, null);
+    }
+  }, [nodes, onSelectedNodeChange, selectedNodeId]);
+
+  useEffect(() => {
+    if (!selectedNodeId) return;
+    if (!selectedRule) {
+      onSelectedNodeChange(null, null);
+    }
+  }, [selectedNodeId, selectedRule, onSelectedNodeChange]);
 
   return (
     <div ref={wrapperRef} className="h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onInit={setReactFlowInstance}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

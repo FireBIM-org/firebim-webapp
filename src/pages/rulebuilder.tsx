@@ -3,14 +3,24 @@ import Layout from '@/components/Layout';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
-import { RULE_LIBRARY } from '@/features/rulebuilder/library';
+import {
+  createCategoryId,
+  createDefaultLibraryState,
+  DEFAULT_LOCAL_TEMPLATES,
+  loadLibraryState,
+  saveLibraryState,
+} from '@/features/rulebuilder/library';
 import {
   deriveRuleElement,
   getRulesHealth,
   listRuleElementsDetailed,
   publishRuleElement,
 } from '@/features/rulebuilder/api';
-import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import {
+  RuleLibraryCategory,
+  RuleLibraryState,
+  RuleNodeTemplate,
+} from '@/features/rulebuilder/types';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 
@@ -31,11 +41,31 @@ type RuleData = {
 
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
 
+function dedupeCategoryId(baseId: string, existingIds: string[]) {
+  if (!existingIds.includes(baseId)) return baseId;
+
+  let index = 2;
+  let candidate = `${baseId}-${index}`;
+
+  while (existingIds.includes(candidate)) {
+    index += 1;
+    candidate = `${baseId}-${index}`;
+  }
+
+  return candidate;
+}
+
 export default function RuleBuilderPage() {
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
-  const [storedElements, setStoredElements] = useState<RuleLibraryCategory['items']>([]);
+  const [storedElements, setStoredElements] = useState<RuleNodeTemplate[]>([]);
   const [storedLabelOverrides, setStoredLabelOverrides] = useState<Record<string, string>>({});
+
+  const [libraryState, setLibraryState] = useState<RuleLibraryState>(() =>
+    createDefaultLibraryState(DEFAULT_LOCAL_TEMPLATES)
+  );
+  const [libraryHydrated, setLibraryHydrated] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedRule, setSelectedRule] = useState<RuleData | null>(null);
@@ -58,18 +88,24 @@ export default function RuleBuilderPage() {
     derivedRule: RuleData;
   } | null>(null);
 
+  const allLibraryItems = useMemo<RuleNodeTemplate[]>(
+    () => [...DEFAULT_LOCAL_TEMPLATES, ...storedElements],
+    [storedElements]
+  );
+
   const loadStoredRuleElements = useCallback(async () => {
     const items = await listRuleElementsDetailed();
 
-    const mapped = items.map((item) => {
+    const mapped: RuleNodeTemplate[] = items.map((item) => {
       const effectiveLabel =
         storedLabelOverrides[item.element_id] || item.label || item.element_id;
 
       return {
+        id: item.item_id || `api:${item.element_id}`,
         type: item.node_type,
         label: effectiveLabel,
         description: item.graph_uri || 'Stored rule element',
-        source: 'api' as const,
+        source: 'api',
         element_id: item.element_id,
         template: {
           node_type: item.node_type,
@@ -82,6 +118,12 @@ export default function RuleBuilderPage() {
 
     setStoredElements(mapped);
   }, [storedLabelOverrides]);
+
+  useEffect(() => {
+    const loaded = loadLibraryState(DEFAULT_LOCAL_TEMPLATES);
+    setLibraryState(loaded);
+    setLibraryHydrated(true);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -114,16 +156,156 @@ export default function RuleBuilderPage() {
     };
   }, [loadStoredRuleElements]);
 
+  useEffect(() => {
+    setLibraryState((current) => {
+      const nextItemCategory = { ...current.itemCategory };
+
+      for (const item of allLibraryItems) {
+        if (!nextItemCategory[item.id]) {
+          nextItemCategory[item.id] = 'under-development';
+        }
+      }
+
+      return {
+        ...current,
+        itemCategory: nextItemCategory,
+      };
+    });
+  }, [allLibraryItems]);
+
+  useEffect(() => {
+    if (!libraryHydrated) return;
+    saveLibraryState(libraryState);
+  }, [libraryHydrated, libraryState]);
+
   const categories = useMemo<RuleLibraryCategory[]>(() => {
-    return [
-      ...RULE_LIBRARY,
-      {
-        id: 'stored-rule-elements',
-        label: 'Stored rule elements',
-        items: storedElements,
-      },
-    ];
-  }, [storedElements]);
+    const sortedMeta = [...libraryState.categories].sort((a, b) => a.order - b.order);
+
+    return sortedMeta.map((categoryMeta) => {
+      const items = allLibraryItems.filter((item) => {
+        const assignedCategory = libraryState.itemCategory[item.id] || 'under-development';
+        return assignedCategory === categoryMeta.id;
+      });
+
+      return {
+        id: categoryMeta.id,
+        label: categoryMeta.label,
+        system: categoryMeta.system,
+        items,
+      };
+    });
+  }, [allLibraryItems, libraryState]);
+
+  const handleToggleItemSelected = (itemId: string, multi = false) => {
+    setSelectedItemIds((current) => {
+      if (multi) {
+        return current.includes(itemId)
+          ? current.filter((id) => id !== itemId)
+          : [...current, itemId];
+      }
+
+      return current.includes(itemId) && current.length === 1 ? [] : [itemId];
+    });
+  };
+
+  const handleMoveSelectedToCategory = (categoryId: string) => {
+    if (selectedItemIds.length === 0) return;
+
+    setLibraryState((current) => {
+      const nextItemCategory = { ...current.itemCategory };
+
+      for (const itemId of selectedItemIds) {
+        nextItemCategory[itemId] = categoryId;
+      }
+
+      return {
+        ...current,
+        itemCategory: nextItemCategory,
+      };
+    });
+
+    setSelectedItemIds([]);
+  };
+
+  const handleMoveSelectedToTrash = () => {
+    handleMoveSelectedToCategory('trash');
+  };
+
+  const handleEmptyTrash = () => {
+    setLibraryState((current) => {
+      const nextItemCategory = { ...current.itemCategory };
+
+      for (const [itemId, categoryId] of Object.entries(nextItemCategory)) {
+        if (categoryId === 'trash') {
+          delete nextItemCategory[itemId];
+        }
+      }
+
+      return {
+        ...current,
+        itemCategory: nextItemCategory,
+      };
+    });
+
+    setSelectedItemIds((current) =>
+      current.filter((itemId) => libraryState.itemCategory[itemId] !== 'trash')
+    );
+  };
+
+  const handleCreateCategory = () => {
+    const label = window.prompt('New category name');
+    if (!label) return;
+
+    const trimmed = label.trim();
+    if (!trimmed) return;
+
+    setLibraryState((current) => {
+      const existingIds = current.categories.map((category) => category.id);
+      const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
+      const maxOrder = current.categories.reduce(
+        (max, category) => Math.max(max, category.order),
+        0
+      );
+
+      return {
+        ...current,
+        categories: [
+          ...current.categories,
+          {
+            id: newId,
+            label: trimmed,
+            system: false,
+            order: maxOrder + 1,
+          },
+        ],
+      };
+    });
+  };
+
+  const handleRenameCategory = (categoryId: string) => {
+    setLibraryState((current) => {
+      const target = current.categories.find((category) => category.id === categoryId);
+      if (!target || target.system) return current;
+
+      const label = window.prompt('Rename category', target.label);
+      if (!label) return current;
+
+      const trimmed = label.trim();
+      if (!trimmed) return current;
+
+      return {
+        ...current,
+        categories: current.categories.map((category) =>
+          category.id === categoryId
+            ? {
+                ...category,
+                label: trimmed,
+              }
+            : category
+        ),
+      };
+    });
+  };
 
   const handleSelectedNodeChange = (nodeId: string | null, rule: RuleData | null) => {
     setSelectedNodeId(nodeId);
@@ -213,9 +395,21 @@ export default function RuleBuilderPage() {
       setPublishState('saving');
       setPublishMessage(null);
 
+      const normalizedLabel = (selectedRule.label || '').trim() || selectedRule.id;
+
       const payload: RuleData = {
         ...selectedRule,
-        label: selectedRule.label || selectedRule.id,
+        label: normalizedLabel,
+        graph_uri: null,
+        true_path: null,
+        false_path: null,
+        unknown_path: null,
+        value:
+          typeof selectedRule.value === 'string' &&
+          selectedRule.value.trim() !== '' &&
+          !Number.isNaN(Number(selectedRule.value))
+            ? Number(selectedRule.value)
+            : selectedRule.value,
       };
 
       const result = await publishRuleElement(payload);
@@ -229,7 +423,7 @@ export default function RuleBuilderPage() {
       }));
 
       setPublishState('success');
-      setPublishMessage(`Published ${publishedId}`);
+      setPublishMessage(`Published ${effectiveLabel} (${publishedId})`);
 
       await loadStoredRuleElements();
 
@@ -237,7 +431,8 @@ export default function RuleBuilderPage() {
         current
           ? {
               ...current,
-              graph_uri: result.graph_uri || current.graph_uri || null,
+              label: effectiveLabel,
+              graph_uri: result.graph_uri || null,
             }
           : current
       );
@@ -280,6 +475,13 @@ export default function RuleBuilderPage() {
             collapsed={libraryCollapsed}
             onToggleCollapsed={() => setLibraryCollapsed((prev) => !prev)}
             categories={categories}
+            selectedItemIds={selectedItemIds}
+            onToggleItemSelected={handleToggleItemSelected}
+            onMoveSelectedToCategory={handleMoveSelectedToCategory}
+            onCreateCategory={handleCreateCategory}
+            onRenameCategory={handleRenameCategory}
+            onMoveSelectedToTrash={handleMoveSelectedToTrash}
+            onEmptyTrash={handleEmptyTrash}
           />
 
           <div className="min-w-0 flex-1 bg-gray-50">

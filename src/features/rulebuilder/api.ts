@@ -5,16 +5,19 @@ export type RuleHealthResponse = {
   ok?: boolean;
 };
 
+export type RuleNodeType = 'start' | 'decision' | 'end';
+export type RuleBranch = 'true_path' | 'false_path' | 'unknown_path';
+
 export type RuleElementListItem = {
   element_id?: string;
   id?: string;
   graph_uri?: string;
-  node_type?: 'start' | 'decision' | 'end';
+  node_type?: RuleNodeType;
 };
 
 export type RuleElementJson = {
   id: string;
-  node_type: 'start' | 'decision' | 'end';
+  node_type: RuleNodeType;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
@@ -27,6 +30,26 @@ export type RuleElementJson = {
   graph_uri?: string | null;
 };
 
+export type RuleNodePayload = {
+  id: string;
+  node_type: RuleNodeType;
+  target_class?: string | null;
+  property_path?: string | null;
+  operator?: string | null;
+  value?: unknown;
+  true_path?: string | null;
+  false_path?: string | null;
+  unknown_path?: string | null;
+  label?: string | null;
+  config?: Record<string, unknown>;
+};
+
+export type RuleSetDraft = {
+  id: string;
+  entry: string;
+  nodes: RuleNodePayload[];
+};
+
 export type PublishRuleElementResponse = {
   published?: boolean;
   element_id?: string;
@@ -37,8 +60,53 @@ export type PublishRuleElementResponse = {
 export type DetailedRuleElementListItem = {
   element_id: string;
   graph_uri: string;
-  node_type: 'start' | 'decision' | 'end';
+  node_type: RuleNodeType;
   label: string;
+};
+
+export type ConnectRulesRequest = {
+  ruleset: RuleSetDraft;
+  source_id: string;
+  branch: RuleBranch;
+  target_id: string;
+};
+
+export type ConnectRulesResponse = {
+  updated: boolean;
+  overwritten: boolean;
+  previous_target_id?: string | null;
+  ruleset: RuleSetDraft;
+};
+
+export type DisconnectRulesRequest = {
+  ruleset: RuleSetDraft;
+  source_id: string;
+  branch: RuleBranch;
+};
+
+export type DisconnectRulesResponse = {
+  updated: boolean;
+  previous_target_id?: string | null;
+  ruleset: RuleSetDraft;
+};
+
+export type CheckRulesCompletenessRequest = {
+  ruleset: RuleSetDraft;
+};
+
+export type CheckRulesCompletenessResponse = {
+  complete: boolean;
+  open: boolean;
+  broken: boolean;
+  entry_ok: boolean;
+  missing_entry: boolean;
+  missing_nodes: string[];
+  open_branches: Array<{
+    node_id?: string;
+    branch?: RuleBranch | string;
+    [key: string]: unknown;
+  }>;
+  errors: string[];
 };
 
 export async function getRulesHealth(): Promise<RuleHealthResponse> {
@@ -92,10 +160,8 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
   for (let index = 0; index < basic.length; index += 1) {
     const item = basic[index];
     const id = item.element_id || item.id || `rule-element-${index}`;
-    const nodeType: 'start' | 'decision' | 'end' =
-      item.node_type === 'start' || item.node_type === 'end'
-        ? item.node_type
-        : 'decision';
+    const nodeType: RuleNodeType =
+      item.node_type === 'start' || item.node_type === 'end' ? item.node_type : 'decision';
 
     try {
       const res = await getRuleElementJson(id);
@@ -144,7 +210,8 @@ export async function deriveRuleElement(payload: {
   new_id: string;
   preserve_paths?: boolean;
   overrides?: Record<string, unknown>;
-}) {
+  source_graph_uri?: string | null;
+}): Promise<{ rule_element: RuleElementJson }> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/derive`, {
     method: 'POST',
     headers: {
@@ -156,6 +223,63 @@ export async function deriveRuleElement(payload: {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Derive rule element failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function connectRules(
+  payload: ConnectRulesRequest
+): Promise<ConnectRulesResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/connect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Connect rules failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function disconnectRules(
+  payload: DisconnectRulesRequest
+): Promise<DisconnectRulesResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/disconnect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Disconnect rules failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function checkRulesCompleteness(
+  payload: CheckRulesCompletenessRequest
+): Promise<CheckRulesCompletenessResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/check-completeness`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Check rules completeness failed: ${res.status} ${text}`);
   }
 
   return res.json();
