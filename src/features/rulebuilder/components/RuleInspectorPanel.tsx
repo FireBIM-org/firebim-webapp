@@ -43,7 +43,22 @@ export default function RuleInspectorPanel({
 }: Props) {
   const handleTextChange =
     (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
-      onChange({ [field]: event.target.value });
+      const value = event.target.value;
+
+      // Special handling for END nodes → value = output
+      if (field === 'value' && selectedRule?.node_type === 'end') {
+        onChange({
+          value,
+          config: {
+            ...selectedRule.config,
+            end_kind: 'output',
+            output_text: value,
+          },
+        });
+        return;
+      }
+
+      onChange({ [field]: value });
     };
 
   if (!selectedRule) {
@@ -55,6 +70,16 @@ export default function RuleInspectorPanel({
       </aside>
     );
   }
+
+  const isStart = selectedRule.node_type === 'start';
+  const isDecision = selectedRule.node_type === 'decision';
+  const isEnd = selectedRule.node_type === 'end';
+
+  const disabledClass =
+    'w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500';
+
+  const activeClass =
+    'w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 
   return (
     <aside className="w-80 border-l border-gray-200 bg-white">
@@ -121,11 +146,7 @@ export default function RuleInspectorPanel({
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
                 ID
               </label>
-              <input
-                value={inputValue(selectedRule.id)}
-                disabled
-                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
-              />
+              <input value={inputValue(selectedRule.id)} disabled className={disabledClass} />
             </div>
 
             <div>
@@ -135,7 +156,7 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.node_type)}
                 disabled
-                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+                className={disabledClass}
               />
             </div>
 
@@ -146,11 +167,11 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.label)}
                 onChange={handleTextChange('label')}
-                placeholder="Node label"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className={activeClass}
               />
             </div>
 
+            {/* Decision-only fields */}
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
                 Target class
@@ -158,8 +179,8 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.target_class)}
                 onChange={handleTextChange('target_class')}
-                placeholder="e.g. Room"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isDecision}
+                className={isDecision ? activeClass : disabledClass}
               />
             </div>
 
@@ -170,8 +191,8 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.property_path)}
                 onChange={handleTextChange('property_path')}
-                placeholder="http://example.org/..."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isDecision}
+                className={isDecision ? activeClass : disabledClass}
               />
             </div>
 
@@ -182,20 +203,28 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.operator)}
                 onChange={handleTextChange('operator')}
-                placeholder=">, <, ==, etc."
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={!isDecision}
+                className={isDecision ? activeClass : disabledClass}
               />
             </div>
 
+            {/* VALUE FIELD */}
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-                Value
+                {isEnd ? 'Output (value)' : 'Value'}
               </label>
+
+              {isEnd && (
+                <p className="mb-1 text-[11px] text-gray-400">
+                  This value is used as the rule output
+                </p>
+              )}
+
               <input
                 value={inputValue(selectedRule.value)}
                 onChange={handleTextChange('value')}
-                placeholder="Comparison value"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                disabled={isStart}
+                className={!isStart ? activeClass : disabledClass}
               />
             </div>
 
@@ -206,7 +235,7 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.graph_uri)}
                 disabled
-                className="w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500"
+                className={disabledClass}
               />
             </div>
 

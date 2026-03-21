@@ -5,6 +5,8 @@ import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
 import { RULE_LIBRARY } from '@/features/rulebuilder/library';
 import {
+  EXAMPLE_RULE_ELEMENTS,
+  ensureExampleRuleElements,
   deleteRuleElement,
   deriveRuleElement,
   getRulesHealth,
@@ -56,7 +58,8 @@ type LibraryState = {
 
 const LIBRARY_STORAGE_KEY = 'firebim-rule-library-v3';
 const DEFAULT_CATEGORY_META: CategoryMeta[] = [
-  { id: 'under-development', label: 'Under development', system: true, order: 0 },
+  { id: 'examples', label: 'Examples', system: true, order: 0 },
+  { id: 'under-development', label: 'Under development', system: true, order: 10 },
   { id: 'trash', label: 'Waste bin', system: true, order: 999 },
 ];
 
@@ -250,7 +253,7 @@ export default function RuleBuilderPage() {
     setLibraryHydrated(true);
   }, [localLibraryItems]);
 
-  useEffect(() => {
+    useEffect(() => {
     let active = true;
 
     async function load() {
@@ -266,11 +269,59 @@ export default function RuleBuilderPage() {
 
       try {
         if (!active) return;
-        await loadStoredRuleElements();
-      } catch (error) {
-        console.error('listRuleElementsDetailed failed:', error);
+
+        await ensureExampleRuleElements();
+
         if (!active) return;
-        setStoredElements([]);
+
+        await loadStoredRuleElements();
+
+        if (!active) return;
+
+        const exampleIds = new Set(EXAMPLE_RULE_ELEMENTS.map((item) => item.id));
+
+        setLibraryState((current) => {
+          const nextItemCategory = { ...current.itemCategory };
+          const nextItemLabels = { ...current.itemLabels };
+
+          for (const exampleId of exampleIds) {
+            const itemId = `api:${exampleId}`;
+            nextItemCategory[itemId] = 'examples';
+
+            const example = EXAMPLE_RULE_ELEMENTS.find((item) => item.id === exampleId);
+            if (example?.label) {
+              nextItemLabels[itemId] = example.label;
+            }
+          }
+
+          const hasExamplesCategory = current.categories.some(
+            (category) => category.id === 'examples'
+          );
+
+          return {
+            ...current,
+            categories: hasExamplesCategory
+              ? current.categories
+              : [
+                  { id: 'examples', label: 'Examples', system: true, order: 0 },
+                  ...current.categories,
+                ],
+            itemCategory: nextItemCategory,
+            itemLabels: nextItemLabels,
+          };
+        });
+      } catch (error) {
+        console.error('Failed to bootstrap example rule elements:', error);
+
+        if (!active) return;
+
+        try {
+          await loadStoredRuleElements();
+        } catch (loadError) {
+          console.error('listRuleElementsDetailed failed:', loadError);
+          if (!active) return;
+          setStoredElements([]);
+        }
       }
     }
 

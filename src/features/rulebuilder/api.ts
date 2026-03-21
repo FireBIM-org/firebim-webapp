@@ -119,6 +119,100 @@ export type CheckRulesCompletenessResponse = {
   errors: string[];
 };
 
+export type EnsureRuleElementsResult = {
+  createdIds: string[];
+  existingIds: string[];
+};
+
+export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
+  {
+    id: 'decision-example-room-area',
+    node_type: 'decision',
+    target_class: 'Room',
+    property_path: 'http://example.org/fbo/1.0/roomArea',
+    operator: '>',
+    value: 120,
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Example rule element',
+    config: {
+      library_category: 'Examples',
+    },
+    graph_uri: null,
+  },
+  {
+    id: 'start-example',
+    node_type: 'start',
+    target_class: null,
+    property_path: null,
+    operator: null,
+    value: null,
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Example start node',
+    config: {
+      library_category: 'Examples',
+    },
+    graph_uri: null,
+  },
+  {
+    id: 'end-example-pass',
+    node_type: 'end',
+    target_class: null,
+    property_path: null,
+    operator: null,
+    value: 'The rule passed',
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Example end node — Passed',
+    config: {
+      library_category: 'Examples',
+      end_kind: 'output',
+      output_text: 'The rule passed',
+    },
+    graph_uri: null,
+  },
+  {
+    id: 'end-example-fail',
+    node_type: 'end',
+    target_class: null,
+    property_path: null,
+    operator: null,
+    value: 'The rule did not pass',
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Example end node — Failed',
+    config: {
+      library_category: 'Examples',
+      end_kind: 'output',
+      output_text: 'The rule did not pass',
+    },
+    graph_uri: null,
+  },
+  {
+    id: 'end-example-missing-data',
+    node_type: 'end',
+    target_class: null,
+    property_path: null,
+    operator: null,
+    value: 'The rule is missing data and cannot be evaluated',
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Example end node — Missing data',
+    config: {
+      library_category: 'Examples',
+      end_kind: 'output',
+      output_text: 'The rule is missing data and cannot be evaluated',
+    },
+    graph_uri: null,
+  },
+];
+
 export async function getRulesHealth(): Promise<RuleHealthResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/health`);
   if (!res.ok) {
@@ -129,8 +223,10 @@ export async function getRulesHealth(): Promise<RuleHealthResponse> {
 
 export async function listRuleElements(): Promise<RuleElementListItem[]> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements`);
+
   if (!res.ok) {
-    throw new Error(`List rule elements failed: ${res.status}`);
+    console.error(`List rule elements failed: ${res.status}`);
+    return [];
   }
 
   const data = await res.json();
@@ -160,6 +256,23 @@ export async function getRuleElementJson(id: string): Promise<{ rule_element: Ru
   if (!res.ok) {
     throw new Error(`Get rule element json failed: ${res.status}`);
   }
+  return res.json();
+}
+
+export async function getRuleElementJsonOrNull(
+  id: string
+): Promise<{ rule_element: RuleElementJson } | null> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}/json`);
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Get rule element json failed: ${res.status} ${text}`);
+  }
+
   return res.json();
 }
 
@@ -314,4 +427,33 @@ export async function checkRulesCompleteness(
   }
 
   return res.json();
+}
+
+export async function ensureExampleRuleElements(): Promise<EnsureRuleElementsResult> {
+  const createdIds: string[] = [];
+  const existingIds: string[] = [];
+
+  for (const example of EXAMPLE_RULE_ELEMENTS) {
+    const existing = await getRuleElementJsonOrNull(example.id);
+
+    if (existing?.rule_element) {
+      existingIds.push(example.id);
+      continue;
+    }
+
+    await publishRuleElement({
+      ...example,
+      graph_uri: null,
+      true_path: null,
+      false_path: null,
+      unknown_path: null,
+    });
+
+    createdIds.push(example.id);
+  }
+
+  return {
+    createdIds,
+    existingIds,
+  };
 }
