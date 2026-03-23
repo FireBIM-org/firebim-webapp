@@ -124,6 +124,10 @@ function clearTargetReferences(rule: RuleData, targetId: string): RuleData {
   };
 }
 
+function allowsMultipleIncoming(rule: RuleData | undefined | null) {
+  return rule?.element_type === 'end';
+}
+
 function updateRuleBranch(rule: RuleData, branch: RuleBranch, targetId: string | null): RuleData {
   if (branch === 'true_path') {
     return { ...rule, true_path: targetId };
@@ -297,6 +301,10 @@ function RuleCanvasInner({
       const sourceId = params.source;
       const targetId = params.target;
 
+      const targetNode = nodes.find((node) => node.id === targetId);
+      const targetRule = (targetNode?.data?.rule as RuleData | undefined) || null;
+      const allowSharedIncoming = allowsMultipleIncoming(targetRule);
+
       setNodes((current) => {
         const nextNodes = current.map((node) => {
           const rule = node.data?.rule as RuleData | undefined;
@@ -312,6 +320,10 @@ function RuleCanvasInner({
                 rule: nextRule,
               },
             };
+          }
+
+          if (allowSharedIncoming) {
+            return node;
           }
 
           const isCurrentIncomingTarget =
@@ -348,7 +360,7 @@ function RuleCanvasInner({
         return nextNodes;
       });
     },
-    [onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
+    [nodes, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
