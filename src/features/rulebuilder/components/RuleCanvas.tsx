@@ -20,24 +20,18 @@ import '@xyflow/react/dist/style.css';
 
 import { getRuleElementJson } from '../api';
 import RuleElementNode from './RuleElementNode';
+import {
+  BuildTreeRequest,
+  BuiltTreeResult,
+  RuleData,
+} from '@/features/rulebuilder/editorStore';
+import {
+  buildRuleTreeFromStart,
+  extractRulesFromCanvasNodes,
+} from '@/features/rulebuilder/buildTree';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
-
-type RuleData = {
-  id: string;
-  node_type: 'start' | 'decision' | 'end';
-  label?: string | null;
-  target_class?: string | null;
-  property_path?: string | null;
-  operator?: string | null;
-  value?: unknown;
-  true_path?: string | null;
-  false_path?: string | null;
-  unknown_path?: string | null;
-  config?: Record<string, unknown>;
-  graph_uri?: string | null;
-};
 
 type DragPayload = {
   kind: 'rule-node-template';
@@ -70,6 +64,8 @@ type Props = {
   duplicateRequest: DuplicateRequest;
   deleteRequest: DeleteRequest;
   deriveRequest: DeriveRequest;
+  buildTreeRequest?: BuildTreeRequest | null;
+  onTreeBuilt?: (result: BuiltTreeResult) => void;
 };
 
 type BranchHandle = 'true' | 'false' | 'unknown';
@@ -182,11 +178,14 @@ function RuleCanvasInner({
   duplicateRequest,
   deleteRequest,
   deriveRequest,
+  buildTreeRequest,
+  onTreeBuilt,
 }: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastHandledDuplicateRequestId = useRef<number | null>(null);
   const lastHandledDeleteRequestId = useRef<number | null>(null);
   const lastHandledDeriveRequestId = useRef<number | null>(null);
+  const lastHandledBuildTreeRequestId = useRef<number | null>(null);
 
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
@@ -438,6 +437,18 @@ function RuleCanvasInner({
     },
     [reactFlowInstance, onSelectedNodeChange, syncEdgesFromNodes]
   );
+
+  useEffect(() => {
+    if (!buildTreeRequest || !onTreeBuilt) return;
+    if (lastHandledBuildTreeRequestId.current === buildTreeRequest.requestId) return;
+
+    lastHandledBuildTreeRequestId.current = buildTreeRequest.requestId;
+
+    const rules = extractRulesFromCanvasNodes(nodes as Array<{ id: string; data?: { rule?: RuleData } }>);
+    const result = buildRuleTreeFromStart(buildTreeRequest.startNodeId, rules);
+
+    onTreeBuilt(result);
+  }, [buildTreeRequest, onTreeBuilt, nodes]);
 
   useEffect(() => {
     if (!selectedNodeId || !editedRule) return;

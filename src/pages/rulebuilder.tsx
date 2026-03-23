@@ -5,6 +5,11 @@ import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
 import { RULE_LIBRARY } from '@/features/rulebuilder/library';
 import {
+  RuleData,
+  BuiltTreeResult,
+  useRuleBuilderEditor,
+} from '@/features/rulebuilder/editorStore';
+import {
   EXAMPLE_RULE_ELEMENTS,
   ensureExampleRuleElements,
   deleteRuleElement,
@@ -16,22 +21,6 @@ import {
 import { RuleLibraryCategory } from '@/features/rulebuilder/types';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
-
-type RuleData = {
-  id: string;
-  node_type: 'start' | 'decision' | 'end';
-  label?: string | null;
-  target_class?: string | null;
-  property_path?: string | null;
-  operator?: string | null;
-  value?: unknown;
-  true_path?: string | null;
-  false_path?: string | null;
-  unknown_path?: string | null;
-  config?: Record<string, unknown>;
-  graph_uri?: string | null;
-};
-
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
 
 type LibraryItem = RuleLibraryCategory['items'][number] & {
@@ -194,26 +183,30 @@ export default function RuleBuilderPage() {
   const [libraryHydrated, setLibraryHydrated] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [selectedRule, setSelectedRule] = useState<RuleData | null>(null);
+  const {
+    selectedNodeId,
+    selectedRule,
+    duplicateRequest,
+    deleteRequest,
+    deriveRequest,
+    buildTreeRequest,
+    builtTreeResult,
+    canUndo,
+    canRedo,
+    selectNode,
+    updateSelectedRule,
+    requestDuplicate,
+    requestDelete,
+    requestDerive,
+    requestBuildTree,
+    setBuiltTreeResult,
+    clearBuiltTreeResult,
+    undo,
+    redo,
+  } = useRuleBuilderEditor();
 
   const [publishState, setPublishState] = useState<PublishState>('idle');
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
-
-  const [duplicateRequest, setDuplicateRequest] = useState<{
-    requestId: number;
-    sourceNodeId: string;
-  } | null>(null);
-
-  const [deleteRequest, setDeleteRequest] = useState<{
-    requestId: number;
-    sourceNodeId: string;
-  } | null>(null);
-
-  const [deriveRequest, setDeriveRequest] = useState<{
-    requestId: number;
-    derivedRule: RuleData;
-  } | null>(null);
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
@@ -253,7 +246,7 @@ export default function RuleBuilderPage() {
     setLibraryHydrated(true);
   }, [localLibraryItems]);
 
-    useEffect(() => {
+  useEffect(() => {
     let active = true;
 
     async function load() {
@@ -562,32 +555,13 @@ export default function RuleBuilderPage() {
   };
 
   const handleSelectedNodeChange = (nodeId: string | null, rule: RuleData | null) => {
-    setSelectedNodeId(nodeId);
-    setSelectedRule(rule);
+    selectNode(nodeId, rule);
     setPublishState('idle');
     setPublishMessage(null);
   };
 
   const handleInspectorChange = (patch: Partial<RuleData>) => {
-    setSelectedRule((current) => {
-      if (!current) return current;
-      return {
-        ...current,
-        ...patch,
-      };
-    });
-    setPublishState('idle');
-    setPublishMessage(null);
-  };
-
-  const handleDuplicateSelectedNode = () => {
-    if (!selectedRule || !selectedNodeId) return;
-
-    setDuplicateRequest({
-      requestId: Date.now(),
-      sourceNodeId: selectedNodeId,
-    });
-
+    updateSelectedRule(patch);
     setPublishState('idle');
     setPublishMessage(null);
   };
@@ -595,10 +569,16 @@ export default function RuleBuilderPage() {
   const handleDeleteSelectedNode = () => {
     if (!selectedRule || !selectedNodeId) return;
 
-    setDeleteRequest({
-      requestId: Date.now(),
-      sourceNodeId: selectedNodeId,
-    });
+    requestDelete(selectedNodeId);
+
+    setPublishState('idle');
+    setPublishMessage(null);
+  };
+
+  const handleDuplicateSelectedNode = () => {
+    if (!selectedRule || !selectedNodeId) return;
+
+    requestDuplicate(selectedNodeId);
 
     setPublishState('idle');
     setPublishMessage(null);
@@ -628,10 +608,7 @@ export default function RuleBuilderPage() {
         },
       });
 
-      setDeriveRequest({
-        requestId: Date.now(),
-        derivedRule: res.rule_element,
-      });
+      requestDerive(res.rule_element);
 
       setPublishState('idle');
       setPublishMessage('Derived new local variant from stored element');
@@ -641,6 +618,40 @@ export default function RuleBuilderPage() {
       setPublishMessage(error instanceof Error ? error.message : 'Derive failed');
     }
   };
+
+  const handleBuildTreeFromSelectedStartNode = () => {
+    if (!selectedRule || !selectedNodeId) return;
+    if (selectedRule.node_type !== 'start') return;
+
+    clearBuiltTreeResult();
+    requestBuildTree(selectedNodeId);
+
+    setPublishState('idle');
+    setPublishMessage('Building tree from selected start node...');
+  };
+
+  const handleTreeBuilt = (result: BuiltTreeResult) => {
+  setBuiltTreeResult(result);
+
+  if (result.missingBranches.length > 0) {
+    setPublishState('error');
+    setPublishMessage(
+      `Tree built, but ${result.missingBranches.length} missing branch target(s) were found`
+    );
+    return;
+  }
+
+  if (result.cycles.length > 0) {
+    setPublishState('error');
+    setPublishMessage(`Tree built, but ${result.cycles.length} cycle(s) were detected`);
+    return;
+  }
+
+  setPublishState('success');
+  setPublishMessage(
+    `Built tree with ${result.reachableNodeIds.length} node(s) and ${result.connections.length} connection(s)`
+  );
+};
 
   const handlePublishSelectedNode = async () => {
     if (!selectedRule) return;
@@ -685,15 +696,10 @@ export default function RuleBuilderPage() {
 
       await loadStoredRuleElements();
 
-      setSelectedRule((current) =>
-        current
-          ? {
-              ...current,
-              label: effectiveLabel,
-              graph_uri: result.graph_uri || null,
-            }
-          : current
-      );
+      updateSelectedRule({
+        label: effectiveLabel,
+        graph_uri: result.graph_uri || null,
+      });
     } catch (error) {
       console.error('publishRuleElement failed:', error);
       setPublishState('error');
@@ -709,6 +715,25 @@ export default function RuleBuilderPage() {
           <p className="text-sm text-gray-500">
             Drag rule nodes from the library into the canvas.
           </p>
+
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={undo}
+              disabled={!canUndo}
+              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+            >
+              Undo
+            </button>
+            <button
+              type="button"
+              onClick={redo}
+              disabled={!canRedo}
+              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+            >
+              Redo
+            </button>
+          </div>
         </div>
 
         <div className="rounded-full border px-3 py-1 text-xs font-medium">
@@ -750,6 +775,8 @@ export default function RuleBuilderPage() {
               duplicateRequest={duplicateRequest}
               deleteRequest={deleteRequest}
               deriveRequest={deriveRequest}
+              buildTreeRequest={buildTreeRequest}
+              onTreeBuilt={handleTreeBuilt}
             />
           </div>
 
@@ -760,9 +787,72 @@ export default function RuleBuilderPage() {
             onDuplicate={handleDuplicateSelectedNode}
             onDelete={handleDeleteSelectedNode}
             onDerive={handleDeriveSelectedNode}
+            onBuildTree={handleBuildTreeFromSelectedStartNode}
             publishState={publishState}
             publishMessage={publishMessage}
           />
+
+          {builtTreeResult ? (
+            <div className="w-80 border-l border-gray-200 bg-white p-4 text-sm">
+              <h3 className="mb-2 font-semibold text-gray-900">Built tree</h3>
+
+              <p className="mb-2 text-gray-600">
+                Entry: <span className="font-mono">{builtTreeResult.entry}</span>
+              </p>
+
+              <p className="mb-3 text-gray-600">
+                Nodes: {builtTreeResult.reachableNodeIds.length}
+              </p>
+
+              {/* 🔗 CONNECTIONS */}
+              <div className="mb-3">
+                <div className="mb-1 font-medium text-gray-800">Connections</div>
+                <div className="rounded border bg-gray-50 p-2 text-xs font-mono space-y-1">
+                  {builtTreeResult.connections.map((c, i) => (
+                    <div key={i}>
+                      {c.source_id}.{c.branch} → {c.target_id}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ⚠️ MISSING */}
+              {builtTreeResult.missingBranches.length > 0 && (
+                <div className="mb-3">
+                  <div className="mb-1 font-medium text-red-700">Missing branches</div>
+                  <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
+                    {builtTreeResult.missingBranches.map((m, i) => (
+                      <div key={i}>
+                        {m.source_id}.{m.branch} → {m.missing_target_id} ❌
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 🔁 CYCLES */}
+              {builtTreeResult.cycles.length > 0 && (
+                <div className="mb-3">
+                  <div className="mb-1 font-medium text-red-700">Cycles</div>
+                  <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
+                    {builtTreeResult.cycles.map((cycle, i) => (
+                      <div key={i} className="font-mono">
+                        {cycle.join(' → ')}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={clearBuiltTreeResult}
+                className="rounded border px-3 py-1 text-sm"
+              >
+                Clear
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </Layout>

@@ -22,6 +22,7 @@ type Props = {
   onDuplicate: () => void;
   onDelete: () => void;
   onDerive: () => void;
+  onBuildTree?: () => void;
   publishState: 'idle' | 'saving' | 'success' | 'error';
   publishMessage: string | null;
 };
@@ -38,6 +39,7 @@ export default function RuleInspectorPanel({
   onDuplicate,
   onDelete,
   onDerive,
+  onBuildTree,
   publishState,
   publishMessage,
 }: Props) {
@@ -45,7 +47,6 @@ export default function RuleInspectorPanel({
     (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
 
-      // Special handling for END nodes → value = output
       if (field === 'value' && selectedRule?.node_type === 'end') {
         onChange({
           value,
@@ -107,6 +108,16 @@ export default function RuleInspectorPanel({
               Derive from stored element
             </button>
           )}
+
+          {isStart && onBuildTree ? (
+            <button
+              type="button"
+              onClick={onBuildTree}
+              className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            >
+              Build tree from start node
+            </button>
+          ) : null}
 
           <button
             type="button"
@@ -171,7 +182,6 @@ export default function RuleInspectorPanel({
               />
             </div>
 
-            {/* Decision-only fields */}
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
                 Target class
@@ -208,7 +218,6 @@ export default function RuleInspectorPanel({
               />
             </div>
 
-            {/* VALUE FIELD */}
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
                 {isEnd ? 'Output (value)' : 'Value'}
