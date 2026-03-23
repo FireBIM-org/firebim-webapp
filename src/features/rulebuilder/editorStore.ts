@@ -2,7 +2,7 @@ import { useCallback, useReducer } from 'react';
 
 export type RuleData = {
   id: string;
-  node_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
@@ -13,6 +13,7 @@ export type RuleData = {
   unknown_path?: string | null;
   config?: Record<string, unknown>;
   graph_uri?: string | null;
+  element_id?: string | null;
 };
 
 export type DuplicateRequest = {
@@ -32,7 +33,11 @@ export type DeriveRequest = {
 
 export type BuiltTreeNode = {
   id: string;
-  node_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'end';
+  target_class?: string | null;
+  property_path?: string | null;
+  operator?: string | null;
+  value?: unknown;
   true_path?: string | null;
   false_path?: string | null;
   unknown_path?: string | null;
@@ -423,6 +428,8 @@ export function useRuleBuilderEditor() {
     duplicateRequest: state.present.duplicateRequest,
     deleteRequest: state.present.deleteRequest,
     deriveRequest: state.present.deriveRequest,
+    buildTreeRequest: state.present.buildTreeRequest,
+    builtTreeResult: state.present.builtTreeResult,
     canUndo: state.past.length > 0,
     canRedo: state.future.length > 0,
     selectNode,
@@ -430,13 +437,11 @@ export function useRuleBuilderEditor() {
     requestDuplicate,
     requestDelete,
     requestDerive,
-    clearTransientRequests,
-    undo,
-    redo,
-    buildTreeRequest: state.present.buildTreeRequest,
-    builtTreeResult: state.present.builtTreeResult,
     requestBuildTree,
     setBuiltTreeResult,
     clearBuiltTreeResult,
+    clearTransientRequests,
+    undo,
+    redo,
   };
 }

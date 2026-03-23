@@ -3,6 +3,7 @@ import Layout from '@/components/Layout';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
+import { buildRuleDraftFromTree } from '@/features/rulebuilder/buildTree';
 import { RULE_LIBRARY } from '@/features/rulebuilder/library';
 import {
   RuleData,
@@ -17,6 +18,9 @@ import {
   getRulesHealth,
   listRuleElementsDetailed,
   publishRuleElement,
+  connectRuleElementBranch,
+  checkRuleCompleteness,
+  publishRule,
 } from '@/features/rulebuilder/api';
 import { RuleLibraryCategory } from '@/features/rulebuilder/types';
 
@@ -223,13 +227,13 @@ export default function RuleBuilderPage() {
 
       return {
         id: itemId,
-        type: item.node_type,
+        type: item.element_type,
         label: effectiveLabel,
         description: item.graph_uri || 'Stored rule element',
         source: 'api',
         element_id: item.element_id,
         template: {
-          node_type: item.node_type,
+          element_type: item.element_type,
           label: effectiveLabel,
           graph_uri: item.graph_uri || null,
           config: {},
@@ -447,7 +451,7 @@ export default function RuleBuilderPage() {
       (item) =>
         item.source === 'api' &&
         (libraryState.itemCategory[item.id] || 'under-development') === 'trash' &&
-        item.template.graph_uri
+        item.element_id
     );
 
     if (trashedApiItems.length === 0) {
@@ -463,7 +467,7 @@ export default function RuleBuilderPage() {
       await Promise.all(
         trashedApiItems.map((item) =>
           deleteRuleElement({
-            graph_uri: item.template.graph_uri as string,
+            element_id: item.element_id as string,
           })
         )
       );
@@ -554,6 +558,111 @@ export default function RuleBuilderPage() {
     });
   };
 
+  const buildCurrentRulesetDraft = () => {
+    if (!builtTreeResult) return null;
+
+    const baseId =
+      (selectedRule?.label || selectedRule?.id || 'rule')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'rule';
+
+    return buildRuleDraftFromTree(baseId, builtTreeResult);
+  };
+
+  const handleConnectBuiltTree = async () => {
+    const draft = buildCurrentRulesetDraft();
+    if (!draft || !builtTreeResult) return;
+
+    if (builtTreeResult.missingBranches.length > 0) {
+      setPublishState('error');
+      setPublishMessage('Cannot connect rule: missing branch targets were found');
+      return;
+    }
+
+    try {
+      setPublishState('saving');
+      setPublishMessage('Connecting rule element branches...');
+
+      for (const connection of builtTreeResult.connections) {
+        await connectRuleElementBranch({
+          rule: draft,
+          source_id: connection.source_id,
+          branch: connection.branch,
+          target_id: connection.target_id,
+        });
+      }
+
+      setPublishState('success');
+      setPublishMessage(
+        `Connected ${builtTreeResult.connections.length} branch connection(s)`
+      );
+    } catch (error) {
+      console.error('connectRuleElementBranch failed:', error);
+      setPublishState('error');
+      setPublishMessage(error instanceof Error ? error.message : 'Connect failed');
+    }
+  };
+
+  const handleCheckBuiltRuleCompleteness = async () => {
+    const draft = buildCurrentRulesetDraft();
+    if (!draft) return;
+
+    try {
+      setPublishState('saving');
+      setPublishMessage('Checking rule completeness...');
+
+      const result = await checkRuleCompleteness({
+        rule: draft,
+      });
+
+      setPublishState('success');
+      setPublishMessage(
+        `Completeness check finished: ${JSON.stringify(result)}`
+      );
+    } catch (error) {
+      console.error('checkRuleCompleteness failed:', error);
+      setPublishState('error');
+      setPublishMessage(
+        error instanceof Error ? error.message : 'Completeness check failed'
+      );
+    }
+  };
+
+  const handlePublishBuiltRule = async () => {
+    const draft = buildCurrentRulesetDraft();
+    if (!draft) return;
+
+    if (builtTreeResult?.missingBranches.length) {
+      setPublishState('error');
+      setPublishMessage('Cannot publish rule: missing branch targets were found');
+      return;
+    }
+
+    if (builtTreeResult?.cycles.length) {
+      setPublishState('error');
+      setPublishMessage('Cannot publish rule: cycle(s) were detected');
+      return;
+    }
+
+    try {
+      setPublishState('saving');
+      setPublishMessage('Publishing rule...');
+
+      const result = await publishRule({
+        rule: draft,
+      });
+
+      setPublishState('success');
+      setPublishMessage(`Rule published: ${JSON.stringify(result)}`);
+    } catch (error) {
+      console.error('publishRule failed:', error);
+      setPublishState('error');
+      setPublishMessage(error instanceof Error ? error.message : 'Rule publish failed');
+    }
+  };
+
   const handleSelectedNodeChange = (nodeId: string | null, rule: RuleData | null) => {
     selectNode(nodeId, rule);
     setPublishState('idle');
@@ -584,20 +693,14 @@ export default function RuleBuilderPage() {
     setPublishMessage(null);
   };
 
-  const sourceIdFromGraphUri = (graphUri: string | null | undefined) => {
-    if (!graphUri) return null;
-    const parts = graphUri.split('/');
-    return parts[parts.length - 1] || null;
-  };
-
   const handleDeriveSelectedNode = async () => {
     if (!selectedRule) return;
 
-    const sourceId = sourceIdFromGraphUri(selectedRule.graph_uri);
+    const sourceId = selectedRule.element_id || selectedRule.id;
     if (!sourceId) return;
 
     try {
-      const newId = `${selectedRule.node_type}-${crypto.randomUUID()}`;
+      const newId = `${selectedRule.element_type}-${crypto.randomUUID()}`;
 
       const res = await deriveRuleElement({
         source_id: sourceId,
@@ -621,7 +724,7 @@ export default function RuleBuilderPage() {
 
   const handleBuildTreeFromSelectedStartNode = () => {
     if (!selectedRule || !selectedNodeId) return;
-    if (selectedRule.node_type !== 'start') return;
+    if (selectedRule.element_type !== 'start') return;
 
     clearBuiltTreeResult();
     requestBuildTree(selectedNodeId);
@@ -666,6 +769,7 @@ export default function RuleBuilderPage() {
         ...selectedRule,
         label: normalizedLabel,
         graph_uri: null,
+        element_id: null,
         true_path: null,
         false_path: null,
         unknown_path: null,
@@ -699,6 +803,7 @@ export default function RuleBuilderPage() {
       updateSelectedRule({
         label: effectiveLabel,
         graph_uri: result.graph_uri || null,
+        element_id: publishedId,
       });
     } catch (error) {
       console.error('publishRuleElement failed:', error);
@@ -713,7 +818,7 @@ export default function RuleBuilderPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">RuleBuilder</h1>
           <p className="text-sm text-gray-500">
-            Drag rule nodes from the library into the canvas.
+            Drag rule elements from the library into the canvas.
           </p>
 
           <div className="mt-3 flex gap-2">
@@ -843,14 +948,50 @@ export default function RuleBuilderPage() {
                   </div>
                 </div>
               )}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={clearBuiltTreeResult}
+                  className="w-full rounded border px-3 py-1 text-sm"
+                >
+                  Clear
+                </button>
 
-              <button
-                type="button"
-                onClick={clearBuiltTreeResult}
-                className="rounded border px-3 py-1 text-sm"
-              >
-                Clear
-              </button>
+                <button
+                  type="button"
+                  onClick={handleConnectBuiltTree}
+                  disabled={
+                    !builtTreeResult ||
+                    builtTreeResult.connections.length === 0 ||
+                    builtTreeResult.missingBranches.length > 0
+                  }
+                  className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
+                >
+                  Connect rule element branches
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCheckBuiltRuleCompleteness}
+                  disabled={!builtTreeResult}
+                  className="w-full rounded border border-amber-300 px-3 py-1 text-sm text-amber-700 disabled:opacity-50"
+                >
+                  Check completeness
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePublishBuiltRule}
+                  disabled={
+                    !builtTreeResult ||
+                    builtTreeResult.missingBranches.length > 0 ||
+                    builtTreeResult.cycles.length > 0
+                  }
+                  className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
+                >
+                  Save rule
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

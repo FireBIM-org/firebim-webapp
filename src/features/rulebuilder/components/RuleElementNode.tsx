@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 
 type RuleData = {
   id: string;
-  node_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
@@ -13,9 +13,10 @@ type RuleData = {
   unknown_path?: string | null;
   config?: Record<string, unknown>;
   graph_uri?: string | null;
+  element_id?: string | null;
 };
 
-function getNodePalette(nodeType: RuleData['node_type']) {
+function getNodePalette(nodeType: RuleData['element_type']) {
   if (nodeType === 'start') {
     return {
       border: 'border-sky-500',
@@ -45,7 +46,7 @@ function getNodePalette(nodeType: RuleData['node_type']) {
   };
 }
 
-function typeBadge(nodeType: RuleData['node_type']) {
+function typeBadge(nodeType: RuleData['element_type']) {
   if (nodeType === 'start') return 'Start';
   if (nodeType === 'end') return 'End';
   return 'Decision';
@@ -64,18 +65,18 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
   if (!rule) {
     return (
       <div className="min-w-[220px] rounded-md border border-slate-300 bg-white px-3 py-2 shadow-sm">
-        <div className="text-sm font-medium text-slate-700">Invalid node</div>
+        <div className="text-sm font-medium text-slate-700">Invalid rule element</div>
       </div>
     );
   }
 
-  const palette = getNodePalette(rule.node_type);
+  const palette = getNodePalette(rule.element_type);
   const label = rule.label || rule.id || 'Unnamed rule element';
 
-  const showInput = rule.node_type !== 'start';
-  const showTrueOutput = rule.node_type === 'start' || rule.node_type === 'decision';
-  const showFalseOutput = rule.node_type === 'decision';
-  const showUnknownOutput = rule.node_type === 'decision';
+  const showInput = rule.element_type !== 'start';
+  const showTrueOutput = rule.element_type === 'start' || rule.element_type === 'decision';
+  const showFalseOutput = rule.element_type === 'decision';
+  const showUnknownOutput = rule.element_type === 'decision';
 
   return (
     <div
@@ -96,12 +97,12 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
       <div className={`border-b px-3 py-2 ${palette.header}`}>
         <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
-          {typeBadge(rule.node_type)}
+          {typeBadge(rule.element_type)}
         </div>
         <div className="mt-1 text-sm font-semibold text-slate-900">{label}</div>
       </div>
 
-      {rule.node_type === 'decision' && (
+      {rule.element_type === 'decision' && (
         <div className="px-3 py-2 text-xs text-slate-600">
           <div>
             <span className="font-medium">Target:</span> {rule.target_class || '—'}
@@ -121,7 +122,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
         </div>
       )}
 
-      {rule.node_type === 'end' && (
+      {rule.element_type === 'end' && (
         <div className="px-3 py-2 text-xs text-slate-600">
           <div>
             <span className="font-medium">Output:</span>
@@ -138,17 +139,17 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
             <>
               <div
                 className={`absolute top-2 -translate-x-1/2 text-[10px] font-medium text-slate-500 ${
-                  rule.node_type === 'start' ? 'left-1/2' : 'left-[12%]'
+                  rule.element_type === 'start' ? 'left-1/2' : 'left-[12%]'
                 }`}
               >
-                {rule.node_type === 'start' ? 'Next' : 'True'}
+                {rule.element_type === 'start' ? 'Next' : 'True'}
               </div>
 
               <Handle
                 type="source"
                 id="true"
                 position={Position.Bottom}
-                style={{ left: rule.node_type === 'start' ? '50%' : '12%' }}
+                style={{ left: rule.element_type === 'start' ? '50%' : '12%' }}
                 className="!h-3 !w-3 !border-2 !border-emerald-600 !bg-white"
               />
             </>

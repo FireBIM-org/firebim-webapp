@@ -18,7 +18,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { getRuleElementJson } from '../api';
+import { getRuleElement } from '../api';
 import RuleElementNode from './RuleElementNode';
 import {
   BuildTreeRequest,
@@ -380,7 +380,7 @@ function RuleCanvasInner({
 
       if (payload.source === 'api' && payload.element_id) {
         try {
-          const res = await getRuleElementJson(payload.element_id);
+          const res = await getRuleElement(payload.element_id);
           template = res.rule_element;
         } catch (error) {
           console.error('Failed to fetch stored rule element JSON:', error);
@@ -412,6 +412,7 @@ function RuleCanvasInner({
           false_path: null,
           unknown_path: null,
           graph_uri: null,
+          element_id: payload.element_id || null,
         };
 
         const newNode: Node = {
@@ -486,7 +487,7 @@ function RuleCanvasInner({
       const sourceRule = (sourceNode.data?.rule as RuleData) || null;
       if (!sourceRule) return current;
 
-      const newId = `${sourceRule.node_type}-${crypto.randomUUID()}`;
+      const newId = `${sourceRule.element_type}-${crypto.randomUUID()}`;
       const copiedBaseLabel = sourceRule.label || sourceRule.id || 'New rule element';
       const copiedLabel = nextLabelWithBase(copiedBaseLabel, current);
 
@@ -498,6 +499,7 @@ function RuleCanvasInner({
         false_path: null,
         unknown_path: null,
         graph_uri: null,
+        element_id: null,
       };
 
       const copiedNode: Node = {
@@ -583,6 +585,7 @@ function RuleCanvasInner({
         id: derivedRule.id,
         label,
         graph_uri: null,
+        element_id: null,
       };
 
       const newNode: Node = {

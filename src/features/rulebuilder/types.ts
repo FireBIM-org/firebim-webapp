@@ -1,16 +1,16 @@
-export type RuleNodeType = 'start' | 'decision' | 'end';
+export type RuleElementType = 'start' | 'decision' | 'end';
 
-export type RuleNodeSource = 'local' | 'api';
+export type RuleElementSource = 'local' | 'api';
 
-export type RuleNodeTemplate = {
+export type RuleElementTemplate = {
   id: string;
-  type: RuleNodeType;
+  type: RuleElementType;
   label: string;
   description?: string;
-  source?: RuleNodeSource;
+  source?: RuleElementSource;
   element_id?: string;
   template: {
-    node_type: RuleNodeType;
+    element_type: RuleElementType;
     label?: string | null;
     target_class?: string | null;
     property_path?: string | null;
@@ -21,6 +21,7 @@ export type RuleNodeTemplate = {
     unknown_path?: string | null;
     config?: Record<string, unknown>;
     graph_uri?: string | null;
+    element_id?: string | null;
   };
 };
 
@@ -28,7 +29,7 @@ export type RuleLibraryCategory = {
   id: string;
   label: string;
   system?: boolean;
-  items: RuleNodeTemplate[];
+  items: RuleElementTemplate[];
 };
 
 export type RuleLibraryCategoryMeta = {
@@ -46,3 +47,9 @@ export type RuleLibraryState = {
 };
 
 export type RuleLibrarySelection = Record<string, boolean>;
+
+
+// Backward-compatible aliases while components are being renamed.
+export type RuleNodeType = RuleElementType;
+export type RuleNodeSource = RuleElementSource;
+export type RuleNodeTemplate = RuleElementTemplate;

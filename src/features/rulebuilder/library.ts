@@ -2,7 +2,7 @@ import {
   RuleLibraryCategory,
   RuleLibraryCategoryMeta,
   RuleLibraryState,
-  RuleNodeTemplate,
+  RuleElementTemplate,
 } from './types';
 
 export const RULE_LIBRARY_STORAGE_KEY = 'firebim-rule-library-v2';
@@ -22,7 +22,7 @@ export const DEFAULT_CATEGORY_META: RuleLibraryCategoryMeta[] = [
   },
 ];
 
-export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
+export const DEFAULT_LOCAL_TEMPLATES: RuleElementTemplate[] = [
   {
     id: 'local:start',
     type: 'start',
@@ -30,9 +30,10 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
     description: 'Entry point for a rule flow',
     source: 'local',
     template: {
-      node_type: 'start',
+      element_type: 'start',
       label: 'Start',
       config: {},
+      element_id: null,
     },
   },
   {
@@ -42,7 +43,7 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
     description: 'Branch by true / false / unknown',
     source: 'local',
     template: {
-      node_type: 'decision',
+      element_type: 'decision',
       label: 'Decision',
       target_class: null,
       property_path: null,
@@ -52,6 +53,7 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
       false_path: null,
       unknown_path: null,
       config: {},
+      element_id: null,
     },
   },
   {
@@ -61,16 +63,14 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
     description: 'Terminal output node',
     source: 'local',
     template: {
-      node_type: 'end',
+      element_type: 'end',
       label: 'End',
       config: {},
+      element_id: null,
     },
   },
 ];
 
-/**
- * Temporary backward-compatible export.
- */
 export const RULE_LIBRARY: RuleLibraryCategory[] = [
   {
     id: 'under-development',
@@ -87,7 +87,7 @@ export const RULE_LIBRARY: RuleLibraryCategory[] = [
 ];
 
 export function createDefaultLibraryState(
-  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleElementTemplate[] = DEFAULT_LOCAL_TEMPLATES
 ): RuleLibraryState {
   const itemCategory: Record<string, string> = {};
   const itemLabels: Record<string, string> = {};
@@ -106,7 +106,7 @@ export function createDefaultLibraryState(
 }
 
 export function loadLibraryState(
-  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleElementTemplate[] = DEFAULT_LOCAL_TEMPLATES
 ): RuleLibraryState {
   if (typeof window === 'undefined') {
     return createDefaultLibraryState(items);

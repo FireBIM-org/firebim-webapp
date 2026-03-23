@@ -1,4 +1,8 @@
-import { BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
+import {
+  BuiltTreeConnection,
+  BuiltTreeResult,
+  RuleData,
+} from '@/features/rulebuilder/editorStore';
 
 type CanvasRuleNode = {
   id: string;
@@ -64,7 +68,6 @@ export function buildRuleTreeFromStart(
 
       if (!targetId) continue;
 
-      // 🔗 Registrér connection
       connections.push({
         source_id: node.id,
         branch,
@@ -94,7 +97,7 @@ export function buildRuleTreeFromStart(
     .filter((node): node is RuleData => Boolean(node))
     .map((node) => ({
       id: node.id,
-      node_type: node.node_type,
+      element_type: node.element_type,
       target_class: node.target_class ?? null,
       property_path: node.property_path ?? null,
       operator: node.operator ?? null,
@@ -119,3 +122,45 @@ export function extractRulesFromCanvasNodes(nodes: CanvasRuleNode[]): RuleData[]
     .map((node) => node.data?.rule)
     .filter((rule): rule is RuleData => Boolean(rule));
 }
+
+export type RuleDraftElement = {
+  id: string;
+  element_type: 'start' | 'decision' | 'end';
+  target_class?: string | null;
+  property_path?: string | null;
+  operator?: string | null;
+  value?: unknown;
+  true_path?: string | null;
+  false_path?: string | null;
+  unknown_path?: string | null;
+};
+
+export type RuleDraft = {
+  id: string;
+  entry: string;
+  elements: RuleDraftElement[];
+};
+
+export function buildRuleDraftFromTree(
+  ruleId: string,
+  tree: BuiltTreeResult
+): RuleDraft {
+  return {
+    id: ruleId,
+    entry: tree.entry,
+    elements: tree.nodes.map((node) => ({
+      id: node.id,
+      element_type: node.element_type,
+      target_class: node.target_class ?? null,
+      property_path: node.property_path ?? null,
+      operator: node.operator ?? null,
+      value: node.value,
+      true_path: node.true_path ?? null,
+      false_path: node.false_path ?? null,
+      unknown_path: node.unknown_path ?? null,
+    })),
+  };
+}
+
+// Backward-compatible alias while the page is updated.
+export const buildRulesetDraftFromTree = buildRuleDraftFromTree;

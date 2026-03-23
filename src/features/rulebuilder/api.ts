@@ -5,19 +5,19 @@ export type RuleHealthResponse = {
   ok?: boolean;
 };
 
-export type RuleNodeType = 'start' | 'decision' | 'end';
+export type RuleElementType = 'start' | 'decision' | 'end';
 export type RuleBranch = 'true_path' | 'false_path' | 'unknown_path';
 
 export type RuleElementListItem = {
   element_id?: string;
   id?: string;
   graph_uri?: string;
-  node_type?: RuleNodeType;
+  element_type?: RuleElementType;
 };
 
 export type RuleElementJson = {
   id: string;
-  node_type: RuleNodeType;
+  element_type: RuleElementType;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
@@ -28,83 +28,77 @@ export type RuleElementJson = {
   label?: string | null;
   config?: Record<string, unknown>;
   graph_uri?: string | null;
+  element_id?: string | null;
 };
 
-export type RuleNodePayload = {
-  id: string;
-  node_type: RuleNodeType;
-  target_class?: string | null;
-  property_path?: string | null;
-  operator?: string | null;
-  value?: unknown;
-  true_path?: string | null;
-  false_path?: string | null;
-  unknown_path?: string | null;
-  label?: string | null;
-  config?: Record<string, unknown>;
-};
+export type RuleElementPayload = RuleElementJson;
 
-export type RuleSetDraft = {
+export type RuleJson = {
   id: string;
   entry: string;
-  nodes: RuleNodePayload[];
+  elements: RuleElementPayload[];
 };
 
 export type PublishRuleElementResponse = {
   published?: boolean;
   element_id?: string;
   graph_uri?: string;
-  node_type?: string;
+  element_type?: RuleElementType;
+  success?: boolean;
+  fallback?: boolean;
+  error?: string | null;
 };
 
 export type DeleteRuleElementRequest = {
-  graph_uri: string;
+  element_id?: string;
+  graph_uri?: string;
 };
 
 export type DeleteRuleElementResponse = {
   deleted: boolean;
-  graph_uri: string;
+  element_id?: string;
+  graph_uri?: string;
 };
 
 export type DetailedRuleElementListItem = {
   item_id: string;
   element_id: string;
   graph_uri: string;
-  node_type: RuleNodeType;
+  element_type: RuleElementType;
   label: string;
 };
 
-export type ConnectRulesRequest = {
-  ruleset: RuleSetDraft;
+export type ConnectRuleRequest = {
+  rule: RuleJson;
   source_id: string;
   branch: RuleBranch;
   target_id: string;
 };
 
-export type ConnectRulesResponse = {
+export type ConnectRuleResponse = {
   updated: boolean;
   overwritten: boolean;
   previous_target_id?: string | null;
-  ruleset: RuleSetDraft;
+  rule: RuleJson;
 };
 
-export type DisconnectRulesRequest = {
-  ruleset: RuleSetDraft;
+export type DisconnectRuleRequest = {
+  rule: RuleJson;
   source_id: string;
   branch: RuleBranch;
 };
 
-export type DisconnectRulesResponse = {
+export type DisconnectRuleResponse = {
   updated: boolean;
   previous_target_id?: string | null;
-  ruleset: RuleSetDraft;
+  rule: RuleJson;
 };
 
-export type CheckRulesCompletenessRequest = {
-  ruleset: RuleSetDraft;
+export type CheckRuleCompletenessRequest = {
+  rule: RuleJson;
 };
 
-export type CheckRulesCompletenessResponse = {
+export type CheckRuleCompletenessResponse = {
   complete: boolean;
   open: boolean;
   broken: boolean;
@@ -117,6 +111,23 @@ export type CheckRulesCompletenessResponse = {
     [key: string]: unknown;
   }>;
   errors: string[];
+  success?: boolean;
+  fallback?: boolean;
+};
+
+export type PublishRuleRequest = {
+  rule: RuleJson;
+};
+
+export type PublishRuleResponse = {
+  published?: boolean;
+  rule_id?: string;
+  graph_uri?: string;
+  entry?: string;
+  element_count?: number;
+  success?: boolean;
+  error?: string | null;
+  fallback?: boolean;
 };
 
 export type EnsureRuleElementsResult = {
@@ -127,7 +138,7 @@ export type EnsureRuleElementsResult = {
 export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
   {
     id: 'decision-example-room-area',
-    node_type: 'decision',
+    element_type: 'decision',
     target_class: 'Room',
     property_path: 'http://example.org/fbo/1.0/roomArea',
     operator: '>',
@@ -140,10 +151,11 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
       library_category: 'Examples',
     },
     graph_uri: null,
+    element_id: null,
   },
   {
     id: 'start-example',
-    node_type: 'start',
+    element_type: 'start',
     target_class: null,
     property_path: null,
     operator: null,
@@ -156,10 +168,11 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
       library_category: 'Examples',
     },
     graph_uri: null,
+    element_id: null,
   },
   {
     id: 'end-example-pass',
-    node_type: 'end',
+    element_type: 'end',
     target_class: null,
     property_path: null,
     operator: null,
@@ -174,10 +187,11 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
       output_text: 'The rule passed',
     },
     graph_uri: null,
+    element_id: null,
   },
   {
     id: 'end-example-fail',
-    node_type: 'end',
+    element_type: 'end',
     target_class: null,
     property_path: null,
     operator: null,
@@ -192,10 +206,11 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
       output_text: 'The rule did not pass',
     },
     graph_uri: null,
+    element_id: null,
   },
   {
     id: 'end-example-missing-data',
-    node_type: 'end',
+    element_type: 'end',
     target_class: null,
     property_path: null,
     operator: null,
@@ -210,8 +225,58 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
       output_text: 'The rule is missing data and cannot be evaluated',
     },
     graph_uri: null,
+    element_id: null,
   },
 ];
+
+function normalizeRuleElement(input: unknown): RuleElementJson {
+  const raw = (input ?? {}) as Record<string, unknown>;
+  const ruleElement =
+    raw.rule_element && typeof raw.rule_element === 'object'
+      ? (raw.rule_element as Record<string, unknown>)
+      : raw.element && typeof raw.element === 'object'
+      ? (raw.element as Record<string, unknown>)
+      : raw;
+
+  const id = String(ruleElement.id ?? raw.element_id ?? '');
+  const elementType =
+    ruleElement.element_type === 'start' ||
+    ruleElement.element_type === 'decision' ||
+    ruleElement.element_type === 'end'
+      ? ruleElement.element_type
+      : ruleElement.node_type === 'start' ||
+        ruleElement.node_type === 'decision' ||
+        ruleElement.node_type === 'end'
+      ? ruleElement.node_type
+      : 'decision';
+
+  return {
+    id,
+    element_id: String((raw.element_id ?? ruleElement.element_id ?? id) || ''),
+    element_type: elementType,
+    target_class: (ruleElement.target_class as string | null | undefined) ?? null,
+    property_path: (ruleElement.property_path as string | null | undefined) ?? null,
+    operator: (ruleElement.operator as string | null | undefined) ?? null,
+    value: ruleElement.value,
+    true_path: (ruleElement.true_path as string | null | undefined) ?? null,
+    false_path: (ruleElement.false_path as string | null | undefined) ?? null,
+    unknown_path: (ruleElement.unknown_path as string | null | undefined) ?? null,
+    label: (ruleElement.label as string | null | undefined) ?? null,
+    config: (ruleElement.config as Record<string, unknown> | undefined) ?? {},
+    graph_uri: (raw.graph_uri as string | null | undefined) ??
+      (ruleElement.graph_uri as string | null | undefined) ??
+      null,
+  };
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `HTTP ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
 
 export async function getRulesHealth(): Promise<RuleHealthResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/health`);
@@ -219,6 +284,55 @@ export async function getRulesHealth(): Promise<RuleHealthResponse> {
     throw new Error(`Rules health failed: ${res.status}`);
   }
   return res.json();
+}
+
+export async function connectRuleElementBranch(
+  payload: ConnectRuleRequest
+): Promise<ConnectRuleResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/connect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonResponse<Record<string, unknown>>(res);
+
+  return {
+    updated: Boolean(data.updated),
+    overwritten: Boolean(data.overwritten),
+    previous_target_id: (data.previous_target_id as string | null | undefined) ?? null,
+    rule: (data.rule as RuleJson | undefined) ?? payload.rule,
+  };
+}
+
+export async function checkRuleCompleteness(
+  payload: CheckRuleCompletenessRequest
+): Promise<CheckRuleCompletenessResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/check-completeness`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<CheckRuleCompletenessResponse>(res);
+}
+
+export async function publishRule(
+  payload: PublishRuleRequest
+): Promise<PublishRuleResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/publish`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<PublishRuleResponse>(res);
 }
 
 export async function listRuleElements(): Promise<RuleElementListItem[]> {
@@ -243,7 +357,7 @@ export async function listRuleElements(): Promise<RuleElementListItem[]> {
       return {
         element_id: id,
         graph_uri: graphUri,
-        node_type: 'decision' as const,
+        element_type: 'decision' as const,
       };
     });
   }
@@ -251,18 +365,16 @@ export async function listRuleElements(): Promise<RuleElementListItem[]> {
   return [];
 }
 
-export async function getRuleElementJson(id: string): Promise<{ rule_element: RuleElementJson }> {
-  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}/json`);
-  if (!res.ok) {
-    throw new Error(`Get rule element json failed: ${res.status}`);
-  }
-  return res.json();
+export async function getRuleElement(id: string): Promise<{ rule_element: RuleElementJson }> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
+  const data = await parseJsonResponse<unknown>(res);
+  return { rule_element: normalizeRuleElement(data) };
 }
 
-export async function getRuleElementJsonOrNull(
+export async function getRuleElementOrNull(
   id: string
 ): Promise<{ rule_element: RuleElementJson } | null> {
-  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}/json`);
+  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
 
   if (res.status === 404) {
     return null;
@@ -270,10 +382,11 @@ export async function getRuleElementJsonOrNull(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Get rule element json failed: ${res.status} ${text}`);
+    throw new Error(`Get rule element failed: ${res.status} ${text}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  return { rule_element: normalizeRuleElement(data) };
 }
 
 export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
@@ -283,26 +396,27 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
   for (let index = 0; index < basic.length; index += 1) {
     const item = basic[index];
     const id = item.element_id || item.id || `rule-element-${index}`;
-    const nodeType: RuleNodeType =
-      item.node_type === 'start' || item.node_type === 'end' ? item.node_type : 'decision';
 
     try {
-      const res = await getRuleElementJson(id);
-      const rule = res.rule_element;
+      const res = await getRuleElement(id);
+      const ruleElement = res.rule_element;
 
       detailed.push({
         item_id: `api:${id}`,
         element_id: id,
-        graph_uri: item.graph_uri || rule.graph_uri || '',
-        node_type: nodeType,
-        label: rule.label || rule.id || id,
+        graph_uri: item.graph_uri || ruleElement.graph_uri || '',
+        element_type: ruleElement.element_type,
+        label: ruleElement.label || ruleElement.id || id,
       });
     } catch {
       detailed.push({
         item_id: `api:${id}`,
         element_id: id,
         graph_uri: item.graph_uri || '',
-        node_type: nodeType,
+        element_type:
+          item.element_type === 'start' || item.element_type === 'end'
+            ? item.element_type
+            : 'decision',
         label: id,
       });
     }
@@ -322,31 +436,27 @@ export async function publishRuleElement(
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Publish rule element failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
+  return parseJsonResponse<PublishRuleElementResponse>(res);
 }
 
 export async function deleteRuleElement(
   payload: DeleteRuleElementRequest
 ): Promise<DeleteRuleElementResponse> {
+  const elementId = payload.element_id || payload.graph_uri?.split('/').pop();
+
+  if (!elementId) {
+    throw new Error('Delete rule element failed: missing element_id');
+  }
+
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/delete`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ element_id: elementId }),
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Delete rule element failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
+  return parseJsonResponse<DeleteRuleElementResponse>(res);
 }
 
 export async function deriveRuleElement(payload: {
@@ -364,69 +474,8 @@ export async function deriveRuleElement(payload: {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Derive rule element failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
-}
-
-export async function connectRules(
-  payload: ConnectRulesRequest
-): Promise<ConnectRulesResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/rules/connect`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Connect rules failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
-}
-
-export async function disconnectRules(
-  payload: DisconnectRulesRequest
-): Promise<DisconnectRulesResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/rules/disconnect`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Disconnect rules failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
-}
-
-export async function checkRulesCompleteness(
-  payload: CheckRulesCompletenessRequest
-): Promise<CheckRulesCompletenessResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/rules/check-completeness`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Check rules completeness failed: ${res.status} ${text}`);
-  }
-
-  return res.json();
+  const data = await parseJsonResponse<unknown>(res);
+  return { rule_element: normalizeRuleElement(data) };
 }
 
 export async function ensureExampleRuleElements(): Promise<EnsureRuleElementsResult> {
@@ -434,7 +483,7 @@ export async function ensureExampleRuleElements(): Promise<EnsureRuleElementsRes
   const existingIds: string[] = [];
 
   for (const example of EXAMPLE_RULE_ELEMENTS) {
-    const existing = await getRuleElementJsonOrNull(example.id);
+    const existing = await getRuleElementOrNull(example.id);
 
     if (existing?.rule_element) {
       existingIds.push(example.id);
@@ -443,6 +492,7 @@ export async function ensureExampleRuleElements(): Promise<EnsureRuleElementsRes
 
     await publishRuleElement({
       ...example,
+      element_id: null,
       graph_uri: null,
       true_path: null,
       false_path: null,
@@ -457,3 +507,12 @@ export async function ensureExampleRuleElements(): Promise<EnsureRuleElementsRes
     existingIds,
   };
 }
+
+// Backward-compatible aliases while the page is being cleaned up.
+export const getRuleElementJson = getRuleElement;
+export const getRuleElementJsonOrNull = getRuleElementOrNull;
+export const connectRulesetNode = connectRuleElementBranch;
+export const checkRulesetCompleteness = checkRuleCompleteness;
+export const publishRuleset = publishRule;
+export const connectRules = connectRuleElementBranch;
+export const checkRulesCompleteness = checkRuleCompleteness;
