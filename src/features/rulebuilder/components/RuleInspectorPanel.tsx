@@ -1,8 +1,9 @@
 import { ChangeEvent } from 'react';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 type RuleData = {
   id: string;
-  element_type: 'start' | 'decision' | 'end';
+  node_type: 'start' | 'decision' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
@@ -13,7 +14,6 @@ type RuleData = {
   unknown_path?: string | null;
   config?: Record<string, unknown>;
   graph_uri?: string | null;
-  element_id?: string | null;
 };
 
 type Props = {
@@ -26,6 +26,8 @@ type Props = {
   onBuildTree?: () => void;
   publishState: 'idle' | 'saving' | 'success' | 'error';
   publishMessage: string | null;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 };
 
 function inputValue(value: unknown) {
@@ -43,12 +45,14 @@ export default function RuleInspectorPanel({
   onBuildTree,
   publishState,
   publishMessage,
+  collapsed,
+  onToggleCollapsed,
 }: Props) {
   const handleTextChange =
     (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
 
-      if (field === 'value' && selectedRule?.element_type === 'end') {
+      if (field === 'value' && selectedRule?.node_type === 'end') {
         onChange({
           value,
           config: {
@@ -63,9 +67,40 @@ export default function RuleInspectorPanel({
       onChange({ [field]: value });
     };
 
+  if (collapsed) {
+    return (
+      <aside className="flex w-10 flex-col items-center border-l border-gray-200 bg-white py-2">
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          title="Expand rule element details"
+        >
+          <Bars3Icon className="h-5 w-5" />
+        </button>
+      </aside>
+    );
+  }
+
   if (!selectedRule) {
     return (
       <aside className="w-80 border-l border-gray-200 bg-white">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Rule element details</h2>
+            <p className="text-xs text-gray-500">Select a rule element to inspect it</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            title="Collapse rule element details"
+          >
+            <Bars3Icon className="h-5 w-5" />
+          </button>
+        </div>
+
         <div className="flex h-full items-center justify-center p-6 text-sm text-gray-400">
           Select a node to inspect and edit its properties.
         </div>
@@ -73,9 +108,9 @@ export default function RuleInspectorPanel({
     );
   }
 
-  const isStart = selectedRule.element_type === 'start';
-  const isDecision = selectedRule.element_type === 'decision';
-  const isEnd = selectedRule.element_type === 'end';
+  const isStart = selectedRule.node_type === 'start';
+  const isDecision = selectedRule.node_type === 'decision';
+  const isEnd = selectedRule.node_type === 'end';
 
   const disabledClass =
     'w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500';
@@ -86,9 +121,20 @@ export default function RuleInspectorPanel({
   return (
     <aside className="w-80 border-l border-gray-200 bg-white">
       <div className="flex h-full flex-col">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Inspector</h2>
-          <p className="text-xs text-gray-500">Edit the selected rule element</p>
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Rule element details</h2>
+            <p className="text-xs text-gray-500">Edit the selected rule element</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            title="Collapse rule element details"
+          >
+            <Bars3Icon className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="space-y-2 border-b border-gray-200 px-4 py-3">
@@ -97,10 +143,10 @@ export default function RuleInspectorPanel({
             onClick={onDuplicate}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
           >
-            Duplicate selected element
+            Duplicate selected node
           </button>
 
-          {(selectedRule.element_id || selectedRule.graph_uri) && (
+          {selectedRule.graph_uri && (
             <button
               type="button"
               onClick={onDerive}
@@ -125,7 +171,7 @@ export default function RuleInspectorPanel({
             onClick={onDelete}
             className="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
           >
-            Delete selected element
+            Delete selected node
           </button>
 
           <button
@@ -134,7 +180,7 @@ export default function RuleInspectorPanel({
             disabled={publishState === 'saving'}
             className="w-full rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {publishState === 'saving' ? 'Publishing...' : 'Publish selected element'}
+            {publishState === 'saving' ? 'Publishing...' : 'Publish selected node'}
           </button>
 
           {publishMessage && (
@@ -166,7 +212,7 @@ export default function RuleInspectorPanel({
                 Node type
               </label>
               <input
-                value={inputValue(selectedRule.element_type)}
+                value={inputValue(selectedRule.node_type)}
                 disabled
                 className={disabledClass}
               />
@@ -240,10 +286,10 @@ export default function RuleInspectorPanel({
 
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-                Stored element
+                Graph URI
               </label>
               <input
-                value={inputValue(selectedRule.element_id || selectedRule.graph_uri)}
+                value={inputValue(selectedRule.graph_uri)}
                 disabled
                 className={disabledClass}
               />

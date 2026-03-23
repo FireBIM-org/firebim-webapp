@@ -227,7 +227,7 @@ export default function RuleLibraryPanel({
             Node Library
           </div>
           <div className="text-xs text-gray-500">
-            Drag nodes into the canvas
+            Drag rule elements into the canvas
           </div>
         </div>
 

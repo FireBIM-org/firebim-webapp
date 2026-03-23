@@ -23,6 +23,7 @@ import {
   publishRule,
 } from '@/features/rulebuilder/api';
 import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
@@ -52,7 +53,7 @@ type LibraryState = {
 const LIBRARY_STORAGE_KEY = 'firebim-rule-library-v3';
 const DEFAULT_CATEGORY_META: CategoryMeta[] = [
   { id: 'examples', label: 'Examples', system: true, order: 0 },
-  { id: 'under-development', label: 'Under development', system: true, order: 10 },
+  { id: 'under-development', label: 'Saved Rule element', system: true, order: 10 },
   { id: 'trash', label: 'Waste bin', system: true, order: 999 },
 ];
 
@@ -179,6 +180,8 @@ function saveLibraryState(state: LibraryState) {
 export default function RuleBuilderPage() {
   const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
+  const [builtTreeCollapsed, setBuiltTreeCollapsed] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [storedElements, setStoredElements] = useState<LibraryItem[]>([]);
   const [libraryState, setLibraryState] = useState<LibraryState>(() =>
@@ -734,27 +737,30 @@ export default function RuleBuilderPage() {
   };
 
   const handleTreeBuilt = (result: BuiltTreeResult) => {
-  setBuiltTreeResult(result);
+    setBuiltTreeResult(result);
+    setBuiltTreeCollapsed(false);
 
-  if (result.missingBranches.length > 0) {
-    setPublishState('error');
+    if (result.missingBranches.length > 0) {
+      setPublishState('error');
+      setPublishMessage(
+        `Tree built, but ${result.missingBranches.length} missing branch target(s) were found`
+      );
+      return;
+    }
+
+    if (result.cycles.length > 0) {
+      setPublishState('error');
+      setPublishMessage(
+        `Tree built, but ${result.cycles.length} cycle(s) were detected`
+      );
+      return;
+    }
+
+    setPublishState('success');
     setPublishMessage(
-      `Tree built, but ${result.missingBranches.length} missing branch target(s) were found`
+      `Built tree with ${result.reachableNodeIds.length} node(s) and ${result.connections.length} connection(s)`
     );
-    return;
-  }
-
-  if (result.cycles.length > 0) {
-    setPublishState('error');
-    setPublishMessage(`Tree built, but ${result.cycles.length} cycle(s) were detected`);
-    return;
-  }
-
-  setPublishState('success');
-  setPublishMessage(
-    `Built tree with ${result.reachableNodeIds.length} node(s) and ${result.connections.length} connection(s)`
-  );
-};
+  };
 
   const handlePublishSelectedNode = async () => {
     if (!selectedRule) return;
@@ -886,6 +892,8 @@ export default function RuleBuilderPage() {
           </div>
 
           <RuleInspectorPanel
+            collapsed={inspectorCollapsed}
+            onToggleCollapsed={() => setInspectorCollapsed((prev) => !prev)}
             selectedRule={selectedRule}
             onChange={handleInspectorChange}
             onPublish={handlePublishSelectedNode}
@@ -898,101 +906,130 @@ export default function RuleBuilderPage() {
           />
 
           {builtTreeResult ? (
-            <div className="w-80 border-l border-gray-200 bg-white p-4 text-sm">
-              <h3 className="mb-2 font-semibold text-gray-900">Built tree</h3>
+            builtTreeCollapsed ? (
+              <aside className="flex w-10 flex-col items-center border-l border-gray-200 bg-white py-2">
+                <button
+                  type="button"
+                  onClick={() => setBuiltTreeCollapsed(false)}
+                  className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                  title="Expand rule details"
+                >
+                  <Bars3Icon className="h-5 w-5" />
+                </button>
+              </aside>
+            ) : (
+              <aside className="w-80 border-l border-gray-200 bg-white p-4 text-sm">
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Rule details</h3>
+                    <p className="text-xs text-gray-500">Built tree summary</p>
+                  </div>
 
-              <p className="mb-2 text-gray-600">
-                Entry: <span className="font-mono">{builtTreeResult.entry}</span>
-              </p>
+                  <button
+                    type="button"
+                    onClick={() => setBuiltTreeCollapsed(true)}
+                    className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    title="Collapse rule details"
+                  >
+                    <Bars3Icon className="h-5 w-5" />
+                  </button>
+                </div>
 
-              <p className="mb-3 text-gray-600">
-                Nodes: {builtTreeResult.reachableNodeIds.length}
-              </p>
+                <p className="mb-2 text-gray-600">
+                  Entry: <span className="font-mono">{builtTreeResult.entry}</span>
+                </p>
 
-              {/* 🔗 CONNECTIONS */}
-              <div className="mb-3">
-                <div className="mb-1 font-medium text-gray-800">Connections</div>
-                <div className="rounded border bg-gray-50 p-2 text-xs font-mono space-y-1">
-                  {builtTreeResult.connections.map((c, i) => (
-                    <div key={i}>
-                      {c.source_id}.{c.branch} → {c.target_id}
+                <p className="mb-3 text-gray-600">
+                  Nodes: {builtTreeResult.reachableNodeIds.length}
+                </p>
+
+                <div className="mb-3">
+                  <div className="mb-1 font-medium text-gray-800">Connections</div>
+                  <div className="max-h-24 overflow-y-auto whitespace-nowrap rounded border bg-gray-50 p-2 text-xs font-mono">
+                    {builtTreeResult.connections.length > 0 ? (
+                      builtTreeResult.connections.map((c, i) => (
+                        <div key={i}>
+                          {c.source_id}.{c.branch} → {c.target_id}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-400">No connections</div>
+                    )}
+                  </div>
+                </div>
+
+                {builtTreeResult.missingBranches.length > 0 && (
+                  <div className="mb-3">
+                    <div className="mb-1 font-medium text-red-700">Missing branches</div>
+                    <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
+                      {builtTreeResult.missingBranches.map((m, i) => (
+                        <div key={i}>
+                          {m.source_id}.{m.branch} → {m.missing_target_id} ❌
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ⚠️ MISSING */}
-              {builtTreeResult.missingBranches.length > 0 && (
-                <div className="mb-3">
-                  <div className="mb-1 font-medium text-red-700">Missing branches</div>
-                  <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
-                    {builtTreeResult.missingBranches.map((m, i) => (
-                      <div key={i}>
-                        {m.source_id}.{m.branch} → {m.missing_target_id} ❌
-                      </div>
-                    ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* 🔁 CYCLES */}
-              {builtTreeResult.cycles.length > 0 && (
-                <div className="mb-3">
-                  <div className="mb-1 font-medium text-red-700">Cycles</div>
-                  <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
-                    {builtTreeResult.cycles.map((cycle, i) => (
-                      <div key={i} className="font-mono">
-                        {cycle.join(' → ')}
-                      </div>
-                    ))}
+                {builtTreeResult.cycles.length > 0 && (
+                  <div className="mb-3">
+                    <div className="mb-1 font-medium text-red-700">Cycles</div>
+                    <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
+                      {builtTreeResult.cycles.map((cycle, i) => (
+                        <div key={i} className="font-mono">
+                          {cycle.join(' → ')}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={clearBuiltTreeResult}
+                    className="w-full rounded border px-3 py-1 text-sm"
+                  >
+                    Clear
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleConnectBuiltTree}
+                    disabled={
+                      !builtTreeResult ||
+                      builtTreeResult.connections.length === 0 ||
+                      builtTreeResult.missingBranches.length > 0
+                    }
+                    className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
+                  >
+                    Connect rule branches
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCheckBuiltRuleCompleteness}
+                    disabled={!builtTreeResult}
+                    className="w-full rounded border border-amber-300 px-3 py-1 text-sm text-amber-700 disabled:opacity-50"
+                  >
+                    Check completeness
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePublishBuiltRule}
+                    disabled={
+                      !builtTreeResult ||
+                      builtTreeResult.missingBranches.length > 0 ||
+                      builtTreeResult.cycles.length > 0
+                    }
+                    className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
+                  >
+                    Save rule
+                  </button>
                 </div>
-              )}
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={clearBuiltTreeResult}
-                  className="w-full rounded border px-3 py-1 text-sm"
-                >
-                  Clear
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleConnectBuiltTree}
-                  disabled={
-                    !builtTreeResult ||
-                    builtTreeResult.connections.length === 0 ||
-                    builtTreeResult.missingBranches.length > 0
-                  }
-                  className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
-                >
-                  Connect rule element branches
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCheckBuiltRuleCompleteness}
-                  disabled={!builtTreeResult}
-                  className="w-full rounded border border-amber-300 px-3 py-1 text-sm text-amber-700 disabled:opacity-50"
-                >
-                  Check completeness
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handlePublishBuiltRule}
-                  disabled={
-                    !builtTreeResult ||
-                    builtTreeResult.missingBranches.length > 0 ||
-                    builtTreeResult.cycles.length > 0
-                  }
-                  className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
-                >
-                  Save rule
-                </button>
-              </div>
-            </div>
+              </aside>
+            )
           ) : null}
         </div>
       </div>

@@ -60,6 +60,31 @@ export type DeleteRuleElementResponse = {
   graph_uri?: string;
 };
 
+export async function deleteRuleElement(
+  payload: DeleteRuleElementRequest
+): Promise<DeleteRuleElementResponse> {
+  const elementId = payload.element_id || payload.graph_uri?.split('/').pop();
+
+  if (!elementId) {
+    throw new Error('Delete rule element failed: missing element_id');
+  }
+
+  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ element_id: elementId }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Delete rule element failed: ${res.status} ${text}`);
+  }
+
+  return res.json();
+}
+
 export type DetailedRuleElementListItem = {
   item_id: string;
   element_id: string;
@@ -437,26 +462,6 @@ export async function publishRuleElement(
   });
 
   return parseJsonResponse<PublishRuleElementResponse>(res);
-}
-
-export async function deleteRuleElement(
-  payload: DeleteRuleElementRequest
-): Promise<DeleteRuleElementResponse> {
-  const elementId = payload.element_id || payload.graph_uri?.split('/').pop();
-
-  if (!elementId) {
-    throw new Error('Delete rule element failed: missing element_id');
-  }
-
-  const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/delete`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ element_id: elementId }),
-  });
-
-  return parseJsonResponse<DeleteRuleElementResponse>(res);
 }
 
 export async function deriveRuleElement(payload: {
