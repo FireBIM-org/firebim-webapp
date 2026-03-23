@@ -382,8 +382,23 @@ export default function RuleBuilderPage() {
             ...item.template,
             label: libraryState.itemLabels[item.id] || item.template.label || item.label,
           },
-        }));
+        }))
+        .sort((a, b) => {
+          const typeOrder: Record<string, number> = {
+            start: 0,
+            decision: 1,
+            end: 2,
+          };
 
+          const aOrder = typeOrder[a.type] ?? 999;
+          const bOrder = typeOrder[b.type] ?? 999;
+
+          if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+          }
+
+          return a.label.localeCompare(b.label);
+        });
       return {
         id: categoryMeta.id,
         label: categoryMeta.label,
