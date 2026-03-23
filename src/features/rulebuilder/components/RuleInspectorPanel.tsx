@@ -1,9 +1,12 @@
 import { ChangeEvent } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 
+type RuleElementType = 'start' | 'decision' | 'end';
+
 type RuleData = {
   id: string;
-  node_type: 'start' | 'decision' | 'end';
+  element_type?: RuleElementType | null;
+  node_type?: RuleElementType | null; // backward-compatible fallback
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
@@ -14,6 +17,7 @@ type RuleData = {
   unknown_path?: string | null;
   config?: Record<string, unknown>;
   graph_uri?: string | null;
+  element_id?: string | null;
 };
 
 type Props = {
@@ -35,6 +39,15 @@ function inputValue(value: unknown) {
   return String(value);
 }
 
+function getEffectiveElementType(rule: RuleData | null): RuleElementType | null {
+  if (!rule) return null;
+
+  const raw = rule.element_type ?? rule.node_type ?? null;
+  if (raw === 'start' || raw === 'decision' || raw === 'end') return raw;
+
+  return null;
+}
+
 export default function RuleInspectorPanel({
   selectedRule,
   onChange,
@@ -48,15 +61,20 @@ export default function RuleInspectorPanel({
   collapsed,
   onToggleCollapsed,
 }: Props) {
+  const elementType = getEffectiveElementType(selectedRule);
+  const isStart = elementType === 'start';
+  const isDecision = elementType === 'decision';
+  const isEnd = elementType === 'end';
+
   const handleTextChange =
     (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
 
-      if (field === 'value' && selectedRule?.node_type === 'end') {
+      if (field === 'value' && isEnd) {
         onChange({
           value,
           config: {
-            ...selectedRule.config,
+            ...selectedRule?.config,
             end_kind: 'output',
             output_text: value,
           },
@@ -102,15 +120,11 @@ export default function RuleInspectorPanel({
         </div>
 
         <div className="flex h-full items-center justify-center p-6 text-sm text-gray-400">
-          Select a node to inspect and edit its properties.
+          Select a rule element to inspect and edit its properties.
         </div>
       </aside>
     );
   }
-
-  const isStart = selectedRule.node_type === 'start';
-  const isDecision = selectedRule.node_type === 'decision';
-  const isEnd = selectedRule.node_type === 'end';
 
   const disabledClass =
     'w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500';
@@ -143,7 +157,7 @@ export default function RuleInspectorPanel({
             onClick={onDuplicate}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
           >
-            Duplicate selected node
+            Duplicate selected rule element
           </button>
 
           {selectedRule.graph_uri && (
@@ -152,7 +166,7 @@ export default function RuleInspectorPanel({
               onClick={onDerive}
               className="w-full rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
             >
-              Derive from stored element
+              Derive from stored rule element
             </button>
           )}
 
@@ -162,7 +176,7 @@ export default function RuleInspectorPanel({
               onClick={onBuildTree}
               className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
             >
-              Build tree from start node
+              Build rule from start rule element
             </button>
           ) : null}
 
@@ -171,7 +185,7 @@ export default function RuleInspectorPanel({
             onClick={onDelete}
             className="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
           >
-            Delete selected node
+            Delete selected rule element
           </button>
 
           <button
@@ -180,7 +194,9 @@ export default function RuleInspectorPanel({
             disabled={publishState === 'saving'}
             className="w-full rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {publishState === 'saving' ? 'Publishing...' : 'Publish selected node'}
+            {publishState === 'saving'
+              ? 'Publishing...'
+              : 'Publish selected rule element'}
           </button>
 
           {publishMessage && (
@@ -209,13 +225,9 @@ export default function RuleInspectorPanel({
 
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-                Node type
+                Rule element type
               </label>
-              <input
-                value={inputValue(selectedRule.node_type)}
-                disabled
-                className={disabledClass}
-              />
+              <input value={inputValue(elementType)} disabled className={disabledClass} />
             </div>
 
             <div>
@@ -281,6 +293,17 @@ export default function RuleInspectorPanel({
                 onChange={handleTextChange('value')}
                 disabled={isStart}
                 className={!isStart ? activeClass : disabledClass}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                Element ID
+              </label>
+              <input
+                value={inputValue(selectedRule.element_id)}
+                disabled
+                className={disabledClass}
               />
             </div>
 

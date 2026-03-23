@@ -188,7 +188,7 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
     true_path: null,
     false_path: null,
     unknown_path: null,
-    label: 'Example start node',
+    label: 'Example start rule element - this name will be used for the entire rule',
     config: {
       library_category: 'Examples',
     },
@@ -205,7 +205,7 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
     true_path: null,
     false_path: null,
     unknown_path: null,
-    label: 'Example end node — Passed',
+    label: 'Example end rule element — Passed',
     config: {
       library_category: 'Examples',
       end_kind: 'output',
@@ -224,7 +224,7 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
     true_path: null,
     false_path: null,
     unknown_path: null,
-    label: 'Example end node — Failed',
+    label: 'Example end rule element — Failed',
     config: {
       library_category: 'Examples',
       end_kind: 'output',
@@ -243,7 +243,7 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
     true_path: null,
     false_path: null,
     unknown_path: null,
-    label: 'Example end node — Missing data',
+    label: 'Example end rule element — Missing data',
     config: {
       library_category: 'Examples',
       end_kind: 'output',

@@ -8,6 +8,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
+import { getNodePalette } from './RuleElementNode';
 
 type Props = {
   collapsed: boolean;
@@ -60,31 +61,45 @@ function NodeItem({
     onToggleSelected?.(event.metaKey || event.ctrlKey);
   };
 
+  const palette = getNodePalette(item.type);
+
   return (
     <div
       draggable
       onClick={handleClick}
       onDragStart={handleDragStart}
       className={[
-        'cursor-move rounded-md border bg-white px-3 py-2 text-sm shadow-sm transition',
+        'cursor-move overflow-hidden rounded-lg border bg-white text-sm shadow-sm transition',
         selected
-          ? 'border-blue-500 ring-2 ring-blue-200'
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+          ? `${palette.border} ring-2 ${palette.ring}`
+          : `${palette.border} hover:shadow-md`,
       ].join(' ')}
     >
-      <div className="font-medium text-gray-800">{item.label}</div>
-
-      {item.description && (
-        <div className="mt-1 text-xs text-gray-500 line-clamp-2">
-          {item.description}
+      <div className={`border-b px-3 py-2 ${palette.header}`}>
+        <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
+          {item.type === 'start'
+            ? 'Start'
+            : item.type === 'decision'
+            ? 'Decision'
+            : 'End'}
         </div>
-      )}
 
-      {item.source === 'api' && (
-        <div className="mt-1 text-[10px] uppercase text-orange-600">
-          stored
-        </div>
-      )}
+        <div className="mt-1 font-medium text-gray-900">{item.label}</div>
+      </div>
+
+      <div className={`px-3 py-2 ${palette.body}`}>
+        {item.description && (
+          <div className="text-xs text-gray-500 line-clamp-2">
+            {item.description}
+          </div>
+        )}
+
+        {item.source === 'api' && (
+          <div className="mt-2 text-[10px] uppercase text-orange-600">
+            stored
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -224,7 +239,7 @@ export default function RuleLibraryPanel({
       <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2">
         <div>
           <div className="text-sm font-semibold text-gray-900">
-            Node Library
+            Rule element Library
           </div>
           <div className="text-xs text-gray-500">
             Drag rule elements into the canvas

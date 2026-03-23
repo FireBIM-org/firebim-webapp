@@ -117,3 +117,27 @@ body {
   border-color: rgb(var(--primary-color));
   background-color: rgba(var(--primary-color), 0.05);
 }
+
+.rule-edge-idle path {
+  stroke-width: 1.5;
+}
+
+.rule-edge-connected path {
+  stroke-width: 3;
+  stroke-dasharray: 8 4;
+}
+
+.rule-edge-complete path {
+  stroke-width: 3;
+  stroke-dasharray: 8 4;
+  animation: rule-edge-flow 0.9s linear infinite;
+}
+
+@keyframes rule-edge-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -24;
+  }
+}

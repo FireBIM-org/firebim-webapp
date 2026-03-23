@@ -16,7 +16,7 @@ type RuleData = {
   element_id?: string | null;
 };
 
-function getNodePalette(nodeType: RuleData['element_type']) {
+export function getNodePalette(nodeType: RuleData['element_type']) {
   if (nodeType === 'start') {
     return {
       border: 'border-sky-500',
@@ -29,8 +29,8 @@ function getNodePalette(nodeType: RuleData['element_type']) {
 
   if (nodeType === 'end') {
     return {
-      border: 'border-violet-500',
-      ring: 'ring-violet-200',
+      border: 'border-violet-700',
+      ring: 'ring-violet-300',
       badge: 'text-violet-700',
       header: 'bg-violet-50 border-violet-200',
       body: 'bg-white',
@@ -64,7 +64,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
   if (!rule) {
     return (
-      <div className="min-w-[220px] rounded-md border border-slate-300 bg-white px-3 py-2 shadow-sm">
+      <div className="min-w-[220px] rounded-xl border border-slate-300 bg-white px-3 py-2 shadow-xl">
         <div className="text-sm font-medium text-slate-700">Invalid rule element</div>
       </div>
     );
@@ -81,9 +81,9 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
   return (
     <div
       className={[
-        'relative min-w-[240px] rounded-lg border shadow-sm',
+        'relative min-w-[240px] rounded-xl border-2 shadow-xl',
         palette.body,
-        selected ? `${palette.border} ring-2 ${palette.ring}` : palette.border,
+        selected ? `${palette.border} ring-3 ${palette.ring}` : palette.border,
       ].join(' ')}
     >
       {showInput && (
@@ -91,11 +91,11 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
           type="target"
           id="in"
           position={Position.Top}
-          className="!h-3 !w-3 !border-2 !border-slate-500 !bg-white"
+          className="!h-3 !w-3 !border-4 !border-slate-500 !bg-white"
         />
       )}
 
-      <div className={`border-b px-3 py-2 ${palette.header}`}>
+      <div className={`border-1 rounded-xl px-3 py-2 ${palette.header}`}>
         <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
           {typeBadge(rule.element_type)}
         </div>
@@ -127,7 +127,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
           <div>
             <span className="font-medium">Output:</span>
           </div>
-          <div className="mt-1 rounded-md bg-violet-50 px-2 py-2 text-slate-700">
+          <div className="mt-3 rounded-xl bg-violet-50 px-2 py-2 text-slate-700">
             {getEndOutputText(rule)}
           </div>
         </div>

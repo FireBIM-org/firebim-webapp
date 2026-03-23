@@ -18,6 +18,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+import RuleBranchEdge from './RuleBranchEdge';
 import { getRuleElement } from '../api';
 import RuleElementNode from './RuleElementNode';
 import {
@@ -66,6 +67,7 @@ type Props = {
   deriveRequest: DeriveRequest;
   buildTreeRequest?: BuildTreeRequest | null;
   onTreeBuilt?: (result: BuiltTreeResult) => void;
+  builtRuleEdgePhase?: 'idle' | 'connected' | 'complete';
 };
 
 type BranchHandle = 'true' | 'false' | 'unknown';
@@ -180,6 +182,7 @@ function RuleCanvasInner({
   deriveRequest,
   buildTreeRequest,
   onTreeBuilt,
+  builtRuleEdgePhase = 'idle',
 }: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastHandledDuplicateRequestId = useRef<number | null>(null);
@@ -196,6 +199,15 @@ function RuleCanvasInner({
     const node = nodes.find((item) => item.id === selectedNodeId);
     return (node?.data?.rule as RuleData | undefined) || null;
   }, [nodes, selectedNodeId]);
+
+  const visualEdges = useMemo(() => {
+    const visual = getEdgeVisualProps(builtRuleEdgePhase);
+
+    return edges.map((edge) => ({
+      ...edge,
+      ...visual,
+    }));
+  }, [edges, builtRuleEdgePhase]);
 
   const syncEdgesFromNodes = useCallback((nextNodes: Node[]) => {
     setEdges(buildEdgesFromNodes(nextNodes));
@@ -629,8 +641,9 @@ function RuleCanvasInner({
     <div ref={wrapperRef} className="h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={visualEdges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onInit={setReactFlowInstance}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -645,6 +658,48 @@ function RuleCanvasInner({
       </ReactFlow>
     </div>
   );
+}
+
+const edgeTypes = {
+  ruleBranch: RuleBranchEdge,
+};
+
+function getEdgeVisualProps(
+  phase: 'idle' | 'connected' | 'complete'
+) {
+  switch (phase) {
+    case 'connected':
+      return {
+        type: 'ruleBranch',
+        animated: false,
+        className: 'rule-edge-connected',
+        style: {
+          strokeWidth: 3,
+          strokeDasharray: '8 4',
+        },
+      };
+
+    case 'complete':
+      return {
+        type: 'ruleBranch',
+        animated: true,
+        className: 'rule-edge-complete',
+        style: {
+          strokeWidth: 3,
+          strokeDasharray: '8 4',
+        },
+      };
+
+    default:
+      return {
+        type: 'ruleBranch',
+        animated: false,
+        className: 'rule-edge-idle',
+        style: {
+          strokeWidth: 1.5,
+        },
+      };
+  }
 }
 
 export default function RuleCanvas(props: Props) {

@@ -2,7 +2,7 @@ import {
   RuleLibraryCategory,
   RuleLibraryCategoryMeta,
   RuleLibraryState,
-  RuleElementTemplate,
+  RuleNodeTemplate,
 } from './types';
 
 export const RULE_LIBRARY_STORAGE_KEY = 'firebim-rule-library-v2';
@@ -10,7 +10,7 @@ export const RULE_LIBRARY_STORAGE_KEY = 'firebim-rule-library-v2';
 export const DEFAULT_CATEGORY_META: RuleLibraryCategoryMeta[] = [
   {
     id: 'under-development',
-    label: 'Under development',
+    label: 'Saved Rule element',
     system: true,
     order: 0,
   },
@@ -22,29 +22,16 @@ export const DEFAULT_CATEGORY_META: RuleLibraryCategoryMeta[] = [
   },
 ];
 
-export const DEFAULT_LOCAL_TEMPLATES: RuleElementTemplate[] = [
+export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
   {
     id: 'local:start',
     type: 'start',
-    label: 'Start node',
+    label: 'Start rule element',
     description: 'Entry point for a rule flow',
     source: 'local',
     template: {
       element_type: 'start',
-      label: 'Start',
-      config: {},
-      element_id: null,
-    },
-  },
-  {
-    id: 'local:decision',
-    type: 'decision',
-    label: 'Decision node',
-    description: 'Branch by true / false / unknown',
-    source: 'local',
-    template: {
-      element_type: 'decision',
-      label: 'Decision',
+      label: 'Start rule element',
       target_class: null,
       property_path: null,
       operator: null,
@@ -53,28 +40,58 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleElementTemplate[] = [
       false_path: null,
       unknown_path: null,
       config: {},
-      element_id: null,
+    },
+  },
+  {
+    id: 'local:decision',
+    type: 'decision',
+    label: 'Decision rule element',
+    description: 'Branch by true / false / unknown',
+    source: 'local',
+    template: {
+      element_type: 'decision',
+      label: 'Decision rule element',
+      target_class: null,
+      property_path: null,
+      operator: null,
+      value: null,
+      true_path: null,
+      false_path: null,
+      unknown_path: null,
+      config: {},
     },
   },
   {
     id: 'local:end',
     type: 'end',
-    label: 'End node',
-    description: 'Terminal output node',
+    label: 'End rule element',
+    description: 'Terminal output rule element',
     source: 'local',
     template: {
       element_type: 'end',
-      label: 'End',
-      config: {},
-      element_id: null,
+      label: 'End rule element',
+      target_class: null,
+      property_path: null,
+      operator: null,
+      value: null,
+      true_path: null,
+      false_path: null,
+      unknown_path: null,
+      config: {
+        end_kind: 'output',
+        output_text: '',
+      },
     },
   },
 ];
 
+/**
+ * Temporary backward-compatible export.
+ */
 export const RULE_LIBRARY: RuleLibraryCategory[] = [
   {
     id: 'under-development',
-    label: 'Under development',
+    label: 'Saved Rule element',
     system: true,
     items: DEFAULT_LOCAL_TEMPLATES,
   },
@@ -87,7 +104,7 @@ export const RULE_LIBRARY: RuleLibraryCategory[] = [
 ];
 
 export function createDefaultLibraryState(
-  items: RuleElementTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
 ): RuleLibraryState {
   const itemCategory: Record<string, string> = {};
   const itemLabels: Record<string, string> = {};
@@ -106,7 +123,7 @@ export function createDefaultLibraryState(
 }
 
 export function loadLibraryState(
-  items: RuleElementTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
 ): RuleLibraryState {
   if (typeof window === 'undefined') {
     return createDefaultLibraryState(items);

@@ -27,6 +27,7 @@ import { Bars3Icon } from '@heroicons/react/24/outline';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
+type BuiltRuleEdgePhase = 'idle' | 'connected' | 'complete';
 
 type LibraryItem = RuleLibraryCategory['items'][number] & {
   id: string;
@@ -182,6 +183,12 @@ export default function RuleBuilderPage() {
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [builtTreeCollapsed, setBuiltTreeCollapsed] = useState(false);
+
+  type BuiltRuleEdgePhase = 'idle' | 'connected' | 'complete';
+
+  const [builtRuleEdgePhase, setBuiltRuleEdgePhase] =
+    useState<BuiltRuleEdgePhase>('idle');
+
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [storedElements, setStoredElements] = useState<LibraryItem[]>([]);
   const [libraryState, setLibraryState] = useState<LibraryState>(() =>
@@ -597,6 +604,8 @@ export default function RuleBuilderPage() {
         });
       }
 
+      setBuiltRuleEdgePhase('connected');
+
       setPublishState('success');
       setPublishMessage(
         `Connected ${builtTreeResult.connections.length} branch connection(s)`
@@ -620,10 +629,15 @@ export default function RuleBuilderPage() {
         rule: draft,
       });
 
-      setPublishState('success');
-      setPublishMessage(
-        `Completeness check finished: ${JSON.stringify(result)}`
-      );
+      if (result?.complete === true) {
+        setBuiltRuleEdgePhase('complete');
+        setPublishState('success');
+        setPublishMessage('Completeness check finished: rule is complete');
+      } else {
+        setBuiltRuleEdgePhase('connected');
+        setPublishState('success');
+        setPublishMessage(`Completeness check finished: ${JSON.stringify(result)}`);
+      }
     } catch (error) {
       console.error('checkRuleCompleteness failed:', error);
       setPublishState('error');
@@ -730,10 +744,11 @@ export default function RuleBuilderPage() {
     if (selectedRule.element_type !== 'start') return;
 
     clearBuiltTreeResult();
+    setBuiltRuleEdgePhase('idle');
     requestBuildTree(selectedNodeId);
 
     setPublishState('idle');
-    setPublishMessage('Building tree from selected start node...');
+    setPublishMessage('Building Rule from selected start rule element...');
   };
 
   const handleTreeBuilt = (result: BuiltTreeResult) => {
@@ -743,7 +758,7 @@ export default function RuleBuilderPage() {
     if (result.missingBranches.length > 0) {
       setPublishState('error');
       setPublishMessage(
-        `Tree built, but ${result.missingBranches.length} missing branch target(s) were found`
+        `Rule built, but ${result.missingBranches.length} missing target(s) were found`
       );
       return;
     }
@@ -758,7 +773,7 @@ export default function RuleBuilderPage() {
 
     setPublishState('success');
     setPublishMessage(
-      `Built tree with ${result.reachableNodeIds.length} node(s) and ${result.connections.length} connection(s)`
+      `Built Rule with ${result.reachableNodeIds.length} rule elements and ${result.connections.length} connection(s)`
     );
   };
 
@@ -888,6 +903,7 @@ export default function RuleBuilderPage() {
               deriveRequest={deriveRequest}
               buildTreeRequest={buildTreeRequest}
               onTreeBuilt={handleTreeBuilt}
+              builtRuleEdgePhase={builtRuleEdgePhase}
             />
           </div>
 
@@ -987,7 +1003,10 @@ export default function RuleBuilderPage() {
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={clearBuiltTreeResult}
+                    onClick={() => {
+                      clearBuiltTreeResult();
+                      setBuiltRuleEdgePhase('idle');
+                    }}
                     className="w-full rounded border px-3 py-1 text-sm"
                   >
                     Clear
