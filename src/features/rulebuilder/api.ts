@@ -390,10 +390,21 @@ export async function listRuleElements(): Promise<RuleElementListItem[]> {
   return [];
 }
 
-export async function getRuleElement(id: string): Promise<{ rule_element: RuleElementJson }> {
+export async function getRuleElement(
+  id: string
+): Promise<{ rule_element: RuleElementJson }> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
-  const data = await parseJsonResponse<unknown>(res);
-  return { rule_element: normalizeRuleElement(data) };
+  const data = await parseJsonResponse<any>(res);
+
+  const rawRuleElement = data?.rule_element ?? data;
+  const normalized = normalizeRuleElement(rawRuleElement);
+
+  return {
+    rule_element: {
+      ...normalized,
+      graph_uri: data?.graph_uri ?? normalized.graph_uri ?? null,
+    },
+  };
 }
 
 export async function getRuleElementOrNull(
@@ -411,7 +422,15 @@ export async function getRuleElementOrNull(
   }
 
   const data = await res.json();
-  return { rule_element: normalizeRuleElement(data) };
+  const rawRuleElement = data?.rule_element ?? data;
+  const normalized = normalizeRuleElement(rawRuleElement);
+
+  return {
+    rule_element: {
+      ...normalized,
+      graph_uri: data?.graph_uri ?? normalized.graph_uri ?? null,
+    },
+  };
 }
 
 export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
