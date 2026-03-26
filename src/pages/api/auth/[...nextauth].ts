@@ -1,14 +1,34 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 
+// Public-facing Authentik issuer URL (browser redirects & ID token validation)
+if (!process.env.AUTHENTIK_ISSUER_URL) {
+  throw new Error("AUTHENTIK_ISSUER_URL environment variable is required");
+}
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL;
+
+// External base URL for browser-facing endpoints
+const externalBase = issuerUrl.replace(/\/application\/o\/.*$/, "");
+
+// Internal Authentik base URL for server-side calls (avoids hairpin NAT in K8s).
+// Falls back to external if not set (local development).
+const serverBase = process.env.AUTHENTIK_INTERNAL_URL
+  ? process.env.AUTHENTIK_INTERNAL_URL.replace(/\/$/, "")
+  : externalBase;
+
 export const authOptions: NextAuthOptions = {
   providers: [
     {
       id: "authentik",
       name: "Authentik",
       type: "oauth",
-      wellKnown: `${process.env.AUTHENTIK_ISSUER_URL || "https://auth.firebim.org/application/o/firebim/"}/.well-known/openid-configuration`,
-      authorization: { params: { scope: "openid email profile" } },
+      wellKnown: `${serverBase}/application/o/firebim/.well-known/openid-configuration`,
+      authorization: {
+        url: `${externalBase}/application/o/authorize/`,
+        params: { scope: "openid email profile" },
+      },
+      token: `${serverBase}/application/o/token/`,
+      userinfo: `${serverBase}/application/o/userinfo/`,
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
       idToken: true,
