@@ -37,6 +37,11 @@ services:
     environment:
       - NEXT_PUBLIC_API_HOST=${NEXT_PUBLIC_API_HOST:-https://api.firebim.org}
       - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://app.firebim.org}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTHENTIK_CLIENT_ID=${AUTHENTIK_CLIENT_ID:-firebim}
+      - AUTHENTIK_CLIENT_SECRET=${AUTHENTIK_CLIENT_SECRET}
+      - AUTHENTIK_ISSUER_URL=${AUTHENTIK_ISSUER_URL:-https://auth.firebim.org/application/o/firebim/}
     deploy:
       update_config:
         order: start-first
