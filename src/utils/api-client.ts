@@ -1,8 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { components } from '../types/api';
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 
-                'http://localhost:8000/';
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
 
 // Define User type based on the API schema
 export type User = components['schemas']['User'];
