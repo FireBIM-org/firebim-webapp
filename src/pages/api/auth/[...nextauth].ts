@@ -17,8 +17,6 @@ export const authOptions: NextAuthOptions = {
       authorization: { params: { scope: "openid email profile" } },
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
-      idToken: true,
-      checks: ["pkce", "state"],
       profile(profile) {
         return {
           id: profile.sub,
