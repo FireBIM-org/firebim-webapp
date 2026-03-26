@@ -1,6 +1,6 @@
 # FireBIM webapp
-[![Docker](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/docker-publish.yml)
-[![Lint](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/Lint.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/Lint.yml)
+[![Build & Push Image](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/build-image.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/build-image.yml)
+[![CI](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/ci.yml)
 
 Example frontend for firebim-api-server.
 
