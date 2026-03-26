@@ -22,13 +22,16 @@ export const authOptions: NextAuthOptions = {
       id: "authentik",
       name: "Authentik",
       type: "oauth",
-      wellKnown: `${serverBase}/application/o/firebim/.well-known/openid-configuration`,
+      // No wellKnown — the discovered endpoints use the internal hostname
+      // which would leak into browser redirects. Define all endpoints explicitly.
+      issuer: issuerUrl,
       authorization: {
         url: `${externalBase}/application/o/authorize/`,
         params: { scope: "openid email profile" },
       },
       token: `${serverBase}/application/o/token/`,
       userinfo: `${serverBase}/application/o/userinfo/`,
+      jwks_endpoint: `${serverBase}/application/o/firebim/jwks/`,
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
       idToken: true,
