@@ -5,13 +5,15 @@ if (!process.env.AUTHENTIK_ISSUER_URL) {
   throw new Error("AUTHENTIK_ISSUER_URL environment variable is required");
 }
 
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
+
 export const authOptions: NextAuthOptions = {
   providers: [
     {
       id: "authentik",
       name: "Authentik",
       type: "oauth",
-      wellKnown: `${process.env.AUTHENTIK_ISSUER_URL}/.well-known/openid-configuration`,
+      wellKnown: `${issuerUrl}/.well-known/openid-configuration`,
       authorization: { params: { scope: "openid email profile" } },
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
