@@ -36,6 +36,12 @@ WORKDIR /app
 # Set to production environment
 ENV NODE_ENV=production
 
+# Upgrade OS packages to fix known CVEs (e.g. zlib CVE-2026-22184).
+# Remove npm/npx since they are not needed at runtime — this eliminates the entire
+# surface of npm-bundled CVEs (cross-spawn, glob, minimatch, tar, etc.).
+RUN apk upgrade --no-cache && \
+    rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
+
 # Add a non-root user to run the app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
