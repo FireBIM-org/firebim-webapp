@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getToken } from "next-auth/jwt";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
 
 const API_BACKEND =
   process.env.API_BACKEND_URL || "http://localhost:8000";
@@ -14,9 +15,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const token = await getToken({ req });
+  // getServerSession runs the full jwt callback (including token refresh logic)
+  // unlike getToken which only decodes the cookie without triggering refresh
+  const session = await getServerSession(req, res, authOptions);
 
-  if (!token?.accessToken) {
+  if (session?.error === "RefreshAccessTokenError") {
+    return res.status(401).json({ detail: "Session expired — please log in again" });
+  }
+
+  if (!session?.accessToken) {
     return res.status(401).json({ detail: "Not authenticated" });
   }
 
@@ -41,7 +48,7 @@ export default async function handler(
 
   // Build headers — forward content-type so multipart boundaries are preserved
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token.accessToken}`,
+    Authorization: `Bearer ${session.accessToken}`,
   };
   if (req.headers["content-type"]) {
     headers["Content-Type"] = req.headers["content-type"];
