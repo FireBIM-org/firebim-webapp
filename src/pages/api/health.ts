@@ -51,6 +51,7 @@ export default async function handler(
   // Authentik
   if (authentikPromise === null) {
     checks["authentik"] = "not configured";
+    healthy = false;
   } else if (authentikResult.status === "fulfilled") {
     const resp = authentikResult.value;
     if (resp && resp.ok) {
