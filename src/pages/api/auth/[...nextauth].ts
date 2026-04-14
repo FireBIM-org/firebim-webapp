@@ -6,18 +6,12 @@ if (!process.env.AUTHENTIK_ISSUER_URL) {
   throw new Error("AUTHENTIK_ISSUER_URL environment variable is required");
 }
 
-// Public issuer URL — must match the `iss` claim in tokens and be reachable by browsers.
 const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
-// Internal issuer URL — used for server-side OIDC discovery and token exchange so that
-// the webapp container can reach Authentik directly over the Docker network instead of
-// routing through the host.  Falls back to the public URL when not set (e.g. local dev
-// without Docker or when Authentik is on a shared public hostname).
-const internalUrl = (process.env.AUTHENTIK_INTERNAL_URL ?? process.env.AUTHENTIK_ISSUER_URL).replace(/\/+$/, "");
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
     const discovery = await fetch(
-      `${internalUrl}/.well-known/openid-configuration`
+      `${issuerUrl}/.well-known/openid-configuration`
     );
     const { token_endpoint } = await discovery.json();
 
@@ -57,17 +51,11 @@ export const authOptions: NextAuthOptions = {
       id: "authentik",
       name: "Authentik",
       type: "oauth",
-      // Use internalUrl for OIDC discovery so server-side token exchange goes directly
-      // to Authentik over the Docker network.  The discovered authorization_endpoint
-      // will contain an internal URL, so we override `authorization` with the public URL.
-      wellKnown: `${internalUrl}/.well-known/openid-configuration`,
+      wellKnown: `${issuerUrl}/.well-known/openid-configuration`,
       idToken: true,
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
-      authorization: {
-        url: `${issuerUrl}/authorize/`,
-        params: { scope: "openid email profile offline_access" },
-      },
+      authorization: { params: { scope: "openid email profile offline_access" } },
       client: {
         token_endpoint_auth_method: "client_secret_post",
       },
