@@ -29,7 +29,8 @@
   },
   "overrides": {
     "form-data": ">=4.0.4",
-    "minimatch": "^5.1.8"
+    "minimatch": "^5.1.8",
+    "picomatch": ">=4.0.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -31,6 +31,9 @@ RUN pnpm build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+# Upgrade OS packages to pick up latest security patches
+RUN apk upgrade --no-cache
+
 # Set to production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
