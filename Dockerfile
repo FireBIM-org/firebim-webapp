@@ -31,8 +31,10 @@ RUN pnpm build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Upgrade OS packages to pick up latest security patches
-RUN apk upgrade --no-cache
+# Upgrade OS packages and strip npm/corepack (not needed at runtime)
+# to reduce attack surface and eliminate bundled transitive vulnerabilities
+RUN apk upgrade --no-cache && \
+    rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
 # Set to production environment
 ENV NODE_ENV=production
