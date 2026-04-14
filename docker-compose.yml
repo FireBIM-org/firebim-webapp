@@ -46,3 +46,6 @@ services:
       # Browser-accessible issuer URL (also works from the container
       # thanks to the extra_hosts entry above).
       - AUTHENTIK_ISSUER_URL=http://localhost:9090/application/o/firebim/
+
+      # ── Umami analytics (optional) ───────────────────────────────
+      - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=change-me-ignore-local-XXXX-XXXX-XXXXXXXXXXXX
