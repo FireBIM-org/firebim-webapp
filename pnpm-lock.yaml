@@ -24,10 +24,10 @@ importers:
         specifier: ^5.76.1
         version: 5.99.0(react@19.2.5)
       axios:
-        specifier: ^1.13.5
+        specifier: ^1.15.0
         version: 1.15.0
       next:
-        specifier: ^15.3.9
+        specifier: ^15.5.15
         version: 15.5.15(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       next-auth:
         specifier: ^4.24.13
@@ -73,7 +73,7 @@ importers:
         specifier: ^9.27.0
         version: 9.39.4(jiti@2.6.1)
       eslint-config-next:
-        specifier: ^15.3.9
+        specifier: ^15.5.15
         version: 15.5.15(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       tailwindcss:
         specifier: ^4.1.7
