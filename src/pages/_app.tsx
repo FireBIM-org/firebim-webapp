@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchInterval={4 * 60} refetchOnWindowFocus={true}>
       <QueryProvider>
         <AuthProvider>
           <Component {...pageProps} />

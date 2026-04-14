@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getSession, signIn } from 'next-auth/react';
 import { components } from '../types/api';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
@@ -70,6 +71,28 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
     });
+
+    // Intercept 401 responses: force a session refresh and retry once.
+    // If the session is unrecoverable, redirect to the Authentik login.
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+          originalRequest._retry = true;
+          // Force NextAuth to re-fetch & refresh the session cookie
+          const session = await getSession();
+          if (session && !session.error) {
+            return this.axiosInstance(originalRequest);
+          }
+          // Refresh failed — redirect to Authentik login
+          if (typeof window !== 'undefined') {
+            await signIn('authentik');
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   // Get user profile from API server (goes through proxy which adds auth)

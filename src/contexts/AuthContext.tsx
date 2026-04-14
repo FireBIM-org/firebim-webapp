@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
 export interface AuthUser {
@@ -20,11 +20,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
     if (session?.error === "RefreshAccessTokenError") {
-      // Token refresh failed — force re-login
-      signIn('authentik');
+      // Token refresh failed — force re-login via Authentik, but only once
+      if (!redirectingRef.current) {
+        redirectingRef.current = true;
+        signIn('authentik');
+      }
       return;
     }
     if (status === 'authenticated' && session?.user) {
