@@ -33,6 +33,8 @@ WORKDIR /app
 
 # Upgrade OS packages to pick up latest security patches
 RUN apk upgrade --no-cache
+# Upgrade bundled npm to get patched picomatch (CVE-2026-33671)
+RUN npm install -g npm@latest
 
 # Set to production environment
 ENV NODE_ENV=production
