@@ -1,0 +1,101 @@
+# docker-compose for the FireBIM webapp.
+#
+# Requires the firebim-api-server backend stack to be running first:
+#   cd ../firebim-api-server && docker compose up -d
+#
+# HTTPS behaviour:
+#   - Local dev (TRAEFIK_HOST=localhost, default): Traefik serves HTTPS with a
+#     self-signed certificate. Browsers will show a security warning — accept it
+#     once or add the cert to your trust store.
+#   - Production (TRAEFIK_HOST=app.firebim.org):
+#     Un-comment the `tls.certresolver=acme` label on the webapp router to enable
+#     automatic Let's Encrypt certificate provisioning.
+#
+# Starting:
+#   cp .env.example .env   # fill in NEXTAUTH_SECRET and AUTHENTIK_CLIENT_SECRET at minimum
+#   docker compose up -d
+
+services:
+
+  # ── Traefik reverse proxy (HTTP → HTTPS redirect + TLS termination) ─────────
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # Redirect all HTTP to HTTPS
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # HTTPS entry point
+      - "--entrypoints.websecure.address=:443"
+      # Let's Encrypt (ACME) — used only when the webapp router has tls.certresolver=acme
+      - "--certificatesresolvers.acme.acme.tlschallenge=true"
+      - "--certificatesresolvers.acme.acme.email=${TRAEFIK_ACME_EMAIL:-contact@firebim.org}"
+      - "--certificatesresolvers.acme.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - firebim_network
+
+  # ── Next.js webapp ───────────────────────────────────────────────────────────
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        GIT_BRANCH: ${GIT_BRANCH:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.webapp.loadbalancer.server.port=3000"
+      - "traefik.http.routers.webapp.rule=Host(`${TRAEFIK_HOST:-localhost}`)"
+      - "traefik.http.routers.webapp.entrypoints=websecure"
+      # tls=true without certresolver → Traefik uses a self-signed cert (local dev).
+      # For production, add the certresolver line below instead:
+      - "traefik.http.routers.webapp.tls=true"
+      # - "traefik.http.routers.webapp.tls.certresolver=acme"
+    environment:
+      # NEXT_PUBLIC_API_HOST: base URL the *browser* uses for API calls.
+      # Empty → the webapp's own /api/proxy route is used (recommended).
+      - NEXT_PUBLIC_API_HOST=${NEXT_PUBLIC_API_HOST:-}
+      - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=${NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID:-}
+      # API_BACKEND_URL: server-side proxy reaching the FastAPI backend through the
+      # shared Docker network (service name "api" from firebim-api-server).
+      - API_BACKEND_URL=${API_BACKEND_URL:-http://api:8000}
+      # NextAuth — canonical URL that users hit in their browser.
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://localhost}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # Authentik — public issuer URL (must match the `iss` claim in tokens issued
+      # by Authentik; this is the URL users' browsers resolve).
+      - AUTHENTIK_CLIENT_ID=${AUTHENTIK_CLIENT_ID:-firebim}
+      - AUTHENTIK_CLIENT_SECRET=${AUTHENTIK_CLIENT_SECRET:-local-dev-client-secret}
+      - AUTHENTIK_ISSUER_URL=${AUTHENTIK_ISSUER_URL:-http://localhost:9090/application/o/firebim/}
+      # Authentik — internal URL used by the webapp *server* for OIDC discovery
+      # and token exchange (avoids routing through the host from inside Docker).
+      - AUTHENTIK_INTERNAL_URL=${AUTHENTIK_INTERNAL_URL:-http://authentik-server:9000/application/o/firebim/}
+    env_file:
+      - path: .env
+        required: false
+    networks:
+      - default
+      - firebim_network
+    depends_on:
+      - traefik
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  # Shared network with the backend stack (firebim-api-server).
+  # The backend stack names its default network "firebim_network" — see its
+  # docker-compose.yml networks section.
+  firebim_network:
+    external: true
+
+volumes:
+  letsencrypt:
