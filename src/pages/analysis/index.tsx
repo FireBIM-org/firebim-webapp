@@ -1,118 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import Layout from '../../components/Layout';
-import { useAuth } from '../../contexts/AuthContext';
-import apiClient, { IFCModel, IDSFile } from '../../utils/api-client';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import React, { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
+
+import Layout from '../../components/Layout'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import { useAuth } from '../../contexts/AuthContext'
+import apiClient, { IFCModel, IDSFile } from '../../utils/api-client'
 
 export default function Analysis() {
-  const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
-  const [selectedModelId, setSelectedModelId] = useState<string>('');
-  const [selectedIdsId, setSelectedIdsId] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('sync');
-  const [checkId, setCheckId] = useState<string>('');
+  const { user, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const [selectedModelId, setSelectedModelId] = useState<string>('')
+  const [selectedIdsId, setSelectedIdsId] = useState<string>('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('sync')
+  const [checkId, setCheckId] = useState<string>('')
 
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push('/login')
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, router])
 
   // Check query parameters for pre-selected model and/or ids
   useEffect(() => {
     if (router.query.model) {
-      setSelectedModelId(router.query.model as string);
+      setSelectedModelId(router.query.model as string)
     }
     if (router.query.ids) {
-      setSelectedIdsId(router.query.ids as string);
+      setSelectedIdsId(router.query.ids as string)
     }
-  }, [router.query]);
+  }, [router.query])
 
   // Fetch user's IFC models
-  const { 
-    data: models, 
-    isLoading: modelsLoading 
-  } = useQuery({
+  const { data: models, isLoading: modelsLoading } = useQuery({
     queryKey: ['models'],
     queryFn: () => apiClient.getModels(),
-    enabled: !!user
-  });
+    enabled: !!user,
+  })
 
   // Fetch user's IDS files
-  const { 
-    data: idsFiles, 
-    isLoading: idsLoading 
-  } = useQuery({
+  const { data: idsFiles, isLoading: idsLoading } = useQuery({
     queryKey: ['ids-files'],
     queryFn: () => apiClient.getIdsFiles(),
-    enabled: !!user
-  });
+    enabled: !!user,
+  })
 
   const startAnalysis = async () => {
     if (!selectedModelId || !selectedIdsId) {
-      toast.error('Please select both an IFC model and an IDS file');
-      return;
+      toast.error('Please select both an IFC model and an IDS file')
+      return
     }
 
-    setIsProcessing(true);
+    setIsProcessing(true)
 
     try {
       if (processingMethod === 'async') {
         // Start async processing
-        const response = await apiClient.asyncCheckModelWithIds(selectedModelId, selectedIdsId);
-        setCheckId(response.check_id);
-        
+        const response = await apiClient.asyncCheckModelWithIds(selectedModelId, selectedIdsId)
+        setCheckId(response.check_id)
+
         // Navigate to results page with checkId
-        router.push(`/analysis/results?checkId=${response.check_id}`);
+        router.push(`/analysis/results?checkId=${response.check_id}`)
       } else {
         // For synchronous processing, navigate to results with modelId and idsId
-        router.push(`/analysis/results?modelId=${selectedModelId}&idsId=${selectedIdsId}`);
+        router.push(`/analysis/results?modelId=${selectedModelId}&idsId=${selectedIdsId}`)
       }
     } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error('Failed to perform analysis. Please try again.');
-      setIsProcessing(false);
+      console.error('Analysis error:', error)
+      toast.error('Failed to perform analysis. Please try again.')
+      setIsProcessing(false)
     }
-  };
+  }
 
   if (authLoading || !user) {
     return (
-      <Layout title="Loading... | FireBIM">
+      <Layout title='Loading... | FireBIM'>
         <LoadingSpinner />
       </Layout>
-    );
+    )
   }
 
   return (
-    <Layout title="Analysis | FireBIM">
-      <div className="py-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Model Analysis</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Analyze IFC models against IDS specifications
-        </p>
+    <Layout title='Analysis | FireBIM'>
+      <div className='py-6'>
+        <h1 className='text-2xl font-semibold text-gray-900'>Model Analysis</h1>
+        <p className='mt-1 text-sm text-gray-500'>Analyze IFC models against IDS specifications</p>
       </div>
 
-      <div className="mt-5 md:mt-0">
-        <div className="shadow sm:rounded-md">
-          <div className="px-4 py-5 bg-white sm:p-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className='mt-5 md:mt-0'>
+        <div className='shadow sm:rounded-md'>
+          <div className='bg-white px-4 py-5 sm:p-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
               <div>
-                <label htmlFor="model" className="block text-sm font-medium text-gray-700">
+                <label htmlFor='model' className='block text-sm font-medium text-gray-700'>
                   Select IFC Model
                 </label>
                 <select
-                  id="model"
-                  name="model"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  id='model'
+                  name='model'
+                  className='mt-1 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-orange-500 focus:ring-orange-500 focus:outline-none sm:text-sm'
                   value={selectedModelId}
                   onChange={(e) => setSelectedModelId(e.target.value)}
                 >
-                  <option value="">Select a model</option>
+                  <option value=''>Select a model</option>
                   {modelsLoading ? (
                     <option>Loading models...</option>
                   ) : models && models.length > 0 ? (
@@ -128,17 +121,17 @@ export default function Analysis() {
               </div>
 
               <div>
-                <label htmlFor="ids" className="block text-sm font-medium text-gray-700">
+                <label htmlFor='ids' className='block text-sm font-medium text-gray-700'>
                   Select IDS Specification
                 </label>
                 <select
-                  id="ids"
-                  name="ids"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  id='ids'
+                  name='ids'
+                  className='mt-1 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-orange-500 focus:ring-orange-500 focus:outline-none sm:text-sm'
                   value={selectedIdsId}
                   onChange={(e) => setSelectedIdsId(e.target.value)}
                 >
-                  <option value="">Select an IDS file</option>
+                  <option value=''>Select an IDS file</option>
                   {idsLoading ? (
                     <option>Loading IDS files...</option>
                   ) : idsFiles && idsFiles.length > 0 ? (
@@ -154,35 +147,33 @@ export default function Analysis() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Processing Method
-                </label>
-                <div className="mt-2">
-                  <div className="flex items-center">
+                <label className='block text-sm font-medium text-gray-700'>Processing Method</label>
+                <div className='mt-2'>
+                  <div className='flex items-center'>
                     <input
-                      id="sync"
-                      name="processing-method"
-                      type="radio"
-                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
+                      id='sync'
+                      name='processing-method'
+                      type='radio'
+                      className='h-4 w-4 border-gray-300 text-orange-600 focus:ring-orange-500'
                       checked={processingMethod === 'sync'}
                       onChange={() => setProcessingMethod('sync')}
                     />
-                    <label htmlFor="sync" className="ml-3 block text-sm font-medium text-gray-700">
+                    <label htmlFor='sync' className='ml-3 block text-sm font-medium text-gray-700'>
                       Synchronous (faster for small files)
                     </label>
                   </div>
                   {/* TODO: Enable this option and make async submission work */}
-                  <div className="flex items-center mt-2">
+                  <div className='mt-2 flex items-center'>
                     <input
-                      id="async"
-                      name="processing-method"
-                      type="radio"
+                      id='async'
+                      name='processing-method'
+                      type='radio'
                       disabled={true}
-                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
+                      className='h-4 w-4 border-gray-300 text-orange-600 focus:ring-orange-500'
                       checked={processingMethod === 'async'}
                       onChange={() => setProcessingMethod('async')}
                     />
-                    <label htmlFor="async" className="ml-3 block text-sm font-medium text-gray-400">
+                    <label htmlFor='async' className='ml-3 block text-sm font-medium text-gray-400'>
                       Asynchronous (recommended for large files)
                     </label>
                   </div>
@@ -190,15 +181,13 @@ export default function Analysis() {
               </div>
             </div>
           </div>
-          <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
+          <div className='bg-gray-50 px-4 py-3 text-right sm:px-6'>
             <button
-              type="button"
+              type='button'
               onClick={startAnalysis}
               disabled={isProcessing || !selectedModelId || !selectedIdsId}
-              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${
-                isProcessing || !selectedModelId || !selectedIdsId
-                  ? 'opacity-70 cursor-not-allowed'
-                  : ''
+              className={`inline-flex justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none ${
+                isProcessing || !selectedModelId || !selectedIdsId ? 'cursor-not-allowed opacity-70' : ''
               }`}
             >
               {isProcessing ? 'Processing...' : 'Start Analysis'}
@@ -208,20 +197,18 @@ export default function Analysis() {
       </div>
 
       {isProcessing && (
-        <div className="mt-8 p-4 bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
-            <p className="text-gray-700">
-              {processingMethod === 'async' 
-                ? 'Analysis in progress. Redirecting to results page...' 
+        <div className='mt-8 overflow-hidden bg-white p-4 shadow sm:rounded-lg'>
+          <div className='flex flex-col items-center justify-center'>
+            <div className='mb-4 h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-orange-500'></div>
+            <p className='text-gray-700'>
+              {processingMethod === 'async'
+                ? 'Analysis in progress. Redirecting to results page...'
                 : 'Processing your request...'}
             </p>
-            {checkId && (
-              <p className="text-sm text-gray-500 mt-2">Check ID: {checkId}</p>
-            )}
+            {checkId && <p className='mt-2 text-sm text-gray-500'>Check ID: {checkId}</p>}
           </div>
         </div>
       )}
     </Layout>
-  );
+  )
 }
