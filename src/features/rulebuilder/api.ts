@@ -7,6 +7,7 @@ export type RuleHealthResponse = {
 
 export type RuleElementType = 'start' | 'decision' | 'end';
 export type RuleBranch = 'true_path' | 'false_path' | 'unknown_path';
+type ApiRuleBranch = 'true' | 'false' | 'unknown';
 
 export type RuleElementListItem = {
   element_id?: string;
@@ -314,12 +315,22 @@ export async function getRulesHealth(): Promise<RuleHealthResponse> {
 export async function connectRuleElementBranch(
   payload: ConnectRuleRequest
 ): Promise<ConnectRuleResponse> {
+  const apiBranch: ApiRuleBranch =
+    payload.branch === 'true_path'
+      ? 'true'
+      : payload.branch === 'false_path'
+      ? 'false'
+      : 'unknown';
+
   const res = await fetch(`${env.apiBaseUrl}/rules/connect`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      branch: apiBranch,
+    }),
   });
 
   const data = await parseJsonResponse<Record<string, unknown>>(res);
@@ -394,7 +405,7 @@ export async function getRuleElement(
   id: string
 ): Promise<{ rule_element: RuleElementJson }> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
-  const data = await parseJsonResponse<any>(res);
+  const data = await parseJsonResponse<Record<string, unknown>>(res);
 
   const rawRuleElement = data?.rule_element ?? data;
   const normalized = normalizeRuleElement(rawRuleElement);
@@ -402,7 +413,8 @@ export async function getRuleElement(
   return {
     rule_element: {
       ...normalized,
-      graph_uri: data?.graph_uri ?? normalized.graph_uri ?? null,
+      graph_uri:
+        (data.graph_uri as string | null | undefined) ?? normalized.graph_uri ?? null,
     },
   };
 }

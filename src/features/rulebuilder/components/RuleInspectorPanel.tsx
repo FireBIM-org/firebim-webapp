@@ -1,24 +1,8 @@
 import { ChangeEvent } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+import type { RuleData } from '@/features/rulebuilder/editorStore';
 
-type RuleElementType = 'start' | 'decision' | 'end';
-
-type RuleData = {
-  id: string;
-  element_type?: RuleElementType | null;
-  node_type?: RuleElementType | null; // backward-compatible fallback
-  label?: string | null;
-  target_class?: string | null;
-  property_path?: string | null;
-  operator?: string | null;
-  value?: unknown;
-  true_path?: string | null;
-  false_path?: string | null;
-  unknown_path?: string | null;
-  config?: Record<string, unknown>;
-  graph_uri?: string | null;
-  element_id?: string | null;
-};
+type RuleElementType = RuleData['element_type'];
 
 type Props = {
   selectedRule: RuleData | null;
@@ -42,7 +26,7 @@ function inputValue(value: unknown) {
 function getEffectiveElementType(rule: RuleData | null): RuleElementType | null {
   if (!rule) return null;
 
-  const raw = rule.element_type ?? rule.node_type ?? null;
+  const raw = rule.element_type ?? null;
   if (raw === 'start' || raw === 'decision' || raw === 'end') return raw;
 
   return null;
@@ -105,7 +89,7 @@ export default function RuleInspectorPanel({
       <aside className="w-80 border-l border-gray-200 bg-white">
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Rule element details</h2>
+            <h2 className="rule-workspace-header">Rule element details</h2>
             <p className="text-xs text-gray-500">Select a rule element to inspect it</p>
           </div>
 
@@ -137,7 +121,7 @@ export default function RuleInspectorPanel({
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Rule element details</h2>
+            <h2 className="rule-workspace-header">Rule element details</h2>
             <p className="text-xs text-gray-500">Edit the selected rule element</p>
           </div>
 

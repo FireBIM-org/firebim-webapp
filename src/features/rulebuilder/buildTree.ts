@@ -12,12 +12,6 @@ type CanvasRuleNode = {
   };
 };
 
-function getOutgoingIds(rule: RuleData): string[] {
-  return [rule.true_path, rule.false_path, rule.unknown_path].filter(
-    (value): value is string => typeof value === 'string' && value.trim().length > 0
-  );
-}
-
 type Branch = 'true' | 'false' | 'unknown';
 
 function toBranchKey(branch: Branch): 'true_path' | 'false_path' | 'unknown_path' {
@@ -70,7 +64,7 @@ export function buildRuleTreeFromStart(
 
       connections.push({
         source_id: node.id,
-        branch,
+        branch: key,
         target_id: targetId,
       });
 
@@ -78,7 +72,7 @@ export function buildRuleTreeFromStart(
         missingNodeIds.add(targetId);
         missingBranches.push({
           source_id: node.id,
-          branch,
+          branch: key,
           missing_target_id: targetId,
         });
         continue;

@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react';
 import {
+  ArrowPathIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   Bars3Icon,
   FolderPlusIcon,
+  MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
 import { getNodePalette } from './RuleElementNode';
@@ -22,6 +25,8 @@ type Props = {
   onRenameCategory?: (categoryId: string) => void;
   onMoveSelectedToTrash?: () => void;
   onEmptyTrash?: () => void;
+  onRefresh?: () => void;
+  onHiddenSearchCommand?: (command: string) => boolean | Promise<boolean>;
 };
 
 function draggablePayload(item: RuleNodeTemplate) {
@@ -217,8 +222,49 @@ export default function RuleLibraryPanel({
   onRenameCategory,
   onMoveSelectedToTrash,
   onEmptyTrash,
+  onRefresh,
+  onHiddenSearchCommand,
 }: Props) {
   const selectedCount = useMemo(() => selectedItemIds.length, [selectedItemIds]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleCategories = useMemo(() => {
+    if (!normalizedQuery) return categories;
+
+    return categories.map((category) => ({
+      ...category,
+      items: category.items.filter((item) => {
+        const haystacks = [
+          item.label,
+          item.description,
+          item.template.label,
+          item.template.target_class,
+          item.template.property_path,
+        ];
+
+        return haystacks.some(
+          (value) =>
+            typeof value === 'string' &&
+            value.toLowerCase().includes(normalizedQuery)
+        );
+      }),
+    }));
+  }, [categories, normalizedQuery]);
+
+  const runHiddenSearchCommand = async () => {
+    const command = searchQuery.trim().toLowerCase();
+    if (!command || !onHiddenSearchCommand) return false;
+
+    const handled = await onHiddenSearchCommand(command);
+    if (handled) {
+      setSearchQuery('');
+      setSearchOpen(false);
+    }
+
+    return handled;
+  };
 
   if (collapsed) {
     return (
@@ -235,10 +281,10 @@ export default function RuleLibraryPanel({
   }
 
   return (
-    <aside className="flex w-72 flex-col border-r border-gray-200 bg-white">
+    <aside className="flex w-80 flex-col border-r border-gray-200 bg-white">
       <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2">
         <div>
-          <div className="text-sm font-semibold text-gray-900">
+          <div className="rule-workspace-header">
             Rule element Library
           </div>
           <div className="text-xs text-gray-500">
@@ -274,10 +320,71 @@ export default function RuleLibraryPanel({
           <TrashIcon className="h-4 w-4" />
           Waste bin
         </button>
+
+        <button
+          type="button"
+          onClick={() => onRefresh?.()}
+          className="inline-flex items-center rounded-md border border-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-50"
+          title="Refresh rule elements"
+          aria-label="Refresh rule elements"
+        >
+          <ArrowPathIcon className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSearchOpen((prev) => {
+              const next = !prev;
+              if (!next) {
+                setSearchQuery('');
+              }
+              return next;
+            });
+          }}
+          className="ml-auto inline-flex items-center rounded-md border border-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-50"
+          title="Search rule elements"
+          aria-label="Search rule elements"
+        >
+          <MagnifyingGlassIcon className="h-4 w-4" />
+        </button>
       </div>
 
+      {searchOpen && (
+        <div className="border-b border-gray-200 px-3 py-2">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return;
+                void runHiddenSearchCommand().then((handled) => {
+                  if (handled) {
+                    event.preventDefault();
+                  }
+                });
+              }}
+              placeholder="Search rule elements"
+              className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            />
+            <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                title="Clear search"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
-        {categories.map((category) => (
+        {visibleCategories.map((category) => (
           <Category
             key={category.id}
             category={category}

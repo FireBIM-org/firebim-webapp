@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { env } from '@/config/env';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
@@ -23,7 +25,13 @@ import {
   publishRule,
 } from '@/features/rulebuilder/api';
 import { RuleLibraryCategory } from '@/features/rulebuilder/types';
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import {
+  BookOpenIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
@@ -57,6 +65,14 @@ const DEFAULT_CATEGORY_META: CategoryMeta[] = [
   { id: 'under-development', label: 'Saved Rule element', system: true, order: 10 },
   { id: 'trash', label: 'Waste bin', system: true, order: 999 },
 ];
+
+function sortCategoryMeta(categories: CategoryMeta[]) {
+  return [...categories].sort((a, b) => {
+    if (a.id === 'trash') return 1;
+    if (b.id === 'trash') return -1;
+    return a.order - b.order;
+  });
+}
 
 function createCategoryId(label: string) {
   const normalized = label
@@ -178,13 +194,16 @@ function saveLibraryState(state: LibraryState) {
   window.localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(state));
 }
 
+function normalizeDuplicateKey(value: string | null | undefined) {
+  return (value || '').trim().toLowerCase();
+}
+
 export default function RuleBuilderPage() {
+  const swaggerDocsUrl = `${env.apiBaseUrl}/docs`;
   const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [builtTreeCollapsed, setBuiltTreeCollapsed] = useState(false);
-
-  type BuiltRuleEdgePhase = 'idle' | 'connected' | 'complete';
 
   const [builtRuleEdgePhase, setBuiltRuleEdgePhase] =
     useState<BuiltRuleEdgePhase>('idle');
@@ -221,6 +240,8 @@ export default function RuleBuilderPage() {
 
   const [publishState, setPublishState] = useState<PublishState>('idle');
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
+  const [rulePublishState, setRulePublishState] = useState<PublishState>('idle');
+  const [rulePublishMessage, setRulePublishMessage] = useState<string | null>(null);
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
@@ -232,8 +253,7 @@ export default function RuleBuilderPage() {
 
     const mapped: LibraryItem[] = items.map((item) => {
       const itemId = item.item_id || `api:${item.element_id}`;
-      const effectiveLabel =
-        libraryState.itemLabels[itemId] || item.label || item.element_id;
+      const effectiveLabel = item.label || item.element_id;
 
       return {
         id: itemId,
@@ -252,7 +272,7 @@ export default function RuleBuilderPage() {
     });
 
     setStoredElements(mapped);
-  }, [libraryState.itemLabels]);
+  }, []);
 
   useEffect(() => {
     const loaded = loadLibraryState(localLibraryItems);
@@ -367,7 +387,7 @@ export default function RuleBuilderPage() {
   }, [libraryHydrated, libraryState]);
 
   const categories = useMemo<RuleLibraryCategory[]>(() => {
-    const sortedMeta = [...libraryState.categories].sort((a, b) => a.order - b.order);
+    const sortedMeta = sortCategoryMeta(libraryState.categories);
 
     return sortedMeta.map((categoryMeta) => {
       const items = allLibraryItems
@@ -471,6 +491,76 @@ export default function RuleBuilderPage() {
     setSelectedItemIds([]);
   };
 
+  const handleHiddenLibraryCommand = useCallback(
+    async (command: string) => {
+      if (command !== 'delete duplicates') {
+        return false;
+      }
+
+      const apiItems = storedElements.filter(
+        (item) => (libraryState.itemCategory[item.id] || 'under-development') !== 'trash'
+      );
+      const duplicatesToTrash: string[] = [];
+      const latestByLabel = new Map<string, string>();
+
+      for (const item of apiItems) {
+        const displayLabel = libraryState.itemLabels[item.id] || item.label;
+        const duplicateKey = normalizeDuplicateKey(displayLabel);
+
+        if (!duplicateKey) continue;
+
+        const previousId = latestByLabel.get(duplicateKey);
+        if (previousId) {
+          duplicatesToTrash.push(previousId);
+        }
+
+        latestByLabel.set(duplicateKey, item.id);
+      }
+
+      if (duplicatesToTrash.length === 0) {
+        setPublishState('success');
+        setPublishMessage('No duplicate stored rule elements were found');
+        return true;
+      }
+
+      const ok = window.confirm(
+        `Move ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin?`
+      );
+
+      if (!ok) {
+        return true;
+      }
+
+      const duplicateSet = new Set(duplicatesToTrash);
+
+      setLibraryState((current) => {
+        const nextItemCategory = { ...current.itemCategory };
+        const nextItemLabels = { ...current.itemLabels };
+
+        for (const itemId of duplicatesToTrash) {
+          const item = storedElements.find((candidate) => candidate.id === itemId);
+          if (!item) continue;
+          nextItemCategory[itemId] = 'trash';
+          nextItemLabels[itemId] = current.itemLabels[itemId] || item.label;
+        }
+
+        return {
+          ...current,
+          itemCategory: nextItemCategory,
+          itemLabels: nextItemLabels,
+        };
+      });
+
+      setSelectedItemIds((current) => current.filter((itemId) => !duplicateSet.has(itemId)));
+      setPublishState('success');
+      setPublishMessage(
+        `Moved ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin`
+      );
+      return true;
+    },
+    [libraryState.itemCategory, libraryState.itemLabels, storedElements]
+  );
+
   const handleEmptyTrash = async () => {
     const trashedApiItems = allLibraryItems.filter(
       (item) =>
@@ -517,8 +607,6 @@ export default function RuleBuilderPage() {
         current.filter((itemId) => !trashedApiItems.some((item) => item.id === itemId))
       );
 
-      await loadStoredRuleElements();
-
       setPublishState('success');
       setPublishMessage(`Deleted ${trashedApiItems.length} rule element(s) from API`);
     } catch (error) {
@@ -539,7 +627,8 @@ export default function RuleBuilderPage() {
       const existingIds = current.categories.map((category) => category.id);
       const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
       const maxOrder = current.categories.reduce(
-        (max, category) => Math.max(max, category.order),
+        (max, category) =>
+          category.id === 'trash' ? max : Math.max(max, category.order),
         0
       );
 
@@ -601,14 +690,14 @@ export default function RuleBuilderPage() {
     if (!draft || !builtTreeResult) return;
 
     if (builtTreeResult.missingBranches.length > 0) {
-      setPublishState('error');
-      setPublishMessage('Cannot connect rule: missing branch targets were found');
+      setRulePublishState('error');
+      setRulePublishMessage('Cannot connect rule: missing branch targets were found');
       return;
     }
 
     try {
-      setPublishState('saving');
-      setPublishMessage('Connecting rule element branches...');
+      setRulePublishState('saving');
+      setRulePublishMessage('Connecting rule element branches...');
 
       for (const connection of builtTreeResult.connections) {
         await connectRuleElementBranch({
@@ -621,14 +710,14 @@ export default function RuleBuilderPage() {
 
       setBuiltRuleEdgePhase('connected');
 
-      setPublishState('success');
-      setPublishMessage(
+      setRulePublishState('success');
+      setRulePublishMessage(
         `Connected ${builtTreeResult.connections.length} branch connection(s)`
       );
     } catch (error) {
       console.error('connectRuleElementBranch failed:', error);
-      setPublishState('error');
-      setPublishMessage(error instanceof Error ? error.message : 'Connect failed');
+      setRulePublishState('error');
+      setRulePublishMessage(error instanceof Error ? error.message : 'Connect failed');
     }
   };
 
@@ -637,8 +726,8 @@ export default function RuleBuilderPage() {
     if (!draft) return;
 
     try {
-      setPublishState('saving');
-      setPublishMessage('Checking rule completeness...');
+      setRulePublishState('saving');
+      setRulePublishMessage('Checking rule completeness...');
 
       const result = await checkRuleCompleteness({
         rule: draft,
@@ -646,17 +735,17 @@ export default function RuleBuilderPage() {
 
       if (result?.complete === true) {
         setBuiltRuleEdgePhase('complete');
-        setPublishState('success');
-        setPublishMessage('Completeness check finished: rule is complete');
+        setRulePublishState('success');
+        setRulePublishMessage('Completeness check finished: rule is complete');
       } else {
         setBuiltRuleEdgePhase('connected');
-        setPublishState('success');
-        setPublishMessage(`Completeness check finished: ${JSON.stringify(result)}`);
+        setRulePublishState('success');
+        setRulePublishMessage(`Completeness check finished: ${JSON.stringify(result)}`);
       }
     } catch (error) {
       console.error('checkRuleCompleteness failed:', error);
-      setPublishState('error');
-      setPublishMessage(
+      setRulePublishState('error');
+      setRulePublishMessage(
         error instanceof Error ? error.message : 'Completeness check failed'
       );
     }
@@ -667,31 +756,34 @@ export default function RuleBuilderPage() {
     if (!draft) return;
 
     if (builtTreeResult?.missingBranches.length) {
-      setPublishState('error');
-      setPublishMessage('Cannot publish rule: missing branch targets were found');
+      setRulePublishState('error');
+      setRulePublishMessage('Cannot publish rule: missing branch targets were found');
       return;
     }
 
     if (builtTreeResult?.cycles.length) {
-      setPublishState('error');
-      setPublishMessage('Cannot publish rule: cycle(s) were detected');
+      setRulePublishState('error');
+      setRulePublishMessage('Cannot publish rule: cycle(s) were detected');
       return;
     }
 
     try {
-      setPublishState('saving');
-      setPublishMessage('Publishing rule...');
+      setRulePublishState('saving');
+      setRulePublishMessage('Saving rule...');
 
       const result = await publishRule({
         rule: draft,
       });
 
-      setPublishState('success');
-      setPublishMessage(`Rule published: ${JSON.stringify(result)}`);
+      setRulePublishState('success');
+      const publishedRuleId = result.rule_id || draft.id;
+      setRulePublishMessage(
+        `The rule "${publishedRuleId}" is saved and can now be found in the rulebook`
+      );
     } catch (error) {
       console.error('publishRule failed:', error);
-      setPublishState('error');
-      setPublishMessage(error instanceof Error ? error.message : 'Rule publish failed');
+      setRulePublishState('error');
+      setRulePublishMessage(error instanceof Error ? error.message : 'Rule publish failed');
     }
   };
 
@@ -850,50 +942,58 @@ export default function RuleBuilderPage() {
 
   return (
     <Layout title="RuleBuilder | FireBIM">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">RuleBuilder</h1>
-          <p className="text-sm text-gray-500">
-            Drag rule elements from the library into the canvas.
-          </p>
+      <div className="rule-workspace-frame">
+        <div className="rule-workspace-frame-header">
+          <div className="rule-workspace-frame-header-row">
+            <div>
+              <div className="rule-workspace-header">RuleBuilder</div>
+              <div className="text-xs text-gray-500">
+                Drag rule elements into the canvas and compose rules visually
+              </div>
+            </div>
 
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={!canUndo}
-              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              onClick={redo}
-              disabled={!canRedo}
-              className="rounded border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Redo
-            </button>
+            <div className="rule-workspace-api-slot">
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Undo"
+                aria-label="Undo"
+              >
+                <ArrowUturnLeftIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Redo"
+                aria-label="Redo"
+              >
+                <ArrowUturnRightIcon className="h-4 w-4" />
+              </button>
+
+              <a
+                href={swaggerDocsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rule-workspace-api-link"
+                title="Open Swagger docs"
+              >
+                <span
+                  className={
+                    apiStatus === 'online' ? 'text-green-600' : 'text-red-600'
+                  }
+                >
+                  {apiStatus === 'online' ? 'API online' : 'API offline'}
+                </span>
+                <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 text-gray-500" />
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-full border px-3 py-1 text-xs font-medium">
-          <span className="mr-2">Rules API</span>
-          <span
-            className={
-              apiStatus === 'online'
-                ? 'text-green-600'
-                : apiStatus === 'offline'
-                ? 'text-red-600'
-                : 'text-yellow-600'
-            }
-          >
-            {apiStatus}
-          </span>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex h-[75vh] min-h-[600px]">
           <RuleLibraryPanel
             collapsed={libraryCollapsed}
@@ -906,6 +1006,10 @@ export default function RuleBuilderPage() {
             onRenameCategory={handleRenameCategory}
             onMoveSelectedToTrash={handleMoveSelectedToTrash}
             onEmptyTrash={handleEmptyTrash}
+            onRefresh={() => {
+              void loadStoredRuleElements();
+            }}
+            onHiddenSearchCommand={handleHiddenLibraryCommand}
           />
 
           <div className="min-w-0 flex-1 bg-gray-50">
@@ -949,10 +1053,11 @@ export default function RuleBuilderPage() {
                 </button>
               </aside>
             ) : (
-              <aside className="w-80 border-l border-gray-200 bg-white p-4 text-sm">
+              <aside className="flex h-full w-80 flex-col border-l border-gray-200 bg-white p-4 text-sm">
+                <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Rule details</h3>
+                    <h3 className="rule-workspace-header">Rule details</h3>
                     <p className="text-xs text-gray-500">Built tree summary</p>
                   </div>
 
@@ -1021,6 +1126,8 @@ export default function RuleBuilderPage() {
                     onClick={() => {
                       clearBuiltTreeResult();
                       setBuiltRuleEdgePhase('idle');
+                      setRulePublishState('idle');
+                      setRulePublishMessage(null);
                     }}
                     className="w-full rounded border px-3 py-1 text-sm"
                   >
@@ -1061,6 +1168,33 @@ export default function RuleBuilderPage() {
                   >
                     Save rule
                   </button>
+
+                  {rulePublishMessage && (
+                    <p
+                      className={`text-xs ${
+                        rulePublishState === 'error'
+                          ? 'text-red-600'
+                          : rulePublishState === 'success'
+                          ? 'text-green-600'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      {rulePublishMessage}
+                    </p>
+                  )}
+                </div>
+
+                </div>
+
+                <div className="flex justify-end pt-3">
+                  <Link
+                    href="/rulebook"
+                    className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    title="Open RuleBook"
+                  >
+                    <BookOpenIcon className="h-4 w-4" />
+                    RuleBook
+                  </Link>
                 </div>
               </aside>
             )

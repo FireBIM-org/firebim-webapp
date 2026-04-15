@@ -684,7 +684,6 @@ function getEdgeVisualProps(
       return {
         type: 'ruleBranch',
         animated: false,
-        className: 'rule-edge-connected',
         style: {
           strokeWidth: 3,
           strokeDasharray: '8 4',
@@ -695,7 +694,6 @@ function getEdgeVisualProps(
       return {
         type: 'ruleBranch',
         animated: true,
-        className: 'rule-edge-complete',
         style: {
           strokeWidth: 3,
           strokeDasharray: '8 4',
@@ -706,7 +704,6 @@ function getEdgeVisualProps(
       return {
         type: 'ruleBranch',
         animated: false,
-        className: 'rule-edge-idle',
         style: {
           strokeWidth: 1.5,
         },

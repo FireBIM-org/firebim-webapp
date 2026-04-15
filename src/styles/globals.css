@@ -118,6 +118,61 @@ body {
   background-color: rgba(var(--primary-color), 0.05);
 }
 
+.rule-workspace-header {
+  font-family: "Maple Mono", "Maple Mono NF", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.rule-workspace-frame {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.rule-workspace-frame-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.rule-workspace-frame-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rule-workspace-api-slot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.rule-workspace-api-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rule-workspace-api-link:hover {
+  background: #f9fafb;
+}
+
 .rule-edge-idle path {
   stroke-width: 1.5;
 }

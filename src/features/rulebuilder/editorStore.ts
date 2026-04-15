@@ -45,7 +45,7 @@ export type BuiltTreeNode = {
 
 export type BuiltTreeConnection = {
   source_id: string;
-  branch: 'true' | 'false' | 'unknown';
+  branch: 'true_path' | 'false_path' | 'unknown_path';
   target_id: string;
 };
 
@@ -56,7 +56,7 @@ export type BuiltTreeResult = {
   connections: BuiltTreeConnection[];
   missingBranches: Array<{
     source_id: string;
-    branch: 'true' | 'false' | 'unknown';
+    branch: 'true_path' | 'false_path' | 'unknown_path';
     missing_target_id: string;
   }>;
   cycles: string[][];

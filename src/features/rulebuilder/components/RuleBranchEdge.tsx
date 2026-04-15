@@ -14,7 +14,6 @@ export function RuleBranchEdge({
   style,
   markerEnd,
   markerStart,
-  className,
 }: EdgeProps) {
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -30,7 +29,6 @@ export function RuleBranchEdge({
     <BaseEdge
       path={edgePath}
       style={style}
-      className={className}
       markerEnd={markerEnd}
       markerStart={markerStart}
     />
