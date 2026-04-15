@@ -3,12 +3,12 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../utils/api-client';
 import FileInfo from '../../components/FileInfo';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import BackLink from '../../components/BackLink';
 import PrimaryButton from '../../components/PrimaryButton';
 import IFCViewer from '../../components/IFCViewer';
 import ModelAnalysisTable from '../../components/ModelAnalysisTable';
@@ -117,7 +117,14 @@ export default function ModelDetail() {
   return (
     <Layout title={`Model: ${model.filename} | FireBIM`}>
       <div className="md:flex md:items-center md:justify-between mb-6">
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center">
+          <Link
+            href="/ifc-models"
+            className="mr-3 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            title="Back to Models"
+          >
+            <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
+          </Link>
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
             {model.filename}
           </h2>
@@ -137,11 +144,11 @@ export default function ModelDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-2 gap-8">
+        <div >
           <IFCViewer modelId={id as string} />
         </div>
-        <div className="lg:col-span-1">
+        <div>
           <FileInfo
             title="Model Information"
             description="Details about your IFC model"
@@ -156,10 +163,6 @@ export default function ModelDetail() {
           />
           <ModelAnalysisTable />
         </div>
-      </div>
-
-      <div className="mt-8">
-        <BackLink href="/ifc-models">&larr; Back to Models</BackLink>
       </div>
     </Layout>
   );
