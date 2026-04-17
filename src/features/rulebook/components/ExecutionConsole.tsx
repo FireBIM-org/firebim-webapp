@@ -2,6 +2,32 @@
 import { useMemo, useState } from 'react';
 import { useRuleBookStore } from '../store';
 
+function localNameFromToken(token: string | null | undefined) {
+  if (!token) return null;
+
+  if (token.includes('#')) {
+    return token.split('#').pop() ?? token;
+  }
+
+  if (token.includes(':') && !token.startsWith('http')) {
+    return token.split(':').pop() ?? token;
+  }
+
+  const parts = token.split('/').filter(Boolean);
+  return parts[parts.length - 1] ?? token;
+}
+
+function dedupeByRaw<T extends { raw: string }>(items: T[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.raw)) {
+      return false;
+    }
+    seen.add(item.raw);
+    return true;
+  });
+}
+
 export function ExecutionConsole() {
   const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
   const current_step_index = useRuleBookStore((state) => state.current_step_index);
@@ -20,6 +46,55 @@ export function ExecutionConsole() {
     } catch {
       return null;
     }
+  }, [current_step]);
+
+  const compatibilitySummary = useMemo(() => {
+    const raw = (current_step?.raw_json ?? null) as
+      | {
+          compatibility?: {
+            missing_target_classes?: string[];
+            target_classes_required?: string[];
+            target_classes_found?: Array<{ value: string; count?: number | null }>;
+            missing_properties?: string[];
+          } | null;
+          diagnostic_run?: {
+            compatibility?: {
+              missing_target_classes?: string[];
+              target_classes_required?: string[];
+              target_classes_found?: Array<{ value: string; count?: number | null }>;
+              missing_properties?: string[];
+            } | null;
+          };
+        }
+      | null;
+
+    const compatibility = raw?.compatibility ?? raw?.diagnostic_run?.compatibility ?? null;
+    if (!compatibility) {
+      return null;
+    }
+
+    const foundCounts = new Map(
+      (compatibility.target_classes_found ?? []).map((item) => [
+        item.value,
+        item.count ?? 0,
+      ])
+    );
+
+    return {
+      missing_target_classes: dedupeByRaw((compatibility.missing_target_classes ?? []).map((value) => ({
+        raw: value,
+        label: localNameFromToken(value) ?? value,
+      }))),
+      target_classes_required: dedupeByRaw((compatibility.target_classes_required ?? []).map((value) => ({
+        raw: value,
+        label: localNameFromToken(value) ?? value,
+        found_count: foundCounts.get(value) ?? 0,
+      }))),
+      missing_properties: dedupeByRaw((compatibility.missing_properties ?? []).map((value) => ({
+        raw: value,
+        label: localNameFromToken(value) ?? value,
+      }))),
+    };
   }, [current_step]);
 
   if (collapsed) {
@@ -100,6 +175,72 @@ export function ExecutionConsole() {
               </div>
             )}
           </div>
+
+          {compatibilitySummary &&
+          (compatibilitySummary.missing_target_classes.length > 0 ||
+            compatibilitySummary.missing_properties.length > 0) ? (
+            <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 px-3 py-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">
+                Missing targets explained
+              </div>
+
+              {compatibilitySummary.missing_target_classes.length > 0 ? (
+                <div className="space-y-2 text-xs text-amber-100">
+                  {compatibilitySummary.missing_target_classes.map((item) => (
+                    <div
+                      key={item.raw}
+                      className="rounded-lg border border-amber-900/60 bg-slate-950/40 px-3 py-2"
+                    >
+                      The rule expects the target class{' '}
+                      <span className="font-semibold text-white">{item.label}</span>, but the
+                      compatibility check found no instances of it in the selected graph.
+                      <div className="mt-1 font-mono text-[11px] text-amber-300">
+                        {item.raw}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {compatibilitySummary.target_classes_required.length > 0 ? (
+                <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900 px-3 py-3">
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    Target overview
+                  </div>
+                  <div className="space-y-1 text-xs text-slate-200">
+                    {compatibilitySummary.target_classes_required.map((item) => (
+                      <div key={item.raw}>
+                        <span className="font-semibold text-white">{item.label}</span>
+                        <span className="text-slate-400"> ({item.raw})</span>
+                        {': '}
+                        {item.found_count > 0
+                          ? `${item.found_count} found in the graph`
+                          : 'not found in the graph'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {compatibilitySummary.missing_properties.length > 0 ? (
+                <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900 px-3 py-3">
+                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    Missing properties
+                  </div>
+                  <div className="space-y-1 text-xs text-slate-200">
+                    {compatibilitySummary.missing_properties.map((item) => (
+                      <div key={item.raw}>
+                        The property <span className="font-semibold text-white">{item.label}</span>{' '}
+                        is missing in the graph for at least one of the target classes required by
+                        the rule.
+                        <div className="mt-1 font-mono text-[11px] text-slate-400">{item.raw}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {raw_json ? (
             <details className="rounded-xl border border-slate-800 bg-slate-900">

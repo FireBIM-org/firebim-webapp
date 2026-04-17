@@ -2,11 +2,15 @@ import {
   ArrowsPointingInIcon,
   ArrowsPointingOutIcon,
   Bars3Icon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
   PlayIcon,
+  XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/ruleSentiment';
 import { useRuleBookStore } from '../store';
 import type {
   BuildingGraphData,
@@ -65,6 +69,14 @@ type StepDisplay = {
   terminal_label?: string | null;
   terminal_output?: string | null;
   outcome_label?: string | null;
+};
+
+type CanvasSentiment = RuleSentiment;
+type StepIssue = {
+  sentiment: Exclude<CanvasSentiment, 'idle'>;
+  message: string;
+  targetNodeId?: string | null;
+  stepIndex: number;
 };
 
 const CLASS_RING_INDEX: Record<BuildingGraphTargetClass, number> = {
@@ -278,6 +290,104 @@ function branchToSentence(branch: StepDisplay['branch_taken']) {
   }
 }
 
+function getStepCompatibility(step: ExecutionStep) {
+  const raw = (step.raw_json ?? {}) as {
+    compatibility?: {
+      missing_target_classes?: string[];
+      missing_properties?: string[];
+    } | null;
+    diagnostic_run?: {
+      compatibility?: {
+        missing_target_classes?: string[];
+        missing_properties?: string[];
+      } | null;
+    };
+  };
+
+  return raw.compatibility ?? raw.diagnostic_run?.compatibility ?? null;
+}
+
+function getCanvasStatusIconMeta(sentiment: CanvasSentiment) {
+  switch (sentiment) {
+    case 'success':
+      return {
+        Icon: CheckCircleIcon,
+        className: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+        title: 'All rules currently read as passed',
+      };
+    case 'failure':
+      return {
+        Icon: XCircleIcon,
+        className: 'border-rose-200 bg-rose-50 text-rose-600',
+        title: 'One or more rules currently read as failed',
+      };
+    case 'warning':
+      return {
+        Icon: ExclamationTriangleIcon,
+        className: 'border-amber-200 bg-amber-50 text-amber-600',
+        title: 'One or more rules currently read as unknown or missing targets',
+      };
+    default:
+      return {
+        Icon: ExclamationTriangleIcon,
+        className: 'border-slate-200 bg-white/95 text-slate-400',
+        title: 'Run the rule runner to evaluate rule sentiment',
+      };
+  }
+}
+
+function describeStepIssue(step: ExecutionStep, stepIndex: number): StepIssue | null {
+  const display = getStepDisplay(step);
+  const compatibility = getStepCompatibility(step);
+  const missingTargetClasses = compatibility?.missing_target_classes ?? [];
+  const missingProperties = compatibility?.missing_properties ?? [];
+
+  if (step.summary.false_count > 0 || classifyTerminalSentiment(display?.terminal_output) === 'failure' || classifyTerminalSentiment(display?.outcome_label) === 'failure') {
+    const nodeLabel = display?.sample_target_label ?? step.active_node_ids?.[0] ?? 'the current node';
+    const conditionText =
+      display?.property_label && display?.operator
+        ? `${display.property_label} ${operatorToSentence(display.operator)} ${display.expected_value ?? 'the expected value'}`
+        : display?.outcome_label ?? display?.terminal_output ?? 'a required condition';
+
+    return {
+      sentiment: 'failure',
+      message: `${nodeLabel} did not satisfy the rule condition. ${conditionText} was not OK.`,
+      targetNodeId: display?.sample_target_label ?? step.active_node_ids?.[0] ?? null,
+      stepIndex,
+    };
+  }
+
+  if (missingTargetClasses.length > 0 || missingProperties.length > 0 || step.summary.unknown_count > 0 || classifyTerminalSentiment(display?.terminal_output) === 'warning' || classifyTerminalSentiment(display?.outcome_label) === 'warning') {
+    const missingBits = [
+      ...missingTargetClasses.map((value) => `missing target ${value}`),
+      ...missingProperties.map((value) => `missing property ${value}`),
+    ];
+    const unknownNode = display?.sample_target_label ?? step.active_node_ids?.[0] ?? null;
+    const message =
+      missingBits.length > 0
+        ? `The rule could not be fully resolved because ${missingBits.join(', ')}.`
+        : `${unknownNode ?? 'The current node'} returned an unknown result and needs inspection.`;
+
+    return {
+      sentiment: 'warning',
+      message,
+      targetNodeId: unknownNode,
+      stepIndex,
+    };
+  }
+
+  if (classifyTerminalSentiment(display?.terminal_output) === 'success' || classifyTerminalSentiment(display?.outcome_label) === 'success' || step.summary.true_count > 0) {
+    return {
+      sentiment: 'success',
+      message: 'All rules passed.',
+      targetNodeId: null,
+      stepIndex,
+    };
+  }
+
+  return null;
+}
+
 export function BuildingGraphView({
   expanded = false,
   collapsed = false,
@@ -289,6 +399,7 @@ export function BuildingGraphView({
   const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
   const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
   const current_step_index = useRuleBookStore((state) => state.current_step_index);
+  const setCurrentStepIndex = useRuleBookStore((state) => state.setCurrentStepIndex);
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -296,12 +407,98 @@ export function BuildingGraphView({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [expandedLogStepKey, setExpandedLogStepKey] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [successRevealRing, setSuccessRevealRing] = useState<number | null>(null);
+  const [successOverviewActive, setSuccessOverviewActive] = useState(false);
+  const [logCollapsed, setLogCollapsed] = useState(false);
+  const [successIconCelebrating, setSuccessIconCelebrating] = useState(false);
   const logScrollRef = useRef<HTMLDivElement | null>(null);
+  const stepCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const current_step = useMemo(() => {
     if (!execution_timeline) return null;
     return execution_timeline.steps[current_step_index] ?? null;
   }, [current_step_index, execution_timeline]);
+  const canvasSentiment = useMemo<CanvasSentiment>(() => {
+    if (!execution_timeline || execution_timeline.steps.length === 0) {
+      return 'idle';
+    }
+
+    let hasFailure = false;
+    let hasWarning = false;
+    let hasSuccess = false;
+
+    for (const step of execution_timeline.steps) {
+      const display = getStepDisplay(step);
+      const terminalTexts = [
+        display?.terminal_output,
+        display?.terminal_label,
+        display?.outcome_label,
+      ];
+
+      for (const text of terminalTexts) {
+        const sentiment = classifyTerminalSentiment(text);
+        if (sentiment === 'failure') {
+          hasFailure = true;
+        } else if (sentiment === 'warning') {
+          hasWarning = true;
+        } else if (sentiment === 'success') {
+          hasSuccess = true;
+        }
+      }
+
+      if (step.summary.false_count > 0) {
+        hasFailure = true;
+      }
+      if (step.summary.unknown_count > 0) {
+        hasWarning = true;
+      }
+
+      const compatibility = getStepCompatibility(step);
+      if (
+        (compatibility?.missing_target_classes?.length ?? 0) > 0 ||
+        (compatibility?.missing_properties?.length ?? 0) > 0
+      ) {
+        hasWarning = true;
+      }
+    }
+
+    if (hasFailure) {
+      return 'failure';
+    }
+    if (hasWarning) {
+      return 'warning';
+    }
+    if (hasSuccess) {
+      return 'success';
+    }
+    return 'idle';
+  }, [execution_timeline]);
+  const sentimentIssue = useMemo(() => {
+    if (!execution_timeline) {
+      return null;
+    }
+
+    let successIssue: StepIssue | null = null;
+
+    for (let index = 0; index < execution_timeline.steps.length; index += 1) {
+      const issue = describeStepIssue(execution_timeline.steps[index], index);
+      if (!issue) {
+        continue;
+      }
+      if (issue.sentiment === 'failure') {
+        return issue;
+      }
+      if (issue.sentiment === 'warning' && canvasSentiment !== 'failure') {
+        return issue;
+      }
+      if (!successIssue && issue.sentiment === 'success') {
+        successIssue = issue;
+      }
+    }
+
+    return successIssue;
+  }, [canvasSentiment, execution_timeline]);
   const visible_log_steps = useMemo(() => {
     if (!execution_timeline) {
       return [] as ExecutionStep[];
@@ -331,8 +528,13 @@ export function BuildingGraphView({
   }, [current_step_index, execution_timeline]);
 
   const focusNodeIds = useMemo(
-    () => (selectedNodeId ? [selectedNodeId] : executionFocusNodeIds),
-    [executionFocusNodeIds, selectedNodeId]
+    () =>
+      successOverviewActive && !selectedNodeId
+        ? []
+        : selectedNodeId
+          ? [selectedNodeId]
+          : executionFocusNodeIds,
+    [executionFocusNodeIds, selectedNodeId, successOverviewActive]
   );
   const primaryFocusNodeId = focusNodeIds[0] ?? null;
 
@@ -393,7 +595,47 @@ export function BuildingGraphView({
   useEffect(() => {
     setSelectedNodeId(null);
     setExpandedLogStepKey(null);
+    setStatusMessage(null);
+    setLogCollapsed(false);
   }, [execution_timeline]);
+
+  useEffect(() => {
+    if (execution_timeline && canvasSentiment === 'success') {
+      setSuccessRevealRing(0);
+      setSuccessOverviewActive(true);
+      setLogCollapsed(true);
+
+      const totalRings = layout.bounds.maxRing;
+      let nextRing = 0;
+      const timer = window.setInterval(() => {
+        nextRing += 1;
+        if (nextRing > totalRings + 1) {
+          window.clearInterval(timer);
+          setSuccessRevealRing(null);
+          return;
+        }
+        setSuccessRevealRing(nextRing);
+      }, 90);
+
+      const celebrationStartTimer = window.setTimeout(() => {
+        setSuccessIconCelebrating(true);
+      }, 500);
+
+      const celebrationTimer = window.setTimeout(() => {
+        setSuccessIconCelebrating(false);
+      }, 2100);
+
+      return () => {
+        window.clearInterval(timer);
+        window.clearTimeout(celebrationStartTimer);
+        window.clearTimeout(celebrationTimer);
+      };
+    }
+
+    setSuccessRevealRing(null);
+    setSuccessOverviewActive(false);
+    setSuccessIconCelebrating(false);
+  }, [canvasSentiment, execution_timeline, layout.bounds.maxRing]);
 
   useEffect(() => {
     if (!logScrollRef.current || visible_log_steps.length === 0) {
@@ -402,6 +644,15 @@ export function BuildingGraphView({
 
     logScrollRef.current.scrollTop = logScrollRef.current.scrollHeight;
   }, [current_step_index, visible_log_steps.length]);
+
+  useEffect(() => {
+    if (!expandedLogStepKey) {
+      return;
+    }
+
+    const node = stepCardRefs.current[expandedLogStepKey];
+    node?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [expandedLogStepKey]);
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (collapsed) {
@@ -431,6 +682,10 @@ export function BuildingGraphView({
   };
 
   const getVisualState = (nodeId: string): VisualNodeState => {
+    if (successOverviewActive && !selectedNodeId) {
+      return 3;
+    }
+
     if (focusNodeIds.includes(nodeId)) {
       return 2;
     }
@@ -456,6 +711,44 @@ export function BuildingGraphView({
   const logOverlayClass = expanded
     ? 'absolute right-3 top-[11.5rem] z-20 w-[26rem] max-w-[calc(100%-1.5rem)]'
     : 'absolute right-3 top-[3.75rem] bottom-3 z-20 w-[24rem] max-w-[calc(100%-1.5rem)]';
+  const leftControlsWrapperClass = expanded
+    ? 'absolute left-3 top-32 z-20 flex items-center gap-2'
+    : collapsed
+      ? 'absolute left-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-2'
+      : 'absolute left-3 top-3 z-20 flex items-center gap-2';
+  const statusIconMeta = getCanvasStatusIconMeta(canvasSentiment);
+  const handleStatusIconClick = () => {
+    if (!execution_timeline || execution_timeline.steps.length === 0) {
+      setStatusMessage('Run the rule runner to evaluate the graph.');
+      return;
+    }
+
+    if (canvasSentiment === 'success') {
+      setStatusMessage('All rules passed.');
+      setSelectedNodeId(null);
+      setExpandedLogStepKey(null);
+      setSuccessOverviewActive(true);
+      setLogCollapsed(true);
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+      return;
+    }
+
+    if (!sentimentIssue) {
+      setStatusMessage('No specific rule result could be identified.');
+      return;
+    }
+
+    const issueStep = execution_timeline.steps[sentimentIssue.stepIndex];
+    const stepKey = `${issueStep.rule_id}-${issueStep.step_index}-${sentimentIssue.stepIndex}`;
+
+    setStatusMessage(sentimentIssue.message);
+    setCurrentStepIndex(sentimentIssue.stepIndex);
+    setExpandedLogStepKey(stepKey);
+    setSelectedNodeId(sentimentIssue.targetNodeId ?? null);
+    setZoom(1.15);
+    setPan({ x: 0, y: 0 });
+  };
 
   return (
     <div className={baseClass}>
@@ -567,7 +860,16 @@ export function BuildingGraphView({
                       const result = current_step?.node_results[node.id];
                       const visualState = getVisualState(node.id);
                       const radius = visualState === 2 ? 26 : visualState === 3 ? 23 : 20;
-                      const opacity = visualState === 1 ? 0.2 : visualState === 2 ? 1 : 0.72;
+                      const revealOpacity =
+                        successOverviewActive &&
+                        successRevealRing !== null
+                          ? node.ring <= successRevealRing
+                            ? 1
+                            : 0.2
+                          : null;
+                      const opacity =
+                        revealOpacity ??
+                        (visualState === 1 ? 0.2 : visualState === 2 ? 1 : 0.72);
                       return (
                         <g
                           key={node.id}
@@ -577,6 +879,7 @@ export function BuildingGraphView({
                           onMouseLeave={() => setHoveredNodeId((value) => (value === node.id ? null : value))}
                           onClick={(event) => {
                             event.stopPropagation();
+                            setSuccessOverviewActive(false);
                             setSelectedNodeId((value) => (value === node.id ? null : node.id));
                           }}
                           className="cursor-pointer"
@@ -632,6 +935,26 @@ export function BuildingGraphView({
         </>
       ) : null}
 
+      <div className={leftControlsWrapperClass}>
+        <button
+          type="button"
+          onClick={handleStatusIconClick}
+          className={[
+            'rounded-lg border bg-white/95 p-2 shadow-sm',
+            statusIconMeta.className,
+            successIconCelebrating ? 'rule-success-icon-finale' : '',
+          ].join(' ')}
+          title={statusIconMeta.title}
+        >
+          <statusIconMeta.Icon className="h-4 w-4" />
+        </button>
+        {statusMessage ? (
+          <div className="max-w-[260px] rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-sm">
+            {statusMessage}
+          </div>
+        ) : null}
+      </div>
+
       <div className={controlsWrapperClass}>
         {!expanded && onRun ? (
           <button
@@ -684,26 +1007,50 @@ export function BuildingGraphView({
       </div>
 
       {!collapsed && visible_log_steps.length > 0 ? (
-        <div className={logOverlayClass}>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur">
-            <div className="border-b border-slate-200 px-3 py-2">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-900">
-                Rule execution log
-              </div>
-              <div className="mt-1 text-[11px] text-slate-500">
-                Press play to run the test, press maximise for additional options.
-              </div>
-            </div>
-
-            <div
-              ref={logScrollRef}
-              className={[
-                'overflow-y-auto px-3 py-3',
-                expanded ? 'max-h-[320px]' : 'h-[calc(100%-3.5rem)] max-h-[220px]',
-              ].join(' ')}
+        logCollapsed ? (
+          <div className={`${logOverlayClass} flex justify-end`}>
+            <button
+              type="button"
+              onClick={() => setLogCollapsed(false)}
+              className="rounded-lg border border-slate-200 bg-white/95 p-2 text-slate-600 shadow-lg backdrop-blur hover:bg-white"
+              title="Expand rule execution log"
             >
-              <div className="space-y-3">
-                {visible_log_steps.map((step, index) => {
+              <Bars3Icon className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className={logOverlayClass}>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur">
+              <div className="border-b border-slate-200 px-3 py-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-900">
+                      Rule execution log
+                    </div>
+                    <div className="mt-1 text-[11px] text-slate-500">
+                      Press play to run the test, press maximise for additional options.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLogCollapsed(true)}
+                    className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-500 hover:bg-slate-50"
+                    title="Collapse rule execution log"
+                  >
+                    <Bars3Icon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div
+                ref={logScrollRef}
+                className={[
+                  'overflow-y-auto px-3 py-3',
+                  expanded ? 'max-h-[320px]' : 'h-[calc(100%-3.5rem)] max-h-[220px]',
+                ].join(' ')}
+              >
+                <div className="space-y-3">
+                  {visible_log_steps.map((step, index) => {
                   const display = getStepDisplay(step);
                   const isTerminal = display?.event_type === 'chain_complete';
                   const isDecision = display?.event_type === 'node_visit';
@@ -725,14 +1072,21 @@ export function BuildingGraphView({
                       : undefined;
                   const branchLabel = display?.branch_taken ?? null;
 
-                  return (
-                    <button
+                    return (
+                      <button
                       type="button"
                       key={`${step.rule_id}-${step.step_index}-${index}`}
+                      ref={(node) => {
+                        stepCardRefs.current[stepKey] = node;
+                      }}
                       onClick={() =>
-                        setExpandedLogStepKey((value) =>
-                          value === stepKey ? null : stepKey
-                        )
+                        {
+                          setSuccessOverviewActive(false);
+                          setLogCollapsed(false);
+                          setExpandedLogStepKey((value) =>
+                            value === stepKey ? null : stepKey
+                          );
+                        }
                       }
                       className={[
                         'w-full rounded-xl border px-3 py-3 text-left transition',
@@ -807,13 +1161,14 @@ export function BuildingGraphView({
                           </div>
                         </div>
                       ) : null}
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       ) : null}
 
       {expanded && !collapsed ? (

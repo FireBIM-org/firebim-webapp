@@ -1,4 +1,5 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { classifyTerminalSentimentFromMany } from '../../../lib/ruleSentiment';
 
 type RuleData = {
   id: string;
@@ -16,7 +17,22 @@ type RuleData = {
   element_id?: string | null;
 };
 
-export function getNodePalette(nodeType: RuleData['element_type']) {
+function getEndOutputText(rule: RuleData) {
+  const outputText =
+    typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
+
+  return outputText || 'No output text defined';
+}
+
+function getEndNodeSentiment(rule: RuleData) {
+  return classifyTerminalSentimentFromMany([
+    rule.label,
+    typeof rule.value === 'string' ? rule.value : rule.value == null ? null : String(rule.value),
+    getEndOutputText(rule),
+  ]);
+}
+
+export function getNodePalette(nodeType: RuleData['element_type'], endSentiment?: ReturnType<typeof getEndNodeSentiment>) {
   if (nodeType === 'start') {
     return {
       border: 'border-sky-500',
@@ -28,12 +44,46 @@ export function getNodePalette(nodeType: RuleData['element_type']) {
   }
 
   if (nodeType === 'end') {
+    if (endSentiment === 'failure') {
+      return {
+        border: 'border-rose-700',
+        ring: 'ring-rose-300',
+        badge: 'text-rose-700',
+        header: 'bg-rose-50 border-rose-200',
+        body: 'bg-white',
+        output: 'bg-rose-50 text-rose-900',
+      };
+    }
+
+    if (endSentiment === 'warning') {
+      return {
+        border: 'border-amber-700',
+        ring: 'ring-amber-300',
+        badge: 'text-amber-700',
+        header: 'bg-amber-50 border-amber-200',
+        body: 'bg-white',
+        output: 'bg-amber-50 text-amber-900',
+      };
+    }
+
+    if (endSentiment === 'success') {
+      return {
+        border: 'border-emerald-700',
+        ring: 'ring-emerald-300',
+        badge: 'text-emerald-700',
+        header: 'bg-emerald-50 border-emerald-200',
+        body: 'bg-white',
+        output: 'bg-emerald-50 text-emerald-900',
+      };
+    }
+
     return {
       border: 'border-violet-700',
       ring: 'ring-violet-300',
       badge: 'text-violet-700',
       header: 'bg-violet-50 border-violet-200',
       body: 'bg-white',
+      output: 'bg-violet-50 text-slate-700',
     };
   }
 
@@ -43,6 +93,7 @@ export function getNodePalette(nodeType: RuleData['element_type']) {
     badge: 'text-slate-700',
     header: 'bg-slate-50 border-slate-200',
     body: 'bg-white',
+    output: 'bg-slate-50 text-slate-700',
   };
 }
 
@@ -50,13 +101,6 @@ function typeBadge(nodeType: RuleData['element_type']) {
   if (nodeType === 'start') return 'Start';
   if (nodeType === 'end') return 'End';
   return 'Decision';
-}
-
-function getEndOutputText(rule: RuleData) {
-  const outputText =
-    typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
-
-  return outputText || 'No output text defined';
 }
 
 export default function RuleElementNode({ data, selected }: NodeProps) {
@@ -70,7 +114,8 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
     );
   }
 
-  const palette = getNodePalette(rule.element_type);
+  const endSentiment = rule.element_type === 'end' ? getEndNodeSentiment(rule) : null;
+  const palette = getNodePalette(rule.element_type, endSentiment);
   const label = rule.label || rule.id || 'Unnamed rule element';
 
   const showInput = rule.element_type !== 'start';
@@ -127,7 +172,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
           <div>
             <span className="font-medium">Output:</span>
           </div>
-          <div className="mt-3 rounded-xl bg-violet-50 px-2 py-2 text-slate-700">
+          <div className={`mt-3 rounded-xl px-2 py-2 ${palette.output}`}>
             {getEndOutputText(rule)}
           </div>
         </div>
