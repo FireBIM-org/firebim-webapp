@@ -1101,8 +1101,8 @@ export function BuildingGraphView({
                   const outcomeLabel = display?.outcome_label ?? 'check OK';
                   const stepKey = `${step.rule_id}-${step.step_index}-${index}`;
                   const isExpanded = expandedLogStepKey === stepKey;
-                  const graphNode = display?.sample_target_label
-                    ? graphNodesById.get(display.sample_target_label)
+                  const graphNode: GraphNode | null = display?.sample_target_label
+                    ? graphNodesById.get(display.sample_target_label) ?? null
                     : null;
                   const graphPropertyValue =
                     display?.property_path && graphNode?.metadata
