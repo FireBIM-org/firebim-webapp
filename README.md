@@ -15,6 +15,8 @@ Frontend for [firebim-api-server](https://github.com/FireBIM-org/firebim-api-ser
 * View list of IDS files
 * View IDS file details (including download)
 * Make analysis of IFC file using IDS file
+* Build, save, and publish rule elements and rules in RuleBuilder
+* Review, run, and inspect rules against graphs in RuleBook
 
 ## Prerequisites
 
@@ -98,4 +100,13 @@ Browser  ──►  Next.js (port 3000)
 ```
 
 Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network (or `localhost` via `extra_hosts` when running in a container).
+
+## Rule Features
+
+The webapp also includes two authenticated rule-focused areas:
+
+* `RuleBuilder` for assembling rule elements, connecting decision flows, and publishing rules
+* `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
+
+Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
 
