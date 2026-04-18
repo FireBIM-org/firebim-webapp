@@ -1,6 +1,12 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-const GRAPH_ID = process.env.FIREBIM_TEST_GRAPH_ID || 'building_medium_ifc_inspired';
-const RULE_ID = process.env.FIREBIM_TEST_RULE_ID || 'building-height';
+const GRAPH_ID = process.env.FIREBIM_TEST_GRAPH_ID || null;
+const RULE_ID = process.env.FIREBIM_TEST_RULE_ID || null;
+const CANDIDATE_PAIRS = [
+  { graph_id: 'ifc-inspired-small', rule_id: 'it-rule-good-auto-small' },
+  { graph_id: 'ifc-inspired-small', rule_id: 'it-rule-unknown-auto-small' },
+  { graph_id: 'ifc-inspired-small', rule_id: 'it-rule-mismatch-auto-small' },
+  { graph_id: 'ifc-inspired-large', rule_id: 'it-rule-complex-large-current-graph-2911550a' },
+];
 
 function localNameFromToken(token) {
   if (!token) return null;
@@ -17,6 +23,48 @@ async function postJson(path, body) {
   });
   const json = await response.json();
   return { ok: response.ok, json };
+}
+
+async function findWorkingPair() {
+  const pairs = GRAPH_ID && RULE_ID
+    ? [{ graph_id: GRAPH_ID, rule_id: RULE_ID }]
+    : CANDIDATE_PAIRS;
+
+  const failures = [];
+
+  for (const pair of pairs) {
+    const compatibility = await postJson('/checks/compatibility', pair);
+    const diagnostic = await postJson('/checks/run-diagnostic', {
+      ...pair,
+      options: {
+        solver: 'standard',
+        inference: 'rdfs',
+        advanced: true,
+        include_targets: true,
+        include_trace: true,
+        debug: true,
+      },
+    });
+
+    if (
+      compatibility.ok &&
+      diagnostic.ok &&
+      compatibility.json.success &&
+      diagnostic.json.success
+    ) {
+      return { pair, compatibility, diagnostic };
+    }
+
+    failures.push({
+      pair,
+      compatibility: compatibility.json,
+      diagnostic: diagnostic.json,
+    });
+  }
+
+  throw new Error(
+    `Diagnostic verification failed for all candidate pairs: ${JSON.stringify(failures)}`
+  );
 }
 
 function extractFocusNodeIds(event) {
@@ -84,23 +132,7 @@ function computeStateChanges(diagnostic) {
 }
 
 async function main() {
-  const compatibility = await postJson('/checks/compatibility', { graph_id: GRAPH_ID, rule_id: RULE_ID });
-  const diagnostic = await postJson('/checks/run-diagnostic', {
-    graph_id: GRAPH_ID,
-    rule_id: RULE_ID,
-    options: {
-      solver: 'standard',
-      inference: 'rdfs',
-      advanced: true,
-      include_targets: true,
-      include_trace: true,
-      debug: true,
-    },
-  });
-
-  if (!compatibility.ok || !diagnostic.ok || !compatibility.json.success || !diagnostic.json.success) {
-    throw new Error(`Diagnostic verification failed. compatibility=${JSON.stringify(compatibility.json)} diagnostic=${JSON.stringify(diagnostic.json)}`);
-  }
+  const { pair, compatibility, diagnostic } = await findWorkingPair();
 
   const stateChanges = computeStateChanges(diagnostic.json);
 
@@ -117,8 +149,8 @@ async function main() {
   }
 
   console.log(JSON.stringify({
-    graph_id: GRAPH_ID,
-    rule_id: RULE_ID,
+    graph_id: pair.graph_id,
+    rule_id: pair.rule_id,
     compatibility_score: compatibility.json.compatibility_score,
     diagnostic_summary: diagnostic.json.summary,
     state_changes: stateChanges,

@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "generate:api": "openapi-typescript openapi.json --output src/types/api.ts",
-    "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs"
+    "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs",
+    "test:api-access": "node scripts/verify-api-access.mjs",
+    "test:merge-safety": "npm run lint && npx tsc --noEmit && npm run test:api-access && npm run test:rulebook-diagnostic"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
