@@ -290,8 +290,8 @@ export default function RuleBookLibraryPanel({
   const selected_rule_ids = useMemo(
     () =>
       Object.entries(library_selection)
-        .filter(([, selected]) => selected)
-        .map(([rule_id]: [string, boolean]) => rule_id),
+        .filter((entry: [string, unknown]) => Boolean(entry[1]))
+        .map(([rule_id]: [string, unknown]) => rule_id),
     [library_selection]
   );
 
@@ -307,7 +307,7 @@ export default function RuleBookLibraryPanel({
   const visibleCategories = useMemo(() => {
     if (!normalizedQuery) return grouped_categories;
 
-    return grouped_categories.map((category) => ({
+    return grouped_categories.map((category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => ({
       ...category,
       rules: (Array.isArray(category.rules) ? category.rules : []).filter(
         (rule: RuleListItem) => {
@@ -623,13 +623,15 @@ export default function RuleBookLibraryPanel({
           title="Refresh rules"
           aria-label="Refresh rules"
         >
-          <ArrowPathIcon className={['h-4 w-4', rules_loading ? 'animate-spin' : ''].join(' ')} />
+          <ArrowPathIcon
+            className={['h-4 w-4', rules_loading ? 'animate-spin' : ''].join(' ')}
+          />
         </button>
 
         <button
           type="button"
           onClick={() => {
-            setSearchOpen((prev) => {
+            setSearchOpen((prev: boolean) => {
               const next = !prev;
               if (!next) {
                 setSearchQuery('');
