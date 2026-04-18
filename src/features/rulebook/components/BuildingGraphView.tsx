@@ -527,14 +527,16 @@ export function BuildingGraphView({
     return visited;
   }, [current_step_index, execution_timeline]);
 
+  const successOverviewVisible = successOverviewActive && !expanded;
+
   const focusNodeIds = useMemo(
     () =>
-      successOverviewActive && !selectedNodeId
+      successOverviewVisible && !selectedNodeId
         ? []
         : selectedNodeId
           ? [selectedNodeId]
           : executionFocusNodeIds,
-    [executionFocusNodeIds, selectedNodeId, successOverviewActive]
+    [executionFocusNodeIds, selectedNodeId, successOverviewVisible]
   );
   const primaryFocusNodeId = focusNodeIds[0] ?? null;
 
@@ -598,6 +600,14 @@ export function BuildingGraphView({
     setStatusMessage(null);
     setLogCollapsed(false);
   }, [execution_timeline]);
+
+  useEffect(() => {
+    if (!expanded) {
+      return;
+    }
+
+    setSuccessOverviewActive(false);
+  }, [expanded]);
 
   useEffect(() => {
     if (execution_timeline && canvasSentiment === 'success') {
@@ -682,7 +692,7 @@ export function BuildingGraphView({
   };
 
   const getVisualState = (nodeId: string): VisualNodeState => {
-    if (successOverviewActive && !selectedNodeId) {
+    if (successOverviewVisible && !selectedNodeId) {
       return 3;
     }
 
@@ -861,7 +871,7 @@ export function BuildingGraphView({
                       const visualState = getVisualState(node.id);
                       const radius = visualState === 2 ? 26 : visualState === 3 ? 23 : 20;
                       const revealOpacity =
-                        successOverviewActive &&
+                        successOverviewVisible &&
                         successRevealRing !== null
                           ? node.ring <= successRevealRing
                             ? 1

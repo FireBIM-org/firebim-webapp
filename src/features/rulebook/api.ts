@@ -11,6 +11,9 @@ import type {
   RuleListItem,
 } from './types';
 
+const ruleDefinitionCache = new Map<string, RuleDefinition>();
+const missingRuleDefinitionCache = new Set<string>();
+
 const DEFAULT_CHECK_OPTIONS: Required<CheckRunOptions> = {
   solver: 'standard',
   inference: 'rdfs',
@@ -426,22 +429,43 @@ export async function listRules(): Promise<RuleListItem[]> {
 }
 
 export async function getRule(rule_id: string): Promise<RuleDefinition> {
+  const cached = ruleDefinitionCache.get(rule_id);
+  if (cached) {
+    return cached;
+  }
+
   const res = await fetch(`${env.apiBaseUrl}/rules/${rule_id}`);
   const data = await parseJsonResponse<unknown>(res);
-  return normalizeRuleDefinition(data);
+  const normalized = normalizeRuleDefinition(data);
+  ruleDefinitionCache.set(rule_id, normalized);
+  missingRuleDefinitionCache.delete(rule_id);
+  return normalized;
 }
 
 export async function getRuleOrNull(
   rule_id: string
 ): Promise<RuleDefinition | null> {
+  const cached = ruleDefinitionCache.get(rule_id);
+  if (cached) {
+    return cached;
+  }
+
+  if (missingRuleDefinitionCache.has(rule_id)) {
+    return null;
+  }
+
   const res = await fetch(`${env.apiBaseUrl}/rules/${rule_id}`);
 
   if (res.status === 404) {
+    missingRuleDefinitionCache.add(rule_id);
     return null;
   }
 
   const data = await parseJsonResponse<unknown>(res);
-  return normalizeRuleDefinition(data);
+  const normalized = normalizeRuleDefinition(data);
+  ruleDefinitionCache.set(rule_id, normalized);
+  missingRuleDefinitionCache.delete(rule_id);
+  return normalized;
 }
 
 export async function deleteRule(

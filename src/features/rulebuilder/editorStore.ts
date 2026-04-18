@@ -34,6 +34,7 @@ export type DeriveRequest = {
 export type BuiltTreeNode = {
   id: string;
   element_type: 'start' | 'decision' | 'end';
+  label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;

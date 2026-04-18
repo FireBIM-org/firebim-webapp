@@ -92,6 +92,7 @@ export function buildRuleTreeFromStart(
     .map((node) => ({
       id: node.id,
       element_type: node.element_type,
+      label: node.label ?? null,
       target_class: node.target_class ?? null,
       property_path: node.property_path ?? null,
       operator: node.operator ?? null,
@@ -120,6 +121,7 @@ export function extractRulesFromCanvasNodes(nodes: CanvasRuleNode[]): RuleData[]
 export type RuleDraftElement = {
   id: string;
   element_type: 'start' | 'decision' | 'end';
+  label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
@@ -131,20 +133,55 @@ export type RuleDraftElement = {
 
 export type RuleDraft = {
   id: string;
+  label?: string | null;
   entry: string;
   elements: RuleDraftElement[];
 };
 
+export type RuleDraftValidationIssue = {
+  node_id: string;
+  missing_fields: Array<'target_class' | 'property_path' | 'operator'>;
+};
+
+export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
+  return rule.elements
+    .filter((element) => element.element_type === 'decision')
+    .map((element) => {
+      const missing_fields: RuleDraftValidationIssue['missing_fields'] = [];
+
+      if (!element.target_class?.trim()) {
+        missing_fields.push('target_class');
+      }
+
+      if (!element.property_path?.trim()) {
+        missing_fields.push('property_path');
+      }
+
+      if (!element.operator?.trim()) {
+        missing_fields.push('operator');
+      }
+
+      return {
+        node_id: element.id,
+        missing_fields,
+      };
+    })
+    .filter((issue) => issue.missing_fields.length > 0);
+}
+
 export function buildRuleDraftFromTree(
   ruleId: string,
-  tree: BuiltTreeResult
+  tree: BuiltTreeResult,
+  ruleLabel?: string | null
 ): RuleDraft {
   return {
     id: ruleId,
+    label: ruleLabel ?? null,
     entry: tree.entry,
     elements: tree.nodes.map((node) => ({
       id: node.id,
       element_type: node.element_type,
+      label: node.label ?? null,
       target_class: node.target_class ?? null,
       property_path: node.property_path ?? null,
       operator: node.operator ?? null,

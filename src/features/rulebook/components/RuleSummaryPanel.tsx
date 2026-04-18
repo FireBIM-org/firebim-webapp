@@ -81,17 +81,20 @@ function isPassingEndNode(element: RuleDefinition['rule_elements'][number]) {
 }
 
 function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: string): RuleStructureStats {
-  const elementById = new Map(definition.rule_elements.map((element) => [element.id, element]));
+  const ruleElements = Array.isArray(definition.rule_elements)
+    ? definition.rule_elements
+    : [];
+  const elementById = new Map(ruleElements.map((element) => [element.id, element]));
   const targetClasses = Array.from(
     new Set(
-      definition.rule_elements
+      ruleElements
         .filter((element) => element.element_type === 'decision')
         .map((element) => element.target_class)
         .filter((value): value is string => Boolean(value))
         .map(formatTargetClass)
     )
   );
-  const decisionCount = definition.rule_elements.filter(
+  const decisionCount = ruleElements.filter(
     (element) => element.element_type === 'decision'
   ).length;
 
@@ -144,7 +147,7 @@ function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: st
       ? Math.max(...passPaths.map((path) => path.decisionCount))
       : null;
 
-  const startElement = definition.rule_elements.find(
+  const startElement = ruleElements.find(
     (element) => element.element_type === 'start'
   );
 
@@ -186,10 +189,11 @@ export function RuleSummaryPanel() {
     const raw_result = (execution_timeline?.raw_result ?? null) as TimelineRawResult | null;
     return Array.isArray(raw_result?.runs) ? raw_result.runs : [];
   }, [execution_timeline]);
-  const executionSignature = useMemo(() => {
-    if (!execution_timeline) return 'no-execution';
-    return `${execution_timeline.graph_id}:${execution_timeline.steps.length}:${current_step_index}`;
-  }, [current_step_index, execution_timeline]);
+  const compatibilityRefreshKey = useMemo(() => {
+    const graphId = active_graph_data?.id ?? 'no-graph';
+    const runnerKey = runner_rule_items.map((item) => item.rule_id).join('|') || 'no-rules';
+    return `${graphId}:${runnerKey}`;
+  }, [active_graph_data?.id, runner_rule_items]);
 
   useEffect(() => {
     let cancelled = false;
@@ -299,9 +303,9 @@ export function RuleSummaryPanel() {
     };
   }, [
     active_graph_data,
-    executionSignature,
     graph_loaded,
     runner_rule_items,
+    compatibilityRefreshKey,
   ]);
 
   const runnerRuleClasses = useMemo(() => {
@@ -343,19 +347,19 @@ export function RuleSummaryPanel() {
             );
 
     for (const runCompatibility of compatibilitySources) {
-      for (const value of runCompatibility.target_classes_required) {
+      for (const value of runCompatibility.target_classes_required ?? []) {
         if (typeof value === 'string' && value) {
           ruleClasses.add(formatTargetClass(value));
         }
       }
 
-      for (const match of runCompatibility.target_classes_found) {
+      for (const match of runCompatibility.target_classes_found ?? []) {
         if (typeof match.value === 'string' && match.value) {
           graphClasses.add(formatTargetClass(match.value));
         }
       }
 
-      for (const match of runCompatibility.graph_classes_unused_by_rule) {
+      for (const match of runCompatibility.graph_classes_unused_by_rule ?? []) {
         if (typeof match.value === 'string' && match.value) {
           graphClasses.add(formatTargetClass(match.value));
         }
@@ -480,10 +484,10 @@ export function RuleSummaryPanel() {
             <div className="space-y-2 text-sm text-gray-700">
               <div>Score: {compatibility.compatibility_score}</div>
               <div>
-                Missing target classes: {compatibility.missing_target_classes.length}
+                Missing target classes: {compatibility.missing_target_classes?.length ?? 0}
               </div>
-              <div>Missing properties: {compatibility.missing_properties.length}</div>
-              <div>Found target classes: {compatibility.target_classes_found.length}</div>
+              <div>Missing properties: {compatibility.missing_properties?.length ?? 0}</div>
+              <div>Found target classes: {compatibility.target_classes_found?.length ?? 0}</div>
             </div>
           )}
         </section>

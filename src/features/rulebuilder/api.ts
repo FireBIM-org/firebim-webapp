@@ -14,6 +14,7 @@ export type RuleElementListItem = {
   id?: string;
   graph_uri?: string;
   element_type?: RuleElementType;
+  label?: string;
 };
 
 export type RuleElementJson = {
@@ -36,6 +37,7 @@ export type RuleElementPayload = RuleElementJson;
 
 export type RuleJson = {
   id: string;
+  label?: string | null;
   entry: string;
   elements: RuleElementPayload[];
 };
@@ -154,6 +156,14 @@ export type PublishRuleResponse = {
   success?: boolean;
   error?: string | null;
   fallback?: boolean;
+};
+
+export type RuleListItem = {
+  rule_id: string;
+  label: string;
+  graph_uri?: string | null;
+  entry?: string | null;
+  rule_element_count?: number | null;
 };
 
 export type EnsureRuleElementsResult = {
@@ -371,6 +381,56 @@ export async function publishRule(
   return parseJsonResponse<PublishRuleResponse>(res);
 }
 
+export async function listRules(): Promise<RuleListItem[]> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/list`);
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`List rules failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+
+  const items = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.items)
+    ? data.items
+    : Array.isArray(data?.rules)
+    ? data.rules
+    : Array.isArray(data?.graph_uris)
+    ? data.graph_uris.map((graph_uri: string) => ({ graph_uri }))
+    : [];
+
+  return items.map((item: unknown, index: number) => {
+    const raw = (item ?? {}) as Record<string, unknown>;
+    const graph_uri =
+      (raw.graph_uri as string | undefined) ??
+      (typeof item === 'string' ? item : undefined) ??
+      null;
+    const rule_id =
+      (raw.rule_id as string | undefined) ??
+      (raw.id as string | undefined) ??
+      graph_uri?.split('/').pop() ??
+      `rule-${index}`;
+
+    return {
+      rule_id,
+      label:
+        (raw.label as string | undefined) ??
+        (raw.name as string | undefined) ??
+        rule_id,
+      graph_uri,
+      entry: (raw.entry as string | undefined) ?? null,
+      rule_element_count:
+        typeof raw.rule_element_count === 'number'
+          ? raw.rule_element_count
+          : typeof raw.element_count === 'number'
+          ? raw.element_count
+          : null,
+    };
+  });
+}
+
 export async function listRuleElements(): Promise<RuleElementListItem[]> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements`);
 
@@ -447,36 +507,55 @@ export async function getRuleElementOrNull(
 
 export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
   const basic = await listRuleElements();
-  const detailed: DetailedRuleElementListItem[] = [];
+  const detailed = await Promise.all(
+    basic.map(async (item, index): Promise<DetailedRuleElementListItem> => {
+      const id = item.element_id || item.id || `rule-element-${index}`;
+      const listElementType =
+        item.element_type === 'start' ||
+        item.element_type === 'decision' ||
+        item.element_type === 'end'
+          ? item.element_type
+          : null;
+      const hasListMetadata =
+        typeof item.label === 'string' &&
+        item.label.trim() !== '' &&
+        listElementType !== null;
 
-  for (let index = 0; index < basic.length; index += 1) {
-    const item = basic[index];
-    const id = item.element_id || item.id || `rule-element-${index}`;
+      if (hasListMetadata) {
+        return {
+          item_id: `api:${id}`,
+          element_id: id,
+          graph_uri: item.graph_uri || '',
+          element_type: listElementType,
+          label: item.label!.trim(),
+        };
+      }
 
-    try {
-      const res = await getRuleElement(id);
-      const ruleElement = res.rule_element;
+      try {
+        const res = await getRuleElement(id);
+        const ruleElement = res.rule_element;
 
-      detailed.push({
-        item_id: `api:${id}`,
-        element_id: id,
-        graph_uri: item.graph_uri || ruleElement.graph_uri || '',
-        element_type: ruleElement.element_type,
-        label: ruleElement.label || ruleElement.id || id,
-      });
-    } catch {
-      detailed.push({
-        item_id: `api:${id}`,
-        element_id: id,
-        graph_uri: item.graph_uri || '',
-        element_type:
-          item.element_type === 'start' || item.element_type === 'end'
-            ? item.element_type
-            : 'decision',
-        label: id,
-      });
-    }
-  }
+        return {
+          item_id: `api:${id}`,
+          element_id: id,
+          graph_uri: item.graph_uri || ruleElement.graph_uri || '',
+          element_type: ruleElement.element_type,
+          label: ruleElement.label || ruleElement.id || id,
+        };
+      } catch {
+        return {
+          item_id: `api:${id}`,
+          element_id: id,
+          graph_uri: item.graph_uri || '',
+          element_type:
+            item.element_type === 'start' || item.element_type === 'end'
+              ? item.element_type
+              : 'decision',
+          label: item.label?.trim() || id,
+        };
+      }
+    })
+  );
 
   return detailed;
 }

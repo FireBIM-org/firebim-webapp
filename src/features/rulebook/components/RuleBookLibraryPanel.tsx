@@ -123,7 +123,11 @@ function CategorySection({
   onEmptyWasteBin: () => void;
 }) {
   const [open, setOpen] = useState(true);
-  const selected_count = selected_rule_ids.length;
+  const safe_rules = Array.isArray(rules) ? rules : [];
+  const safe_selected_rule_ids = Array.isArray(selected_rule_ids)
+    ? selected_rule_ids
+    : [];
+  const selected_count = safe_selected_rule_ids.length;
   const is_waste_bin = category_id === 'waste-bin';
 
   return (
@@ -180,16 +184,16 @@ function CategorySection({
 
       {open && (
         <div className="mt-2 space-y-2 px-1">
-          {rules.length === 0 ? (
+          {safe_rules.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400">
               No rules
             </div>
           ) : (
-            rules.map((rule) => (
+            safe_rules.map((rule) => (
               <RuleCard
                 key={rule.rule_id}
                 rule={rule}
-                selected={selected_rule_ids.includes(rule.rule_id)}
+                selected={safe_selected_rule_ids.includes(rule.rule_id)}
                 display_label={
                   custom_rule_labels[rule.rule_id] || rule.label || rule.rule_id
                 }
@@ -277,7 +281,7 @@ export default function RuleBookLibraryPanel({
 
     return grouped_categories.map((category) => ({
       ...category,
-      rules: category.rules.filter((rule) => {
+      rules: (Array.isArray(category.rules) ? category.rules : []).filter((rule) => {
         const haystacks = [
           library_state.custom_rule_labels[rule.rule_id],
           rule.label,
@@ -462,7 +466,9 @@ export default function RuleBookLibraryPanel({
     const waste_bin_group = grouped_categories.find(
       (group) => group.id === 'waste-bin'
     );
-    const trashed_rules = waste_bin_group?.rules ?? [];
+    const trashed_rules = Array.isArray(waste_bin_group?.rules)
+      ? waste_bin_group.rules
+      : [];
     const api_rules_to_delete = trashed_rules.filter((rule) => rule.source === 'api');
 
     if (trashed_rules.length === 0) {

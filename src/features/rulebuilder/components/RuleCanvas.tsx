@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import {
   Background,
+  ControlButton,
   Controls,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   applyEdgeChanges,
@@ -17,6 +18,7 @@ import {
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { toPng } from 'html-to-image';
 
 import RuleBranchEdge from './RuleBranchEdge';
 import { getRuleElement } from '../api';
@@ -197,12 +199,28 @@ function RuleCanvasInner({
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [exportingImage, setExportingImage] = useState(false);
 
   const selectedRule = useMemo(() => {
     if (!selectedNodeId) return null;
     const node = nodes.find((item) => item.id === selectedNodeId);
     return (node?.data?.rule as RuleData | undefined) || null;
   }, [nodes, selectedNodeId]);
+
+  const entryNodeFileName = useMemo(() => {
+    const startNode = nodes.find((node) => {
+      const rule = node.data?.rule as RuleData | undefined;
+      return rule?.element_type === 'start';
+    });
+    const startRule = startNode?.data?.rule as RuleData | undefined;
+    const rawLabel = startRule?.label?.trim();
+
+    if (!rawLabel) {
+      return 'rulebuilder-canvas';
+    }
+
+    return rawLabel.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'rulebuilder-canvas';
+  }, [nodes]);
 
   const visualEdges = useMemo(() => {
     const visual = getEdgeVisualProps(builtRuleEdgePhase);
@@ -649,6 +667,48 @@ function RuleCanvasInner({
     }
   }, [selectedNodeId, selectedRule, onSelectedNodeChange]);
 
+  const handleExportCanvas = useCallback(async () => {
+    const canvas = wrapperRef.current?.querySelector(
+      '.react-flow__viewport'
+    ) as HTMLElement | null;
+
+    if (!canvas) {
+      window.alert('Canvas export failed: no canvas was found.');
+      return;
+    }
+
+    const suggestedName = entryNodeFileName;
+    const enteredName = window.prompt(
+      'Save canvas as PNG',
+      suggestedName
+    );
+
+    if (enteredName === null) {
+      return;
+    }
+
+    const fileName = (enteredName.trim() || suggestedName).replace(/\.png$/i, '');
+
+    try {
+      setExportingImage(true);
+      const dataUrl = await toPng(canvas, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#f9fafb',
+      });
+
+      const link = document.createElement('a');
+      link.download = `${fileName}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Canvas export failed:', error);
+      window.alert('Canvas export failed. Please try again.');
+    } finally {
+      setExportingImage(false);
+    }
+  }, [entryNodeFileName]);
+
   return (
     <div ref={wrapperRef} className="h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
@@ -664,8 +724,18 @@ function RuleCanvasInner({
         onPaneClick={onPaneClick}
         fitView
       >
-        <MiniMap />
-        <Controls />
+        <Controls>
+          <ControlButton
+            onClick={() => {
+              void handleExportCanvas();
+            }}
+            disabled={exportingImage}
+            title="Save canvas as PNG"
+            aria-label="Save canvas as PNG"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+          </ControlButton>
+        </Controls>
         <Background />
       </ReactFlow>
     </div>

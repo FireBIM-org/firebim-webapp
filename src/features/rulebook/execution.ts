@@ -1,4 +1,4 @@
-import { getRule, runDiagnosticCheck } from './api';
+import { getRuleOrNull, runDiagnosticCheck } from './api';
 import type {
   BuildingGraphData,
   DiagnosticRunResponse,
@@ -262,15 +262,18 @@ function buildConsoleLines(input: {
   diagnostic_run: DiagnosticRunResponse;
   event?: DiagnosticSequenceEvent;
 }) {
+  const compatibility = input.diagnostic_run.compatibility ?? null;
+  const missingTargetClasses = compatibility?.missing_target_classes ?? [];
+  const missingProperties = compatibility?.missing_properties ?? [];
   const base = [
     `${input.diagnostic_run.engine.engine} - solver=${input.diagnostic_run.solver} - inference=${input.diagnostic_run.engine.inference}`,
     `Conforms: ${String(input.diagnostic_run.summary.conforms)}`,
     `Targets: total=${input.diagnostic_run.summary.total_targets}, passed=${input.diagnostic_run.summary.passed}, failed=${input.diagnostic_run.summary.failed}, unknown=${input.diagnostic_run.summary.unknown}`,
-    ...(input.diagnostic_run.compatibility
+    ...(compatibility
       ? [
-          `Compatibility score: ${input.diagnostic_run.compatibility.compatibility_score}`,
-          `Missing target classes: ${input.diagnostic_run.compatibility.missing_target_classes.length}`,
-          `Missing properties: ${input.diagnostic_run.compatibility.missing_properties.length}`,
+          `Compatibility score: ${compatibility.compatibility_score}`,
+          `Missing target classes: ${missingTargetClasses.length}`,
+          `Missing properties: ${missingProperties.length}`,
         ]
       : []),
   ];
@@ -512,14 +515,16 @@ export async function buildRuleRunnerExecutionTimeline(input: {
       (rule) => rule.rule_id === runner_item.rule_id
     );
 
-    const diagnostic_run = await runDiagnosticCheck({
-      rule_id: runner_item.rule_id,
-      graph_id: input.active_graph_data.id,
-      options: {
-        solver: input.solver,
-      },
-    });
-    const rule_definition = await getRule(runner_item.rule_id).catch(() => null);
+    const [diagnostic_run, rule_definition] = await Promise.all([
+      runDiagnosticCheck({
+        rule_id: runner_item.rule_id,
+        graph_id: input.active_graph_data.id,
+        options: {
+          solver: input.solver,
+        },
+      }),
+      getRuleOrNull(runner_item.rule_id),
+    ]);
 
     runs.push({
       diagnostic_run,

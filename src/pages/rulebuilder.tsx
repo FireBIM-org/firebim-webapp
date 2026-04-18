@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
+import { useAuth } from '@/contexts/AuthContext';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
-import { buildRuleDraftFromTree } from '@/features/rulebuilder/buildTree';
+import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
 import { RULE_LIBRARY } from '@/features/rulebuilder/library';
 import {
   RuleData,
@@ -18,6 +21,7 @@ import {
   deleteRuleElement,
   deriveRuleElement,
   getRulesHealth,
+  listRules,
   listRuleElementsDetailed,
   publishRuleElement,
   connectRuleElementBranch,
@@ -198,8 +202,43 @@ function normalizeDuplicateKey(value: string | null | undefined) {
   return (value || '').trim().toLowerCase();
 }
 
+function slugifyRuleId(value: string) {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'rule'
+  );
+}
+
+function sanitizeRuleLabel(value: string) {
+  return value.replace(/"/g, "'").trim() || 'rule';
+}
+
+function buildNumberedRuleLabel(
+  baseLabel: string,
+  existingLabels: string[]
+) {
+  const normalizedExisting = new Set(
+    existingLabels.map((label) => normalizeDuplicateKey(label))
+  );
+
+  let index = 2;
+  let candidate = `${baseLabel} ${index}`;
+
+  while (normalizedExisting.has(normalizeDuplicateKey(candidate))) {
+    index += 1;
+    candidate = `${baseLabel} ${index}`;
+  }
+
+  return candidate;
+}
+
 export default function RuleBuilderPage() {
-  const swaggerDocsUrl = `${env.apiBaseUrl}/docs`;
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const swaggerDocsUrl = env.apiDocsUrl;
   const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
@@ -242,6 +281,12 @@ export default function RuleBuilderPage() {
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
   const [rulePublishState, setRulePublishState] = useState<PublishState>('idle');
   const [rulePublishMessage, setRulePublishMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [authLoading, router, user]);
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
@@ -674,24 +719,37 @@ export default function RuleBuilderPage() {
 
   const buildCurrentRulesetDraft = () => {
     if (!builtTreeResult) return null;
+    const entryNode = builtTreeResult.nodes.find(
+      (node) => node.id === builtTreeResult.entry
+    );
+    const ruleLabel = sanitizeRuleLabel(
+      entryNode?.label?.trim() ||
+        selectedRule?.label?.trim() ||
+        selectedRule?.id ||
+        'rule'
+    );
+    const baseId = slugifyRuleId(ruleLabel);
 
-    const baseId =
-      (selectedRule?.label || selectedRule?.id || 'rule')
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '') || 'rule';
-
-    return buildRuleDraftFromTree(baseId, builtTreeResult);
+    return buildRuleDraftFromTree(baseId, builtTreeResult, ruleLabel);
   };
 
   const handleConnectBuiltTree = async () => {
     const draft = buildCurrentRulesetDraft();
     if (!draft || !builtTreeResult) return;
+    const validationIssues = validateRuleDraft(draft);
 
     if (builtTreeResult.missingBranches.length > 0) {
       setRulePublishState('error');
       setRulePublishMessage('Cannot connect rule: missing branch targets were found');
+      return;
+    }
+
+    if (validationIssues.length > 0) {
+      const issue = validationIssues[0];
+      setRulePublishState('error');
+      setRulePublishMessage(
+        `Cannot connect rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+      );
       return;
     }
 
@@ -724,6 +782,16 @@ export default function RuleBuilderPage() {
   const handleCheckBuiltRuleCompleteness = async () => {
     const draft = buildCurrentRulesetDraft();
     if (!draft) return;
+    const validationIssues = validateRuleDraft(draft);
+
+    if (validationIssues.length > 0) {
+      const issue = validationIssues[0];
+      setRulePublishState('error');
+      setRulePublishMessage(
+        `Cannot check completeness: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+      );
+      return;
+    }
 
     try {
       setRulePublishState('saving');
@@ -754,6 +822,7 @@ export default function RuleBuilderPage() {
   const handlePublishBuiltRule = async () => {
     const draft = buildCurrentRulesetDraft();
     if (!draft) return;
+    const validationIssues = validateRuleDraft(draft);
 
     if (builtTreeResult?.missingBranches.length) {
       setRulePublishState('error');
@@ -767,16 +836,58 @@ export default function RuleBuilderPage() {
       return;
     }
 
+    if (validationIssues.length > 0) {
+      const issue = validationIssues[0];
+      setRulePublishState('error');
+      setRulePublishMessage(
+        `Cannot publish rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+      );
+      return;
+    }
+
     try {
       setRulePublishState('saving');
       setRulePublishMessage('Saving rule...');
 
+      const baseRuleLabel = draft.label?.trim() || draft.id;
+      const sanitizedBaseRuleLabel = sanitizeRuleLabel(baseRuleLabel);
+      const existingRules = await listRules();
+      const matchingLabels = existingRules
+        .map((rule) => rule.label?.trim())
+        .filter(
+          (label): label is string =>
+            Boolean(label) &&
+            normalizeDuplicateKey(label) ===
+              normalizeDuplicateKey(sanitizedBaseRuleLabel)
+        );
+
+      let resolvedRuleLabel = sanitizedBaseRuleLabel;
+
+      if (matchingLabels.length > 0) {
+        const shouldOverride = window.confirm(
+          `A rule named "${sanitizedBaseRuleLabel}" already exists in the RuleBook. Do you want to keep that same label?`
+        );
+
+        if (!shouldOverride) {
+          resolvedRuleLabel = buildNumberedRuleLabel(
+            sanitizedBaseRuleLabel,
+            existingRules.map((rule) => rule.label)
+          );
+        }
+      }
+
+      const publishDraft = {
+        ...draft,
+        id: slugifyRuleId(resolvedRuleLabel),
+        label: resolvedRuleLabel,
+      };
+
       const result = await publishRule({
-        rule: draft,
+        rule: publishDraft,
       });
 
       setRulePublishState('success');
-      const publishedRuleId = result.rule_id || draft.id;
+      const publishedRuleId = result.rule_id || publishDraft.id;
       setRulePublishMessage(
         `The rule "${publishedRuleId}" is saved and can now be found in the rulebook`
       );
@@ -939,6 +1050,14 @@ export default function RuleBuilderPage() {
       setPublishMessage(error instanceof Error ? error.message : 'Publish failed');
     }
   };
+
+  if (authLoading || !user) {
+    return (
+      <Layout title="Loading... | FireBIM">
+        <LoadingSpinner />
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="RuleBuilder | FireBIM">

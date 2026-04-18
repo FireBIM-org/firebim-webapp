@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 import { env } from '../config/env';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 import { useRuleBookStore } from '../features/rulebook/store';
 
 import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
@@ -13,6 +16,8 @@ import { RuleSummaryPanel } from '../features/rulebook/components/RuleSummaryPan
 import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution';
 
 export default function RuleBookPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const rules_api_online = useRuleBookStore((state) => state.rules_api_online);
   const runner_rule_items = useRuleBookStore((state) => state.runner_rule_items);
   const available_rules = useRuleBookStore((state) => state.available_rules);
@@ -31,9 +36,15 @@ export default function RuleBookPage() {
   const setCurrentStepIndex = useRuleBookStore((state) => state.setCurrentStepIndex);
   const setExecutionPlaybackMs = useRuleBookStore((state) => state.setExecutionPlaybackMs);
 
-  const swaggerDocsUrl = `${env.apiBaseUrl}/docs`;
+  const swaggerDocsUrl = env.apiDocsUrl;
   const [graphExpanded, setGraphExpanded] = useState(false);
   const [graphCollapsed, setGraphCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [authLoading, router, user]);
 
   useEffect(() => {
     const step_count = execution_timeline?.steps.length ?? 0;
@@ -193,6 +204,14 @@ export default function RuleBookPage() {
     : graphCollapsed
       ? 'shrink-0 px-4 pt-2 pb-2'
       : 'min-h-0 flex-1 p-4';
+
+  if (authLoading || !user) {
+    return (
+      <Layout title="Loading... | FireBIM">
+        <LoadingSpinner />
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="RuleBook | FireBIM">
