@@ -34,6 +34,9 @@ type PositionedNode = BuildingGraphData['nodes'][number] & {
   ring: number;
 };
 
+type GraphNode = BuildingGraphData['nodes'][number];
+type GraphEdge = BuildingGraphData['edges'][number];
+
 type GraphBounds = {
   width: number;
   height: number;
@@ -531,8 +534,10 @@ export function BuildingGraphView({
     }
 
     const visited = new Set<string>();
-    execution_timeline.steps.slice(0, current_step_index).forEach((step) => {
-      step.active_node_ids?.forEach((nodeId) => visited.add(nodeId));
+    execution_timeline.steps
+      .slice(0, current_step_index)
+      .forEach((step: ExecutionStep) => {
+        step.active_node_ids?.forEach((nodeId: string) => visited.add(nodeId));
     });
     return visited;
   }, [current_step_index, execution_timeline]);
@@ -552,20 +557,21 @@ export function BuildingGraphView({
 
   const layout = useMemo(() => buildGraphLayout(active_graph_data), [active_graph_data]);
   const positionedById = useMemo(
-    () => new Map(layout.nodes.map((node) => [node.id, node])),
+    () => new Map(layout.nodes.map((node: PositionedNode) => [node.id, node])),
     [layout.nodes]
   );
   const hoveredNode = useMemo(
-    () => layout.nodes.find((node) => node.id === hoveredNodeId) ?? null,
+    () => layout.nodes.find((node: PositionedNode) => node.id === hoveredNodeId) ?? null,
     [hoveredNodeId, layout.nodes]
   );
   const selectedNode = useMemo(
-    () => layout.nodes.find((node) => node.id === primaryFocusNodeId) ?? null,
+    () => layout.nodes.find((node: PositionedNode) => node.id === primaryFocusNodeId) ?? null,
     [layout.nodes, primaryFocusNodeId]
   );
   const propertyBubbles = useMemo(() => buildPropertyBubbles(selectedNode), [selectedNode]);
   const graphNodesById = useMemo(
-    () => new Map((active_graph_data?.nodes ?? []).map((node) => [node.id, node])),
+    () =>
+      new Map((active_graph_data?.nodes ?? []).map((node: GraphNode) => [node.id, node])),
     [active_graph_data]
   );
 
@@ -575,13 +581,13 @@ export function BuildingGraphView({
     }
 
     const connected = new Set<string>();
-    active_graph_data.edges.forEach((edge) => {
+    active_graph_data.edges.forEach((edge: GraphEdge) => {
       if (focusNodeIds.includes(edge.source) || focusNodeIds.includes(edge.target)) {
         connected.add(edge.source);
         connected.add(edge.target);
       }
     });
-    focusNodeIds.forEach((nodeId) => connected.delete(nodeId));
+    focusNodeIds.forEach((nodeId: string) => connected.delete(nodeId));
     return connected;
   }, [active_graph_data, focusNodeIds]);
 
@@ -592,8 +598,11 @@ export function BuildingGraphView({
 
     return new Set(
       active_graph_data.edges
-        .filter((edge) => focusNodeIds.includes(edge.source) || focusNodeIds.includes(edge.target))
-        .map((edge) => edge.id)
+        .filter(
+          (edge: GraphEdge) =>
+            focusNodeIds.includes(edge.source) || focusNodeIds.includes(edge.target)
+        )
+        .map((edge: GraphEdge) => edge.id)
     );
   }, [active_graph_data, focusNodeIds]);
 
@@ -802,7 +811,10 @@ export function BuildingGraphView({
                   preserveAspectRatio="xMidYMid meet"
                 >
                   <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
-                    {Array.from({ length: layout.bounds.maxRing }, (_, index) => index + 1).map((ring) => (
+                    {Array.from(
+                      { length: layout.bounds.maxRing },
+                      (_: unknown, index: number) => index + 1
+                    ).map((ring: number) => (
                       <circle
                         key={`ring-${ring}`}
                         cx={layout.bounds.centerX}
@@ -827,7 +839,7 @@ export function BuildingGraphView({
                       />
                     ) : null}
 
-                    {active_graph_data.edges.map((edge) => {
+                    {active_graph_data.edges.map((edge: GraphEdge) => {
                       const source = positionedById.get(edge.source);
                       const target = positionedById.get(edge.target);
                       if (!source || !target) return null;
@@ -864,7 +876,7 @@ export function BuildingGraphView({
                       );
                     })}
 
-                    {propertyBubbles.map((property) => (
+                    {propertyBubbles.map((property: PropertyBubble) => (
                       <g key={property.key} transform={`translate(${property.x} ${property.y})`}>
                         <circle r={22} fill="rgba(255,255,255,0.97)" stroke="#334155" strokeWidth={1.5} />
                         <text y={-2} textAnchor="middle" fontSize="8" fontWeight="700" fill="#0f172a">
@@ -876,7 +888,7 @@ export function BuildingGraphView({
                       </g>
                     ))}
 
-                    {layout.nodes.map((node) => {
+                    {layout.nodes.map((node: PositionedNode) => {
                       const result = current_step?.node_results[node.id];
                       const visualState = getVisualState(node.id);
                       const radius = visualState === 2 ? 26 : visualState === 3 ? 23 : 20;
@@ -896,11 +908,17 @@ export function BuildingGraphView({
                           transform={`translate(${node.x} ${node.y})`}
                           opacity={opacity}
                           onMouseEnter={() => setHoveredNodeId(node.id)}
-                          onMouseLeave={() => setHoveredNodeId((value) => (value === node.id ? null : value))}
+                          onMouseLeave={() =>
+                            setHoveredNodeId((value: string | null) =>
+                              value === node.id ? null : value
+                            )
+                          }
                           onClick={(event) => {
                             event.stopPropagation();
                             setSuccessOverviewActive(false);
-                            setSelectedNodeId((value) => (value === node.id ? null : node.id));
+                            setSelectedNodeId((value: string | null) =>
+                              value === node.id ? null : node.id
+                            );
                           }}
                           className="cursor-pointer"
                         >
@@ -988,7 +1006,7 @@ export function BuildingGraphView({
         ) : null}
         <button
           type="button"
-          onClick={() => setZoom((value) => Math.min(5, value + 0.2))}
+          onClick={() => setZoom((value: number) => Math.min(5, value + 0.2))}
           className="rounded-lg border border-slate-200 bg-white/95 p-2 text-slate-600 shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           title="Zoom in"
           disabled={collapsed}
@@ -997,7 +1015,7 @@ export function BuildingGraphView({
         </button>
         <button
           type="button"
-          onClick={() => setZoom((value) => Math.max(0.2, value - 0.2))}
+          onClick={() => setZoom((value: number) => Math.max(0.2, value - 0.2))}
           className="rounded-lg border border-slate-200 bg-white/95 p-2 text-slate-600 shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           title="Zoom out"
           disabled={collapsed}
@@ -1070,7 +1088,7 @@ export function BuildingGraphView({
                 ].join(' ')}
               >
                 <div className="space-y-3">
-                  {visible_log_steps.map((step, index) => {
+                  {visible_log_steps.map((step: ExecutionStep, index: number) => {
                   const display = getStepDisplay(step);
                   const isTerminal = display?.event_type === 'chain_complete';
                   const isDecision = display?.event_type === 'node_visit';
@@ -1103,7 +1121,7 @@ export function BuildingGraphView({
                         {
                           setSuccessOverviewActive(false);
                           setLogCollapsed(false);
-                          setExpandedLogStepKey((value) =>
+                          setExpandedLogStepKey((value: string | null) =>
                             value === stepKey ? null : stepKey
                           );
                         }
