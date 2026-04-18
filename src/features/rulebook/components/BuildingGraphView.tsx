@@ -14,6 +14,8 @@ import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/rule
 import { useRuleBookStore, type RuleBookStore } from '../store';
 import type {
   BuildingGraphData,
+  BuildingGraphEdge,
+  BuildingGraphNode,
   BuildingGraphTargetClass,
   ExecutionStep,
   NodeEvaluationResult,
@@ -34,8 +36,8 @@ type PositionedNode = BuildingGraphData['nodes'][number] & {
   ring: number;
 };
 
-type GraphNode = BuildingGraphData['nodes'][number];
-type GraphEdge = BuildingGraphData['edges'][number];
+type GraphNode = BuildingGraphNode;
+type GraphEdge = BuildingGraphEdge;
 
 type GraphBounds = {
   width: number;
@@ -571,9 +573,19 @@ export function BuildingGraphView({
   const propertyBubbles = useMemo(() => buildPropertyBubbles(selectedNode), [selectedNode]);
   const graphNodesById = useMemo(
     () =>
-      new Map((active_graph_data?.nodes ?? []).map((node: GraphNode) => [node.id, node])),
+      new Map<string, GraphNode>(
+        (active_graph_data?.nodes ?? []).map((node: GraphNode) => [node.id, node])
+      ),
     [active_graph_data]
   );
+
+  const getGraphNodeById = (nodeId?: string | null): GraphNode | null => {
+    if (!nodeId) {
+      return null;
+    }
+
+    return graphNodesById.get(nodeId) ?? null;
+  };
 
   const connectedNodeIds = useMemo(() => {
     if (!active_graph_data || focusNodeIds.length === 0) {
@@ -1101,9 +1113,7 @@ export function BuildingGraphView({
                   const outcomeLabel = display?.outcome_label ?? 'check OK';
                   const stepKey = `${step.rule_id}-${step.step_index}-${index}`;
                   const isExpanded = expandedLogStepKey === stepKey;
-                  const graphNode: GraphNode | null = display?.sample_target_label
-                    ? graphNodesById.get(display.sample_target_label) ?? null
-                    : null;
+                  const graphNode = getGraphNodeById(display?.sample_target_label);
                   const graphPropertyValue =
                     display?.property_path && graphNode?.metadata
                       ? graphNode.metadata[display.property_path]
