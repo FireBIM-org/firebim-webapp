@@ -17,6 +17,7 @@ import {
 } from '@/features/rulebuilder/editorStore';
 import {
   EXAMPLE_RULE_ELEMENTS,
+  DetailedRuleElementListItem,
   ensureExampleRuleElements,
   deleteRuleElement,
   deriveRuleElement,
@@ -103,18 +104,20 @@ function dedupeCategoryId(baseId: string, existingIds: string[]) {
 }
 
 function normalizeLocalLibraryItems(): LibraryItem[] {
-  const localCategory = RULE_LIBRARY.find((category) => category.id === 'under-development');
+  const localCategory = RULE_LIBRARY.find(
+    (category: RuleLibraryCategory) => category.id === 'under-development'
+  );
   const items = localCategory?.items || [];
 
-  return items.map((item, index) => {
+  return items.map((item: RuleLibraryCategory['items'][number], index: number) => {
     const baseId =
       item.type === 'start'
         ? 'local:start'
         : item.type === 'end'
-        ? 'local:end'
-        : index === 0
-        ? 'local:decision'
-        : `local:${item.type}:${index}`;
+          ? 'local:end'
+          : index === 0
+            ? 'local:decision'
+            : `local:${item.type}:${index}`;
 
     return {
       ...item,
@@ -296,9 +299,9 @@ export default function RuleBuilderPage() {
   const loadStoredRuleElements = useCallback(async () => {
     const items = await listRuleElementsDetailed();
 
-    const mapped: LibraryItem[] = items.map((item) => {
+    const mapped: LibraryItem[] = items.map((item: DetailedRuleElementListItem) => {
       const itemId = item.item_id || `api:${item.element_id}`;
-      const effectiveLabel = item.label || item.element_id;
+      const effectiveLabel = item.label || item.element_id || itemId;
 
       return {
         id: itemId,
@@ -350,9 +353,11 @@ export default function RuleBuilderPage() {
 
         if (!active) return;
 
-        const exampleIds = new Set(EXAMPLE_RULE_ELEMENTS.map((item) => item.id));
+        const exampleIds = new Set(
+          EXAMPLE_RULE_ELEMENTS.map((item: RuleData) => item.id)
+        );
 
-        setLibraryState((current) => {
+        setLibraryState((current: LibraryState) => {
           const nextItemCategory = { ...current.itemCategory };
           const nextItemLabels = { ...current.itemLabels };
 
@@ -360,7 +365,9 @@ export default function RuleBuilderPage() {
             const itemId = `api:${exampleId}`;
             nextItemCategory[itemId] = 'examples';
 
-            const example = EXAMPLE_RULE_ELEMENTS.find((item) => item.id === exampleId);
+            const example = EXAMPLE_RULE_ELEMENTS.find(
+              (item: RuleData) => item.id === exampleId
+            );
             if (example?.label) {
               nextItemLabels[itemId] = example.label;
             }
@@ -405,7 +412,7 @@ export default function RuleBuilderPage() {
   }, [loadStoredRuleElements]);
 
   useEffect(() => {
-    setLibraryState((current) => {
+    setLibraryState((current: LibraryState) => {
       const nextItemCategory = { ...current.itemCategory };
       const nextItemLabels = { ...current.itemLabels };
 
@@ -434,13 +441,13 @@ export default function RuleBuilderPage() {
   const categories = useMemo<RuleLibraryCategory[]>(() => {
     const sortedMeta = sortCategoryMeta(libraryState.categories);
 
-    return sortedMeta.map((categoryMeta) => {
+    return sortedMeta.map((categoryMeta: CategoryMeta) => {
       const items = allLibraryItems
-        .filter((item) => {
+        .filter((item: LibraryItem) => {
           const assignedCategory = libraryState.itemCategory[item.id] || 'under-development';
           return assignedCategory === categoryMeta.id;
         })
-        .map((item) => ({
+        .map((item: LibraryItem) => ({
           ...item,
           label: libraryState.itemLabels[item.id] || item.label,
           template: {
@@ -474,10 +481,10 @@ export default function RuleBuilderPage() {
   }, [allLibraryItems, libraryState]);
 
   const handleToggleItemSelected = (itemId: string, multi = false) => {
-    setSelectedItemIds((current) => {
+    setSelectedItemIds((current: string[]) => {
       if (multi) {
         return current.includes(itemId)
-          ? current.filter((id) => id !== itemId)
+          ? current.filter((id: string) => id !== itemId)
           : [...current, itemId];
       }
 
@@ -488,12 +495,14 @@ export default function RuleBuilderPage() {
   const handleMoveSelectedToCategory = (categoryId: string) => {
     if (selectedItemIds.length === 0) return;
 
-    setLibraryState((current) => {
+    setLibraryState((current: LibraryState) => {
       const nextItemCategory = { ...current.itemCategory };
       const nextItemLabels = { ...current.itemLabels };
 
       for (const itemId of selectedItemIds) {
-        const item = allLibraryItems.find((candidate) => candidate.id === itemId);
+        const item = allLibraryItems.find(
+          (candidate: LibraryItem) => candidate.id === itemId
+        );
         if (!item) continue;
 
         nextItemCategory[itemId] = categoryId;
@@ -511,15 +520,19 @@ export default function RuleBuilderPage() {
   };
 
   const handleMoveSelectedToTrash = () => {
-    const apiOnlyIds = selectedItemIds.filter((itemId) => itemId.startsWith('api:'));
+    const apiOnlyIds = selectedItemIds.filter((itemId: string) =>
+      itemId.startsWith('api:')
+    );
     if (apiOnlyIds.length === 0) return;
 
-    setLibraryState((current) => {
+    setLibraryState((current: LibraryState) => {
       const nextItemCategory = { ...current.itemCategory };
       const nextItemLabels = { ...current.itemLabels };
 
       for (const itemId of apiOnlyIds) {
-        const item = allLibraryItems.find((candidate) => candidate.id === itemId);
+        const item = allLibraryItems.find(
+          (candidate: LibraryItem) => candidate.id === itemId
+        );
         if (!item) continue;
 
         nextItemCategory[itemId] = 'trash';
@@ -543,7 +556,8 @@ export default function RuleBuilderPage() {
       }
 
       const apiItems = storedElements.filter(
-        (item) => (libraryState.itemCategory[item.id] || 'under-development') !== 'trash'
+        (item: LibraryItem) =>
+          (libraryState.itemCategory[item.id] || 'under-development') !== 'trash'
       );
       const duplicatesToTrash: string[] = [];
       const latestByLabel = new Map<string, string>();
@@ -578,12 +592,14 @@ export default function RuleBuilderPage() {
 
       const duplicateSet = new Set(duplicatesToTrash);
 
-      setLibraryState((current) => {
+      setLibraryState((current: LibraryState) => {
         const nextItemCategory = { ...current.itemCategory };
         const nextItemLabels = { ...current.itemLabels };
 
         for (const itemId of duplicatesToTrash) {
-          const item = storedElements.find((candidate) => candidate.id === itemId);
+          const item = storedElements.find(
+            (candidate: LibraryItem) => candidate.id === itemId
+          );
           if (!item) continue;
           nextItemCategory[itemId] = 'trash';
           nextItemLabels[itemId] = current.itemLabels[itemId] || item.label;
@@ -596,7 +612,9 @@ export default function RuleBuilderPage() {
         };
       });
 
-      setSelectedItemIds((current) => current.filter((itemId) => !duplicateSet.has(itemId)));
+      setSelectedItemIds((current: string[]) =>
+        current.filter((itemId: string) => !duplicateSet.has(itemId))
+      );
       setPublishState('success');
       setPublishMessage(
         `Moved ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin`
@@ -608,7 +626,7 @@ export default function RuleBuilderPage() {
 
   const handleEmptyTrash = async () => {
     const trashedApiItems = allLibraryItems.filter(
-      (item) =>
+      (item: LibraryItem) =>
         item.source === 'api' &&
         (libraryState.itemCategory[item.id] || 'under-development') === 'trash' &&
         item.element_id
@@ -625,14 +643,14 @@ export default function RuleBuilderPage() {
       setPublishMessage('Deleting rule elements from API...');
 
       await Promise.all(
-        trashedApiItems.map((item) =>
+        trashedApiItems.map((item: LibraryItem) =>
           deleteRuleElement({
             element_id: item.element_id as string,
           })
         )
       );
 
-      setLibraryState((current) => {
+      setLibraryState((current: LibraryState) => {
         const nextItemCategory = { ...current.itemCategory };
         const nextItemLabels = { ...current.itemLabels };
 
@@ -648,8 +666,11 @@ export default function RuleBuilderPage() {
         };
       });
 
-      setSelectedItemIds((current) =>
-        current.filter((itemId) => !trashedApiItems.some((item) => item.id === itemId))
+      setSelectedItemIds((current: string[]) =>
+        current.filter(
+          (itemId: string) =>
+            !trashedApiItems.some((item: LibraryItem) => item.id === itemId)
+        )
       );
 
       setPublishState('success');
@@ -668,8 +689,10 @@ export default function RuleBuilderPage() {
     const trimmed = label.trim();
     if (!trimmed) return;
 
-    setLibraryState((current) => {
-      const existingIds = current.categories.map((category) => category.id);
+    setLibraryState((current: LibraryState) => {
+      const existingIds = current.categories.map(
+        (category: CategoryMeta) => category.id
+      );
       const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
       const maxOrder = current.categories.reduce(
         (max, category) =>
@@ -693,8 +716,10 @@ export default function RuleBuilderPage() {
   };
 
   const handleRenameCategory = (categoryId: string) => {
-    setLibraryState((current) => {
-      const target = current.categories.find((category) => category.id === categoryId);
+    setLibraryState((current: LibraryState) => {
+      const target = current.categories.find(
+        (category: CategoryMeta) => category.id === categoryId
+      );
       if (!target || target.system) return current;
 
       const label = window.prompt('Rename category', target.label);
@@ -705,7 +730,7 @@ export default function RuleBuilderPage() {
 
       return {
         ...current,
-        categories: current.categories.map((category) =>
+        categories: current.categories.map((category: CategoryMeta) =>
           category.id === categoryId
             ? {
                 ...category,
@@ -720,7 +745,7 @@ export default function RuleBuilderPage() {
   const buildCurrentRulesetDraft = () => {
     if (!builtTreeResult) return null;
     const entryNode = builtTreeResult.nodes.find(
-      (node) => node.id === builtTreeResult.entry
+      (node: BuiltTreeResult['nodes'][number]) => node.id === builtTreeResult.entry
     );
     const ruleLabel = sanitizeRuleLabel(
       entryNode?.label?.trim() ||
@@ -853,7 +878,7 @@ export default function RuleBuilderPage() {
       const sanitizedBaseRuleLabel = sanitizeRuleLabel(baseRuleLabel);
       const existingRules = await listRules();
       const matchingLabels = existingRules
-        .map((rule) => rule.label?.trim())
+        .map((rule: { label?: string | null }) => rule.label?.trim())
         .filter(
           (label): label is string =>
             Boolean(label) &&
@@ -871,7 +896,9 @@ export default function RuleBuilderPage() {
         if (!shouldOverride) {
           resolvedRuleLabel = buildNumberedRuleLabel(
             sanitizedBaseRuleLabel,
-            existingRules.map((rule) => rule.label)
+            existingRules
+              .map((rule: { label?: string | null }) => rule.label)
+              .filter((label): label is string => Boolean(label))
           );
         }
       }
@@ -1026,7 +1053,7 @@ export default function RuleBuilderPage() {
       const publishedItemId = `api:${publishedId}`;
       const effectiveLabel = payload.label || payload.id;
 
-      setLibraryState((current) => ({
+      setLibraryState((current: LibraryState) => ({
         ...current,
         itemLabels: {
           ...current.itemLabels,
@@ -1116,7 +1143,7 @@ export default function RuleBuilderPage() {
         <div className="flex h-[75vh] min-h-[600px]">
           <RuleLibraryPanel
             collapsed={libraryCollapsed}
-            onToggleCollapsed={() => setLibraryCollapsed((prev) => !prev)}
+            onToggleCollapsed={() => setLibraryCollapsed((prev: boolean) => !prev)}
             categories={categories}
             selectedItemIds={selectedItemIds}
             onToggleItemSelected={handleToggleItemSelected}
@@ -1147,7 +1174,7 @@ export default function RuleBuilderPage() {
 
           <RuleInspectorPanel
             collapsed={inspectorCollapsed}
-            onToggleCollapsed={() => setInspectorCollapsed((prev) => !prev)}
+            onToggleCollapsed={() => setInspectorCollapsed((prev: boolean) => !prev)}
             selectedRule={selectedRule}
             onChange={handleInspectorChange}
             onPublish={handlePublishSelectedNode}

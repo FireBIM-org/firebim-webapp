@@ -508,7 +508,7 @@ export async function getRuleElementOrNull(
 export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
   const basic = await listRuleElements();
   const detailed = await Promise.all(
-    basic.map(async (item, index): Promise<DetailedRuleElementListItem> => {
+    basic.map(async (item: RuleElementListItem, index: number): Promise<DetailedRuleElementListItem> => {
       const id = item.element_id || item.id || `rule-element-${index}`;
       const listElementType =
         item.element_type === 'start' ||

@@ -135,7 +135,7 @@ function Category({
       <div className="flex items-center justify-between px-2 py-1">
         <button
           type="button"
-          onClick={() => setOpen((prev) => !prev)}
+          onClick={() => setOpen((prev: boolean) => !prev)}
           className="flex min-w-0 flex-1 items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-gray-500 hover:text-gray-700"
         >
           <span className="truncate">{category.label}</span>
@@ -194,7 +194,7 @@ function Category({
               No items
             </div>
           ) : (
-            category.items.map((item) => (
+            category.items.map((item: RuleNodeTemplate) => (
               <NodeItem
                 key={item.id}
                 item={item}
@@ -233,9 +233,9 @@ export default function RuleLibraryPanel({
   const visibleCategories = useMemo(() => {
     if (!normalizedQuery) return categories;
 
-    return categories.map((category) => ({
+    return categories.map((category: RuleLibraryCategory) => ({
       ...category,
-      items: category.items.filter((item) => {
+      items: category.items.filter((item: RuleNodeTemplate) => {
         const haystacks = [
           item.label,
           item.description,
@@ -245,7 +245,7 @@ export default function RuleLibraryPanel({
         ];
 
         return haystacks.some(
-          (value) =>
+          (value: string | null | undefined) =>
             typeof value === 'string' &&
             value.toLowerCase().includes(normalizedQuery)
         );
@@ -334,7 +334,7 @@ export default function RuleLibraryPanel({
         <button
           type="button"
           onClick={() => {
-            setSearchOpen((prev) => {
+            setSearchOpen((prev: boolean) => {
               const next = !prev;
               if (!next) {
                 setSearchQuery('');
@@ -384,7 +384,7 @@ export default function RuleLibraryPanel({
       )}
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
-        {visibleCategories.map((category) => (
+        {visibleCategories.map((category: RuleLibraryCategory) => (
           <Category
             key={category.id}
             category={category}

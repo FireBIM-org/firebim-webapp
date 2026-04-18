@@ -84,7 +84,7 @@ function nextLabelWithBase(base: string, nodes: Node[]) {
 
   const used = new Set(
     nodes
-      .map((node) => {
+      .map((node: Node) => {
         const rule = node.data?.rule as RuleData | undefined;
         const label = rule?.label || node.data?.label;
         return typeof label === 'string' ? label.trim() : '';
@@ -176,7 +176,7 @@ function buildEdgesFromNodes(nodes: Node[]): Edge[] {
 }
 
 function currentEdgeById(edges: Edge[], edgeId: string) {
-  return edges.find((edge) => edge.id === edgeId) || null;
+  return edges.find((edge: Edge) => edge.id === edgeId) || null;
 }
 
 function RuleCanvasInner({
@@ -203,12 +203,12 @@ function RuleCanvasInner({
 
   const selectedRule = useMemo(() => {
     if (!selectedNodeId) return null;
-    const node = nodes.find((item) => item.id === selectedNodeId);
+    const node = nodes.find((item: Node) => item.id === selectedNodeId);
     return (node?.data?.rule as RuleData | undefined) || null;
   }, [nodes, selectedNodeId]);
 
   const entryNodeFileName = useMemo(() => {
-    const startNode = nodes.find((node) => {
+    const startNode = nodes.find((node: Node) => {
       const rule = node.data?.rule as RuleData | undefined;
       return rule?.element_type === 'start';
     });
@@ -225,7 +225,7 @@ function RuleCanvasInner({
   const visualEdges = useMemo(() => {
     const visual = getEdgeVisualProps(builtRuleEdgePhase);
 
-    return edges.map((edge) => ({
+    return edges.map((edge: Edge) => ({
       ...edge,
       ...visual,
     }));
@@ -236,19 +236,22 @@ function RuleCanvasInner({
   }, []);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
-    setNodes((current) => applyNodeChanges(changes, current));
+    setNodes((current: Node[]) => applyNodeChanges(changes, current));
   }, []);
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       const removedEdges = changes
-        .filter((change) => change.type === 'remove')
-        .map((change) => currentEdgeById(edges, change.id))
+        .flatMap((change: EdgeChange) =>
+          change.type === 'remove' && 'id' in change
+            ? [currentEdgeById(edges, change.id)]
+            : []
+        )
         .filter((edge): edge is Edge => Boolean(edge));
 
       if (removedEdges.length > 0) {
-        setNodes((current) => {
-          const nextNodes = current.map((node) => {
+        setNodes((current: Node[]) => {
+          const nextNodes = current.map((node: Node) => {
             const rule = node.data?.rule as RuleData | undefined;
             if (!rule) return node;
 
@@ -283,7 +286,7 @@ function RuleCanvasInner({
 
           queueMicrotask(() => {
             if (!selectedNodeId) return;
-            const selected = nextNodes.find((node) => node.id === selectedNodeId);
+            const selected = nextNodes.find((node: Node) => node.id === selectedNodeId);
             onSelectedNodeChange(
               selected?.id || null,
               (selected?.data?.rule as RuleData | undefined) || null
@@ -296,7 +299,7 @@ function RuleCanvasInner({
         return;
       }
 
-      setEdges((current) => applyEdgeChanges(changes, current));
+      setEdges((current: Edge[]) => applyEdgeChanges(changes, current));
     },
     [edges, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
   );
@@ -319,12 +322,12 @@ function RuleCanvasInner({
       const sourceId = params.source;
       const targetId = params.target;
 
-      const targetNode = nodes.find((node) => node.id === targetId);
+      const targetNode = nodes.find((node: Node) => node.id === targetId);
       const targetRule = (targetNode?.data?.rule as RuleData | undefined) || null;
       const allowSharedIncoming = allowsMultipleIncoming(targetRule);
 
-      setNodes((current) => {
-        const nextNodes = current.map((node) => {
+      setNodes((current: Node[]) => {
+        const nextNodes = current.map((node: Node) => {
           const rule = node.data?.rule as RuleData | undefined;
           if (!rule) return node;
 
@@ -368,7 +371,7 @@ function RuleCanvasInner({
 
         queueMicrotask(() => {
           if (!selectedNodeId) return;
-          const selected = nextNodes.find((node) => node.id === selectedNodeId);
+          const selected = nextNodes.find((node: Node) => node.id === selectedNodeId);
           onSelectedNodeChange(
             selected?.id || null,
             (selected?.data?.rule as RuleData | undefined) || null
@@ -443,7 +446,7 @@ function RuleCanvasInner({
       const baseLabel =
         payload.source === 'api' && templateLabel ? templateLabel : 'New rule element';
 
-      setNodes((current) => {
+      setNodes((current: Node[]) => {
         const label = nextLabelWithBase(baseLabel, current);
 
         const rule: RuleData = {
@@ -498,7 +501,7 @@ function RuleCanvasInner({
     if (editedRule.id !== selectedNodeId) return;
 
     setNodes((current) => {
-      const nextNodes = current.map((node) => {
+      const nextNodes = current.map((node: Node) => {
         if (node.id !== selectedNodeId) return node;
 
         return {
@@ -522,8 +525,10 @@ function RuleCanvasInner({
 
     lastHandledDuplicateRequestId.current = duplicateRequest.requestId;
 
-    setNodes((current) => {
-      const sourceNode = current.find((node) => node.id === duplicateRequest.sourceNodeId);
+    setNodes((current: Node[]) => {
+      const sourceNode = current.find(
+        (node: Node) => node.id === duplicateRequest.sourceNodeId
+      );
       if (!sourceNode) return current;
 
       const sourceRule = (sourceNode.data?.rule as RuleData) || null;
@@ -578,10 +583,10 @@ function RuleCanvasInner({
 
     lastHandledDeleteRequestId.current = deleteRequest.requestId;
 
-    setNodes((current) => {
+    setNodes((current: Node[]) => {
       const nextNodes = current
-        .filter((node) => node.id !== deleteRequest.sourceNodeId)
-        .map((node) => {
+        .filter((node: Node) => node.id !== deleteRequest.sourceNodeId)
+        .map((node: Node) => {
           const rule = node.data?.rule as RuleData | undefined;
           if (!rule) return node;
 
@@ -616,7 +621,7 @@ function RuleCanvasInner({
 
     const derivedRule = deriveRequest.derivedRule;
 
-    setNodes((current) => {
+    setNodes((current: Node[]) => {
       const label = nextLabelWithBase(
         derivedRule.label || derivedRule.id || 'New rule element',
         current
@@ -654,7 +659,7 @@ function RuleCanvasInner({
 
   useEffect(() => {
     if (!selectedNodeId) return;
-    const node = nodes.find((item) => item.id === selectedNodeId);
+    const node = nodes.find((item: Node) => item.id === selectedNodeId);
     if (!node) {
       onSelectedNodeChange(null, null);
     }

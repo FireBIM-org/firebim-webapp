@@ -24,7 +24,9 @@ export function buildRuleTreeFromStart(
   startNodeId: string,
   rules: RuleData[]
 ): BuiltTreeResult {
-  const byId = new Map<string, RuleData>(rules.map((rule) => [rule.id, rule]));
+  const byId = new Map<string, RuleData>(
+    rules.map((rule: RuleData) => [rule.id, rule] as const)
+  );
 
   const visited = new Set<string>();
   const activePath = new Set<string>();
@@ -87,9 +89,9 @@ export function buildRuleTreeFromStart(
   dfs(startNodeId, [startNodeId]);
 
   const nodes = [...visited]
-    .map((id) => byId.get(id))
+    .map((id: string) => byId.get(id))
     .filter((node): node is RuleData => Boolean(node))
-    .map((node) => ({
+    .map((node: RuleData) => ({
       id: node.id,
       element_type: node.element_type,
       label: node.label ?? null,
@@ -114,7 +116,7 @@ export function buildRuleTreeFromStart(
 
 export function extractRulesFromCanvasNodes(nodes: CanvasRuleNode[]): RuleData[] {
   return nodes
-    .map((node) => node.data?.rule)
+    .map((node: CanvasRuleNode) => node.data?.rule)
     .filter((rule): rule is RuleData => Boolean(rule));
 }
 
@@ -145,8 +147,8 @@ export type RuleDraftValidationIssue = {
 
 export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
   return rule.elements
-    .filter((element) => element.element_type === 'decision')
-    .map((element) => {
+    .filter((element: RuleDraftElement) => element.element_type === 'decision')
+    .map((element: RuleDraftElement) => {
       const missing_fields: RuleDraftValidationIssue['missing_fields'] = [];
 
       if (!element.target_class?.trim()) {
@@ -166,7 +168,7 @@ export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
         missing_fields,
       };
     })
-    .filter((issue) => issue.missing_fields.length > 0);
+    .filter((issue: RuleDraftValidationIssue) => issue.missing_fields.length > 0);
 }
 
 export function buildRuleDraftFromTree(
@@ -178,7 +180,7 @@ export function buildRuleDraftFromTree(
     id: ruleId,
     label: ruleLabel ?? null,
     entry: tree.entry,
-    elements: tree.nodes.map((node) => ({
+    elements: tree.nodes.map((node: BuiltTreeResult['nodes'][number]) => ({
       id: node.id,
       element_type: node.element_type,
       label: node.label ?? null,
