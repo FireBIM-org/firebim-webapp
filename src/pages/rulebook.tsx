@@ -5,7 +5,10 @@ import Layout from '../components/Layout';
 import { env } from '../config/env';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
-import { useRuleBookStore } from '../features/rulebook/store';
+import {
+  useRuleBookStore,
+  type RuleBookStore,
+} from '../features/rulebook/store';
 
 import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
 import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
@@ -18,23 +21,51 @@ import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const rules_api_online = useRuleBookStore((state) => state.rules_api_online);
-  const runner_rule_items = useRuleBookStore((state) => state.runner_rule_items);
-  const available_rules = useRuleBookStore((state) => state.available_rules);
-  const active_graph_data = useRuleBookStore((state) => state.active_graph_data);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const execution_solver = useRuleBookStore((state) => state.execution_solver);
-  const execution_status = useRuleBookStore((state) => state.execution_status);
-  const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
-  const current_step_index = useRuleBookStore((state) => state.current_step_index);
-  const execution_playback_ms = useRuleBookStore((state) => state.execution_playback_ms);
+  const rules_api_online = useRuleBookStore(
+    (state: RuleBookStore) => state.rules_api_online
+  );
+  const runner_rule_items = useRuleBookStore(
+    (state: RuleBookStore) => state.runner_rule_items
+  );
+  const available_rules = useRuleBookStore(
+    (state: RuleBookStore) => state.available_rules
+  );
+  const active_graph_data = useRuleBookStore(
+    (state: RuleBookStore) => state.active_graph_data
+  );
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const execution_solver = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_solver
+  );
+  const execution_status = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_status
+  );
+  const execution_timeline = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_timeline
+  );
+  const current_step_index = useRuleBookStore(
+    (state: RuleBookStore) => state.current_step_index
+  );
+  const execution_playback_ms = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_playback_ms
+  );
 
-  const setRulesLoading = useRuleBookStore((state) => state.setRulesLoading);
-  const setRulesError = useRuleBookStore((state) => state.setRulesError);
-  const setExecutionStatus = useRuleBookStore((state) => state.setExecutionStatus);
-  const setExecutionTimeline = useRuleBookStore((state) => state.setExecutionTimeline);
-  const setCurrentStepIndex = useRuleBookStore((state) => state.setCurrentStepIndex);
-  const setExecutionPlaybackMs = useRuleBookStore((state) => state.setExecutionPlaybackMs);
+  const setRulesLoading = useRuleBookStore(
+    (state: RuleBookStore) => state.setRulesLoading
+  );
+  const setRulesError = useRuleBookStore((state: RuleBookStore) => state.setRulesError);
+  const setExecutionStatus = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionStatus
+  );
+  const setExecutionTimeline = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionTimeline
+  );
+  const setCurrentStepIndex = useRuleBookStore(
+    (state: RuleBookStore) => state.setCurrentStepIndex
+  );
+  const setExecutionPlaybackMs = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionPlaybackMs
+  );
 
   const swaggerDocsUrl = env.apiDocsUrl;
   const [graphExpanded, setGraphExpanded] = useState(false);

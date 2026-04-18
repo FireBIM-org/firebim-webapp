@@ -1,7 +1,7 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import { getRuleOrNull, runCompatibilityCheck } from '../api';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 import type {
   CheckCompatibilityResponse,
   CheckRunResponse,
@@ -164,12 +164,22 @@ function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: st
 }
 
 export function RuleSummaryPanel() {
-  const active_graph_data = useRuleBookStore((state) => state.active_graph_data);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const runner_rule_items = useRuleBookStore((state) => state.runner_rule_items);
-  const available_rules = useRuleBookStore((state) => state.available_rules);
-  const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
-  const current_step_index = useRuleBookStore((state) => state.current_step_index);
+  const active_graph_data = useRuleBookStore(
+    (state: RuleBookStore) => state.active_graph_data
+  );
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const runner_rule_items = useRuleBookStore(
+    (state: RuleBookStore) => state.runner_rule_items
+  );
+  const available_rules = useRuleBookStore(
+    (state: RuleBookStore) => state.available_rules
+  );
+  const execution_timeline = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_timeline
+  );
+  const current_step_index = useRuleBookStore(
+    (state: RuleBookStore) => state.current_step_index
+  );
   const [collapsed, setCollapsed] = useState(false);
   const [liveCompatibilities, setLiveCompatibilities] = useState<
     CheckCompatibilityResponse[]

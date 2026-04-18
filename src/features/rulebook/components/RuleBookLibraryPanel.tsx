@@ -15,7 +15,11 @@ import {
   ensureSeededExampleRules,
   getSeededExampleRuleDefinition,
 } from '../examples';
-import { getVisibleRuleLibraryGroups, useRuleBookStore } from '../store';
+import {
+  getVisibleRuleLibraryGroups,
+  useRuleBookStore,
+  type RuleBookStore,
+} from '../store';
 import type { RuleListItem } from '../types';
 
 type Props = {
@@ -217,43 +221,67 @@ export default function RuleBookLibraryPanel({
   onToggleCollapsed,
   showApiStatus = true,
 }: Props) {
-  const store_collapsed = useRuleBookStore((state) => state.library_collapsed);
-  const available_rules = useRuleBookStore((state) => state.available_rules);
-  const library_state = useRuleBookStore((state) => state.library_state);
-  const library_state_hydrated = useRuleBookStore(
-    (state) => state.library_state_hydrated
+  const store_collapsed = useRuleBookStore(
+    (state: RuleBookStore) => state.library_collapsed
   );
-  const library_selection = useRuleBookStore((state) => state.library_selection);
-  const rules_api_online = useRuleBookStore((state) => state.rules_api_online);
-  const rules_loading = useRuleBookStore((state) => state.rules_loading);
-  const rules_error = useRuleBookStore((state) => state.rules_error);
+  const available_rules = useRuleBookStore(
+    (state: RuleBookStore) => state.available_rules
+  );
+  const library_state = useRuleBookStore((state: RuleBookStore) => state.library_state);
+  const library_state_hydrated = useRuleBookStore(
+    (state: RuleBookStore) => state.library_state_hydrated
+  );
+  const library_selection = useRuleBookStore(
+    (state: RuleBookStore) => state.library_selection
+  );
+  const rules_api_online = useRuleBookStore(
+    (state: RuleBookStore) => state.rules_api_online
+  );
+  const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
+  const rules_error = useRuleBookStore((state: RuleBookStore) => state.rules_error);
 
   const hydrateLibraryStateFromStorage = useRuleBookStore(
-    (state) => state.hydrateLibraryStateFromStorage
+    (state: RuleBookStore) => state.hydrateLibraryStateFromStorage
   );
-  const setAvailableRules = useRuleBookStore((state) => state.setAvailableRules);
-  const setSelectedRuleId = useRuleBookStore((state) => state.setSelectedRuleId);
+  const setAvailableRules = useRuleBookStore(
+    (state: RuleBookStore) => state.setAvailableRules
+  );
+  const setSelectedRuleId = useRuleBookStore(
+    (state: RuleBookStore) => state.setSelectedRuleId
+  );
   const setSelectedRuleDefinition = useRuleBookStore(
-    (state) => state.setSelectedRuleDefinition
+    (state: RuleBookStore) => state.setSelectedRuleDefinition
   );
-  const setRulesApiOnline = useRuleBookStore((state) => state.setRulesApiOnline);
-  const setRulesLoading = useRuleBookStore((state) => state.setRulesLoading);
-  const setRulesError = useRuleBookStore((state) => state.setRulesError);
+  const setRulesApiOnline = useRuleBookStore(
+    (state: RuleBookStore) => state.setRulesApiOnline
+  );
+  const setRulesLoading = useRuleBookStore(
+    (state: RuleBookStore) => state.setRulesLoading
+  );
+  const setRulesError = useRuleBookStore((state: RuleBookStore) => state.setRulesError);
   const toggleLibraryCollapsed = useRuleBookStore(
-    (state) => state.toggleLibraryCollapsed
+    (state: RuleBookStore) => state.toggleLibraryCollapsed
   );
-  const toggleRuleSelected = useRuleBookStore((state) => state.toggleRuleSelected);
-  const createCategory = useRuleBookStore((state) => state.createCategory);
-  const renameCategory = useRuleBookStore((state) => state.renameCategory);
+  const toggleRuleSelected = useRuleBookStore(
+    (state: RuleBookStore) => state.toggleRuleSelected
+  );
+  const createCategory = useRuleBookStore((state: RuleBookStore) => state.createCategory);
+  const renameCategory = useRuleBookStore((state: RuleBookStore) => state.renameCategory);
   const moveSelectedRulesToCategory = useRuleBookStore(
-    (state) => state.moveSelectedRulesToCategory
+    (state: RuleBookStore) => state.moveSelectedRulesToCategory
   );
   const moveSelectedRulesToWasteBin = useRuleBookStore(
-    (state) => state.moveSelectedRulesToWasteBin
+    (state: RuleBookStore) => state.moveSelectedRulesToWasteBin
   );
-  const emptyWasteBinLocal = useRuleBookStore((state) => state.emptyWasteBinLocal);
-  const moveRulesToWasteBin = useRuleBookStore((state) => state.moveRulesToWasteBin);
-  const removeAvailableRule = useRuleBookStore((state) => state.removeAvailableRule);
+  const emptyWasteBinLocal = useRuleBookStore(
+    (state: RuleBookStore) => state.emptyWasteBinLocal
+  );
+  const moveRulesToWasteBin = useRuleBookStore(
+    (state: RuleBookStore) => state.moveRulesToWasteBin
+  );
+  const removeAvailableRule = useRuleBookStore(
+    (state: RuleBookStore) => state.removeAvailableRule
+  );
 
   const is_collapsed = collapsed ?? store_collapsed;
   const [searchOpen, setSearchOpen] = useState(false);

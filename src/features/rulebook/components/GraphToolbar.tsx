@@ -10,29 +10,43 @@ import {
   parseBuildingGraphTtl,
 } from '../api';
 import { cloneDefaultOntologyCatalog } from '../ontologyCatalog';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 
 export function GraphToolbar() {
-  const available_graphs = useRuleBookStore((state) => state.available_graphs);
+  const available_graphs = useRuleBookStore(
+    (state: RuleBookStore) => state.available_graphs
+  );
   const selected_graph_source = useRuleBookStore(
-    (state) => state.selected_graph_source
+    (state: RuleBookStore) => state.selected_graph_source
   );
-  const active_graph_data = useRuleBookStore((state) => state.active_graph_data);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const graph_loading = useRuleBookStore((state) => state.graph_loading);
-  const graph_error = useRuleBookStore((state) => state.graph_error);
+  const active_graph_data = useRuleBookStore(
+    (state: RuleBookStore) => state.active_graph_data
+  );
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const graph_loading = useRuleBookStore((state: RuleBookStore) => state.graph_loading);
+  const graph_error = useRuleBookStore((state: RuleBookStore) => state.graph_error);
 
-  const setAvailableGraphs = useRuleBookStore((state) => state.setAvailableGraphs);
-  const setSelectedGraphSource = useRuleBookStore(
-    (state) => state.setSelectedGraphSource
+  const setAvailableGraphs = useRuleBookStore(
+    (state: RuleBookStore) => state.setAvailableGraphs
   );
-  const setActiveGraphData = useRuleBookStore((state) => state.setActiveGraphData);
-  const setActiveGraphUri = useRuleBookStore((state) => state.setActiveGraphUri);
-  const setGraphLoaded = useRuleBookStore((state) => state.setGraphLoaded);
-  const setGraphLoading = useRuleBookStore((state) => state.setGraphLoading);
-  const setGraphError = useRuleBookStore((state) => state.setGraphError);
-  const setExecutionStatus = useRuleBookStore((state) => state.setExecutionStatus);
-  const resetExecution = useRuleBookStore((state) => state.resetExecution);
+  const setSelectedGraphSource = useRuleBookStore(
+    (state: RuleBookStore) => state.setSelectedGraphSource
+  );
+  const setActiveGraphData = useRuleBookStore(
+    (state: RuleBookStore) => state.setActiveGraphData
+  );
+  const setActiveGraphUri = useRuleBookStore(
+    (state: RuleBookStore) => state.setActiveGraphUri
+  );
+  const setGraphLoaded = useRuleBookStore((state: RuleBookStore) => state.setGraphLoaded);
+  const setGraphLoading = useRuleBookStore(
+    (state: RuleBookStore) => state.setGraphLoading
+  );
+  const setGraphError = useRuleBookStore((state: RuleBookStore) => state.setGraphError);
+  const setExecutionStatus = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionStatus
+  );
+  const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
   const loadStoredGraphs = useCallback(async () => {
     setGraphLoading(true);

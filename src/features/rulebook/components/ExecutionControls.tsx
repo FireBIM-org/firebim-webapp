@@ -6,7 +6,7 @@ import {
   PauseIcon,
   PlayIcon,
 } from '@heroicons/react/24/outline';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 
 type Props = {
   onRun?: () => void;
@@ -28,19 +28,37 @@ export function ExecutionControls({
   overlay = false,
   showSolver = true,
 }: Props) {
-  const execution_status = useRuleBookStore((state) => state.execution_status);
-  const execution_solver = useRuleBookStore((state) => state.execution_solver);
-  const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
-  const current_step_index = useRuleBookStore((state) => state.current_step_index);
-  const runner_rule_items = useRuleBookStore((state) => state.runner_rule_items);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const rules_loading = useRuleBookStore((state) => state.rules_loading);
+  const execution_status = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_status
+  );
+  const execution_solver = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_solver
+  );
+  const execution_timeline = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_timeline
+  );
+  const current_step_index = useRuleBookStore(
+    (state: RuleBookStore) => state.current_step_index
+  );
+  const runner_rule_items = useRuleBookStore(
+    (state: RuleBookStore) => state.runner_rule_items
+  );
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
 
-  const setExecutionStatus = useRuleBookStore((state) => state.setExecutionStatus);
-  const setExecutionSolver = useRuleBookStore((state) => state.setExecutionSolver);
-  const setCurrentStepIndex = useRuleBookStore((state) => state.setCurrentStepIndex);
-  const setExecutionPlaybackMs = useRuleBookStore((state) => state.setExecutionPlaybackMs);
-  const resetExecution = useRuleBookStore((state) => state.resetExecution);
+  const setExecutionStatus = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionStatus
+  );
+  const setExecutionSolver = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionSolver
+  );
+  const setCurrentStepIndex = useRuleBookStore(
+    (state: RuleBookStore) => state.setCurrentStepIndex
+  );
+  const setExecutionPlaybackMs = useRuleBookStore(
+    (state: RuleBookStore) => state.setExecutionPlaybackMs
+  );
+  const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
   const step_count = execution_timeline?.steps.length ?? 0;
 

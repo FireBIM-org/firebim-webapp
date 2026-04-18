@@ -4,7 +4,7 @@ import {
   PlayIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 import type { RuleRunnerItem } from '../types';
 
 type DragPayload = {
@@ -88,18 +88,30 @@ function RuleRunnerPill({
 }
 
 export function RuleRunner({ onRun }: Props) {
-  const runner_rule_items = useRuleBookStore((state) => state.runner_rule_items);
-  const available_rules = useRuleBookStore((state) => state.available_rules);
-  const active_graph_data = useRuleBookStore((state) => state.active_graph_data);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const execution_solver = useRuleBookStore((state) => state.execution_solver);
-  const rules_loading = useRuleBookStore((state) => state.rules_loading);
+  const runner_rule_items = useRuleBookStore(
+    (state: RuleBookStore) => state.runner_rule_items
+  );
+  const available_rules = useRuleBookStore(
+    (state: RuleBookStore) => state.available_rules
+  );
+  const active_graph_data = useRuleBookStore(
+    (state: RuleBookStore) => state.active_graph_data
+  );
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const execution_solver = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_solver
+  );
+  const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
 
-  const addRuleToRunner = useRuleBookStore((state) => state.addRuleToRunner);
-  const removeRuleFromRunner = useRuleBookStore((state) => state.removeRuleFromRunner);
-  const moveRunnerItem = useRuleBookStore((state) => state.moveRunnerItem);
-  const clearRunner = useRuleBookStore((state) => state.clearRunner);
-  const resetExecution = useRuleBookStore((state) => state.resetExecution);
+  const addRuleToRunner = useRuleBookStore(
+    (state: RuleBookStore) => state.addRuleToRunner
+  );
+  const removeRuleFromRunner = useRuleBookStore(
+    (state: RuleBookStore) => state.removeRuleFromRunner
+  );
+  const moveRunnerItem = useRuleBookStore((state: RuleBookStore) => state.moveRunnerItem);
+  const clearRunner = useRuleBookStore((state: RuleBookStore) => state.clearRunner);
+  const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
   const [is_drag_over, setIsDragOver] = useState(false);
   const [dragging_runner_item_id, setDraggingRunnerItemId] = useState<string | null>(

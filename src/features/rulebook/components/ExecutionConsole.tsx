@@ -1,6 +1,6 @@
 ﻿import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 
 function localNameFromToken(token: string | null | undefined) {
   if (!token) return null;
@@ -29,8 +29,12 @@ function dedupeByRaw<T extends { raw: string }>(items: T[]) {
 }
 
 export function ExecutionConsole() {
-  const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
-  const current_step_index = useRuleBookStore((state) => state.current_step_index);
+  const execution_timeline = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_timeline
+  );
+  const current_step_index = useRuleBookStore(
+    (state: RuleBookStore) => state.current_step_index
+  );
   const [collapsed, setCollapsed] = useState(false);
 
   const current_step = useMemo(() => {
