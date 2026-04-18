@@ -85,9 +85,6 @@ export const DEFAULT_LOCAL_TEMPLATES: RuleNodeTemplate[] = [
   },
 ];
 
-/**
- * Temporary backward-compatible export.
- */
 export const RULE_LIBRARY: RuleLibraryCategory[] = [
   {
     id: 'under-development',
