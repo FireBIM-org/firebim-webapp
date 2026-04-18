@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/ruleSentiment';
-import { useRuleBookStore } from '../store';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 import type {
   BuildingGraphData,
   BuildingGraphTargetClass,
@@ -395,11 +395,21 @@ export function BuildingGraphView({
   onToggleCollapsed,
   onRun,
 }: Props) {
-  const active_graph_data = useRuleBookStore((state) => state.active_graph_data);
-  const graph_loaded = useRuleBookStore((state) => state.graph_loaded);
-  const execution_timeline = useRuleBookStore((state) => state.execution_timeline);
-  const current_step_index = useRuleBookStore((state) => state.current_step_index);
-  const setCurrentStepIndex = useRuleBookStore((state) => state.setCurrentStepIndex);
+  const active_graph_data = useRuleBookStore(
+    (state: RuleBookStore) => state.active_graph_data
+  );
+  const graph_loaded = useRuleBookStore(
+    (state: RuleBookStore) => state.graph_loaded
+  );
+  const execution_timeline = useRuleBookStore(
+    (state: RuleBookStore) => state.execution_timeline
+  );
+  const current_step_index = useRuleBookStore(
+    (state: RuleBookStore) => state.current_step_index
+  );
+  const setCurrentStepIndex = useRuleBookStore(
+    (state: RuleBookStore) => state.setCurrentStepIndex
+  );
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
