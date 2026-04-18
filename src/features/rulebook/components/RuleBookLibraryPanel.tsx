@@ -193,7 +193,7 @@ function CategorySection({
               No rules
             </div>
           ) : (
-            safe_rules.map((rule) => (
+            safe_rules.map((rule: RuleListItem) => (
               <RuleCard
                 key={rule.rule_id}
                 rule={rule}
@@ -291,7 +291,7 @@ export default function RuleBookLibraryPanel({
     () =>
       Object.entries(library_selection)
         .filter(([, selected]) => selected)
-        .map(([rule_id]) => rule_id),
+        .map(([rule_id]: [string, boolean]) => rule_id),
     [library_selection]
   );
 
@@ -309,7 +309,8 @@ export default function RuleBookLibraryPanel({
 
     return grouped_categories.map((category) => ({
       ...category,
-      rules: (Array.isArray(category.rules) ? category.rules : []).filter((rule) => {
+      rules: (Array.isArray(category.rules) ? category.rules : []).filter(
+        (rule: RuleListItem) => {
         const haystacks = [
           library_state.custom_rule_labels[rule.rule_id],
           rule.label,
@@ -319,7 +320,7 @@ export default function RuleBookLibraryPanel({
         ];
 
         return haystacks.some(
-          (value) =>
+          (value: string | null | undefined) =>
             typeof value === 'string' &&
             value.toLowerCase().includes(normalizedQuery)
         );
@@ -335,7 +336,7 @@ export default function RuleBookLibraryPanel({
     }
 
     const apiRules = available_rules.filter(
-      (rule) =>
+      (rule: RuleListItem) =>
         rule.source === 'api' && !library_state.trashed_rule_ids.includes(rule.rule_id)
     );
     const duplicatesToTrash: string[] = [];
@@ -427,7 +428,7 @@ export default function RuleBookLibraryPanel({
     let cancelled = false;
     const selected_rule_id = selected_rule_ids[0];
     const selected_rule = available_rules.find(
-      (rule) => rule.rule_id === selected_rule_id
+      (rule: RuleListItem) => rule.rule_id === selected_rule_id
     );
 
     async function loadSelectedRule() {
@@ -479,7 +480,9 @@ export default function RuleBookLibraryPanel({
   };
 
   const handleRenameCategory = (category_id: string) => {
-    const category = library_state.categories.find((item) => item.id === category_id);
+    const category = library_state.categories.find(
+      (item: { id: string }) => item.id === category_id
+    );
 
     if (!category || category.system) return;
 
@@ -492,12 +495,14 @@ export default function RuleBookLibraryPanel({
 
   const handleEmptyWasteBin = async () => {
     const waste_bin_group = grouped_categories.find(
-      (group) => group.id === 'waste-bin'
+      (group: { id: string }) => group.id === 'waste-bin'
     );
     const trashed_rules = Array.isArray(waste_bin_group?.rules)
       ? waste_bin_group.rules
       : [];
-    const api_rules_to_delete = trashed_rules.filter((rule) => rule.source === 'api');
+    const api_rules_to_delete = trashed_rules.filter(
+      (rule: RuleListItem) => rule.source === 'api'
+    );
 
     if (trashed_rules.length === 0) {
       return;
@@ -688,7 +693,7 @@ export default function RuleBookLibraryPanel({
       )}
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
-        {visibleCategories.map((category) => (
+        {visibleCategories.map((category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => (
           <CategorySection
             key={category.id}
             category_id={category.id}

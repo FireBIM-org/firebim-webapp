@@ -17,9 +17,15 @@ function localNameFromToken(token: string | null | undefined) {
   return parts[parts.length - 1] ?? token;
 }
 
+type CompatibilityFoundItem = { value: string; count?: number | null };
+type CompatibilitySummaryItem = { raw: string; label: string };
+type CompatibilitySummaryRequiredItem = CompatibilitySummaryItem & {
+  found_count: number;
+};
+
 function dedupeByRaw<T extends { raw: string }>(items: T[]) {
   const seen = new Set<string>();
-  return items.filter((item) => {
+  return items.filter((item: T) => {
     if (seen.has(item.raw)) {
       return false;
     }
@@ -78,26 +84,33 @@ export function ExecutionConsole() {
     }
 
     const foundCounts = new Map(
-      (compatibility.target_classes_found ?? []).map((item) => [
+      (compatibility.target_classes_found ?? []).map(
+        (item: CompatibilityFoundItem) => [
         item.value,
         item.count ?? 0,
       ])
     );
 
     return {
-      missing_target_classes: dedupeByRaw((compatibility.missing_target_classes ?? []).map((value) => ({
-        raw: value,
-        label: localNameFromToken(value) ?? value,
-      }))),
-      target_classes_required: dedupeByRaw((compatibility.target_classes_required ?? []).map((value) => ({
-        raw: value,
-        label: localNameFromToken(value) ?? value,
-        found_count: foundCounts.get(value) ?? 0,
-      }))),
-      missing_properties: dedupeByRaw((compatibility.missing_properties ?? []).map((value) => ({
-        raw: value,
-        label: localNameFromToken(value) ?? value,
-      }))),
+      missing_target_classes: dedupeByRaw(
+        (compatibility.missing_target_classes ?? []).map((value: string) => ({
+          raw: value,
+          label: localNameFromToken(value) ?? value,
+        }))
+      ),
+      target_classes_required: dedupeByRaw(
+        (compatibility.target_classes_required ?? []).map((value: string) => ({
+          raw: value,
+          label: localNameFromToken(value) ?? value,
+          found_count: foundCounts.get(value) ?? 0,
+        }))
+      ),
+      missing_properties: dedupeByRaw(
+        (compatibility.missing_properties ?? []).map((value: string) => ({
+          raw: value,
+          label: localNameFromToken(value) ?? value,
+        }))
+      ),
     };
   }, [current_step]);
 
@@ -168,7 +181,7 @@ export function ExecutionConsole() {
               <div className="text-sm text-slate-400">No console output.</div>
             ) : (
               <div className="space-y-1">
-                {current_step.console_lines.map((line, index) => (
+                {current_step.console_lines.map((line: string, index: number) => (
                   <div
                     key={`${current_step.rule_id}-${index}`}
                     className="font-mono text-xs text-emerald-300"
@@ -190,7 +203,8 @@ export function ExecutionConsole() {
 
               {compatibilitySummary.missing_target_classes.length > 0 ? (
                 <div className="space-y-2 text-xs text-amber-100">
-                  {compatibilitySummary.missing_target_classes.map((item) => (
+                  {compatibilitySummary.missing_target_classes.map(
+                    (item: CompatibilitySummaryItem) => (
                     <div
                       key={item.raw}
                       className="rounded-lg border border-amber-900/60 bg-slate-950/40 px-3 py-2"
@@ -212,7 +226,8 @@ export function ExecutionConsole() {
                     Target overview
                   </div>
                   <div className="space-y-1 text-xs text-slate-200">
-                    {compatibilitySummary.target_classes_required.map((item) => (
+                    {compatibilitySummary.target_classes_required.map(
+                      (item: CompatibilitySummaryRequiredItem) => (
                       <div key={item.raw}>
                         <span className="font-semibold text-white">{item.label}</span>
                         <span className="text-slate-400"> ({item.raw})</span>
@@ -232,7 +247,8 @@ export function ExecutionConsole() {
                     Missing properties
                   </div>
                   <div className="space-y-1 text-xs text-slate-200">
-                    {compatibilitySummary.missing_properties.map((item) => (
+                    {compatibilitySummary.missing_properties.map(
+                      (item: CompatibilitySummaryItem) => (
                       <div key={item.raw}>
                         The property <span className="font-semibold text-white">{item.label}</span>{' '}
                         is missing in the graph for at least one of the target classes required by

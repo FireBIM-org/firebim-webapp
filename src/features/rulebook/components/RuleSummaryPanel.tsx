@@ -72,7 +72,7 @@ function isPassingEndNode(element: RuleDefinition['rule_elements'][number]) {
       : null,
   ]
     .filter((value): value is string => Boolean(value))
-    .map((value) => value.toLowerCase());
+    .map((value: string) => value.toLowerCase());
 
   return candidates.some(
     (value) =>
@@ -84,12 +84,20 @@ function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: st
   const ruleElements = Array.isArray(definition.rule_elements)
     ? definition.rule_elements
     : [];
-  const elementById = new Map(ruleElements.map((element) => [element.id, element]));
+  const elementById = new Map(
+    ruleElements.map((element: RuleDefinition['rule_elements'][number]) => [
+      element.id,
+      element,
+    ])
+  );
   const targetClasses = Array.from(
     new Set(
       ruleElements
-        .filter((element) => element.element_type === 'decision')
-        .map((element) => element.target_class)
+        .filter(
+          (element: RuleDefinition['rule_elements'][number]) =>
+            element.element_type === 'decision'
+        )
+        .map((element: RuleDefinition['rule_elements'][number]) => element.target_class)
         .filter((value): value is string => Boolean(value))
         .map(formatTargetClass)
     )
@@ -137,14 +145,24 @@ function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: st
 
   walk(definition.entry, 0, visited);
 
-  const passPaths = pathStats.filter((path) => path.isPass);
+  const passPaths = pathStats.filter(
+    (path: { isPass: boolean; decisionCount: number }) => path.isPass
+  );
   const minDecisionStepsToPass =
     passPaths.length > 0
-      ? Math.min(...passPaths.map((path) => path.decisionCount))
+      ? Math.min(
+          ...passPaths.map(
+            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount
+          )
+        )
       : null;
   const maxDecisionStepsToPass =
     passPaths.length > 0
-      ? Math.max(...passPaths.map((path) => path.decisionCount))
+      ? Math.max(
+          ...passPaths.map(
+            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount
+          )
+        )
       : null;
 
   const startElement = ruleElements.find(
@@ -201,7 +219,10 @@ export function RuleSummaryPanel() {
   }, [execution_timeline]);
   const compatibilityRefreshKey = useMemo(() => {
     const graphId = active_graph_data?.id ?? 'no-graph';
-    const runnerKey = runner_rule_items.map((item) => item.rule_id).join('|') || 'no-rules';
+    const runnerKey =
+      runner_rule_items
+        .map((item: { rule_id: string }) => item.rule_id)
+        .join('|') || 'no-rules';
     return `${graphId}:${runnerKey}`;
   }, [active_graph_data?.id, runner_rule_items]);
 
@@ -219,9 +240,9 @@ export function RuleSummaryPanel() {
 
       try {
         const stats = await Promise.all(
-          runner_rule_items.map(async (runnerItem) => {
+          runner_rule_items.map(async (runnerItem: { rule_id: string; label: string }) => {
             const matchingRule = available_rules.find(
-              (item) => item.rule_id === runnerItem.rule_id
+              (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id
             );
             const definition = await getRuleOrNull(runnerItem.rule_id);
             if (!definition) {
@@ -280,7 +301,7 @@ export function RuleSummaryPanel() {
 
       try {
         const results = await Promise.all(
-          runner_rule_items.map(async (runnerItem) => {
+          runner_rule_items.map(async (runnerItem: { rule_id: string }) => {
             try {
               return await runCompatibilityCheck({
                 rule_id: runnerItem.rule_id,
@@ -329,7 +350,7 @@ export function RuleSummaryPanel() {
 
     for (const runnerItem of runner_rule_items) {
       const matchingRule = available_rules.find(
-        (item) => item.rule_id === runnerItem.rule_id
+        (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id
       );
 
       for (const targetClass of matchingRule?.target_classes ?? []) {
@@ -350,7 +371,7 @@ export function RuleSummaryPanel() {
       liveCompatibilities.length > 0
         ? liveCompatibilities
         : timeline_runs
-            .map((run) => run.compatibility)
+            .map((run: StepRawJson) => run.compatibility)
             .filter(
               (runCompatibility): runCompatibility is CheckCompatibilityResponse =>
                 Boolean(runCompatibility)
@@ -378,7 +399,7 @@ export function RuleSummaryPanel() {
 
     return Array.from(new Set([...ruleClasses, ...graphClasses]))
       .sort((a, b) => a.localeCompare(b))
-      .map((className) => ({
+      .map((className: string) => ({
         key: className,
         ruleValue: ruleClasses.has(className) ? className : '',
         graphValue: graphClasses.has(className) ? className : '',
@@ -465,7 +486,8 @@ export function RuleSummaryPanel() {
 
           {runner_rule_items.length > 0 ? (
             <div className="space-y-2">
-              {runner_rule_items.map((item, index) => (
+              {runner_rule_items.map(
+                (item: { runner_item_id: string; label: string }, index: number) => (
                 <div
                   key={item.runner_item_id}
                   className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
@@ -519,7 +541,8 @@ export function RuleSummaryPanel() {
                 <div className="px-3 py-2">Rule(s)</div>
                 <div className="border-l border-gray-200 px-3 py-2">Graph</div>
               </div>
-              {compatibilityTargetClassRows.map((row) => (
+              {compatibilityTargetClassRows.map(
+                (row: { key: string; ruleValue: string; graphValue: string }) => (
                 <div
                   key={row.key}
                   className="grid grid-cols-2 border-t border-gray-100 text-sm text-gray-700 first:border-t-0"
@@ -544,7 +567,7 @@ export function RuleSummaryPanel() {
             <div className="text-sm text-gray-400">Add rules to the Rule Runner to inspect structure</div>
           ) : (
             <div className="space-y-3">
-              {ruleStructureStats.map((stats) => (
+              {ruleStructureStats.map((stats: RuleStructureStats) => (
                 <div
                   key={stats.ruleId}
                   className="rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-700"

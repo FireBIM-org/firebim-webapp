@@ -121,7 +121,7 @@ export function RuleRunner({ onRun }: Props) {
   const runner_ref = useRef<HTMLDivElement | null>(null);
 
   const runner_rule_ids = useMemo(
-    () => runner_rule_items.map((item) => item.rule_id),
+    () => runner_rule_items.map((item: RuleRunnerItem) => item.rule_id),
     [runner_rule_items]
   );
 
@@ -133,7 +133,9 @@ export function RuleRunner({ onRun }: Props) {
     if (!payload) return;
 
     if (payload.kind === 'rulebook-rule' && payload.rule_id) {
-      const rule = available_rules.find((item) => item.rule_id === payload.rule_id);
+      const rule = available_rules.find(
+        (item: RuleRunnerItem | { rule_id: string }) => item.rule_id === payload.rule_id
+      );
       if (!rule) return;
 
       addRuleToRunner(rule);
@@ -263,7 +265,7 @@ export function RuleRunner({ onRun }: Props) {
           </div>
         ) : (
           <div className="flex min-h-[40px] min-w-max items-center gap-2">
-            {runner_rule_items.map((item, index) => (
+            {runner_rule_items.map((item: RuleRunnerItem, index: number) => (
               <div
                 key={item.runner_item_id}
                 data-runner-index={index}
