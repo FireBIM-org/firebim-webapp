@@ -11,6 +11,7 @@ import {
 } from '../api';
 import { cloneDefaultOntologyCatalog } from '../ontologyCatalog';
 import { useRuleBookStore, type RuleBookStore } from '../store';
+import type { BuildingGraphData } from '../types';
 
 export function GraphToolbar() {
   const available_graphs = useRuleBookStore(
@@ -54,7 +55,7 @@ export function GraphToolbar() {
     try {
       setGraphError(null);
       const graphs = await listStoredBuildingGraphs();
-      const nextGraphs = graphs.map((graph) => ({
+      const nextGraphs = graphs.map((graph): BuildingGraphData => ({
         id: graph.graph_id,
         label: graph.label ?? graph.graph_id,
         graph_uri: graph.graph_uri ?? null,
@@ -74,7 +75,7 @@ export function GraphToolbar() {
       }
 
       const hasSelectedGraph = nextGraphs.some(
-        (graph) => graph.id === selected_graph_source
+        (graph: BuildingGraphData) => graph.id === selected_graph_source
       );
 
       if (!selected_graph_source || !hasSelectedGraph) {
@@ -148,7 +149,7 @@ export function GraphToolbar() {
             {available_graphs.length === 0 ? (
               <option value="">No stored graphs found</option>
             ) : (
-              available_graphs.map((graph) => (
+              available_graphs.map((graph: BuildingGraphData) => (
                 <option key={graph.id} value={graph.id}>
                   {graph.label}
                   {graph.triple_count ? ` - ${graph.triple_count} triples` : ''}
