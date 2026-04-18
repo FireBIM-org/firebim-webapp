@@ -80,7 +80,10 @@ function isPassingEndNode(element: RuleDefinition['rule_elements'][number]) {
   );
 }
 
-function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: string): RuleStructureStats {
+function computeRuleStructureStats(
+  definition: RuleDefinition,
+  fallbackLabel: string
+): RuleStructureStats {
   const ruleElements = Array.isArray(definition.rule_elements)
     ? definition.rule_elements
     : [];
@@ -103,7 +106,8 @@ function computeRuleStructureStats(definition: RuleDefinition, fallbackLabel: st
     )
   );
   const decisionCount = ruleElements.filter(
-    (element) => element.element_type === 'decision'
+    (element: RuleDefinition['rule_elements'][number]) =>
+      element.element_type === 'decision'
   ).length;
 
   const visited = new Set<string>();
@@ -258,7 +262,10 @@ export function RuleSummaryPanel() {
         if (cancelled) return;
 
         setRuleStructureStats(
-          stats.filter((item): item is RuleStructureStats => Boolean(item))
+          stats.filter(
+            (item: RuleStructureStats | null): item is RuleStructureStats =>
+              Boolean(item)
+          )
         );
       } finally {
         if (!cancelled) {
@@ -317,7 +324,9 @@ export function RuleSummaryPanel() {
 
         setLiveCompatibilities(
           results.filter(
-            (result): result is CheckCompatibilityResponse => Boolean(result)
+            (
+              result: CheckCompatibilityResponse | null
+            ): result is CheckCompatibilityResponse => Boolean(result)
           )
         );
       } finally {
@@ -373,7 +382,9 @@ export function RuleSummaryPanel() {
         : timeline_runs
             .map((run: StepRawJson) => run.compatibility)
             .filter(
-              (runCompatibility): runCompatibility is CheckCompatibilityResponse =>
+              (
+                runCompatibility: CheckCompatibilityResponse | null | undefined
+              ): runCompatibility is CheckCompatibilityResponse =>
                 Boolean(runCompatibility)
             );
 
