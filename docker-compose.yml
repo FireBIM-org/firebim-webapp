@@ -1,0 +1,51 @@
+# Local development compose — connects to the firebim-api-server stack.
+#
+# Prerequisites:
+#   1. Start the backend stack first:
+#        cd ../firebim-api-server && docker compose up -d
+#   2. Then start this stack:
+#        docker compose up -d --build
+#
+# The webapp joins the api-server's Docker network so it can reach the
+# FastAPI backend (http://api:8000) directly.
+#
+# For Authentik (OIDC), the issuer URL must be the same for both the
+# browser and the server-side NextAuth code (http://localhost:9090/…).
+# The extra_hosts entry maps "localhost" inside the container to the
+# Docker host, so the container can reach the host-published Authentik
+# port (9090 → authentik-server:9000).
+
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      # Allows the container to reach host-published ports via "localhost"
+      # (needed so AUTHENTIK_ISSUER_URL works identically from browser & server)
+      - "localhost:host-gateway"
+    environment:
+      # ── API proxy ──────────────────────────────────────────────
+      # NEXT_PUBLIC_API_HOST is empty: browser calls go through the
+      # Next.js proxy route (/api/proxy/…), not directly to the backend.
+      - NEXT_PUBLIC_API_HOST=
+      # Server-side proxy target — reachable via host-gateway.
+      - API_BACKEND_URL=http://localhost:8000
+
+      # ── NextAuth ───────────────────────────────────────────────
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=local-dev-nextauth-secret-change-in-production
+
+      # ── Authentik (OIDC) ───────────────────────────────────────
+      # Must match the client credentials provisioned by the
+      # firebim-api-server Authentik blueprint.
+      - AUTHENTIK_CLIENT_ID=firebim
+      - AUTHENTIK_CLIENT_SECRET=local-dev-client-secret
+      # Browser-accessible issuer URL (also works from the container
+      # thanks to the extra_hosts entry above).
+      - AUTHENTIK_ISSUER_URL=http://localhost:9090/application/o/firebim/
+
+      # ── Umami analytics (optional) ───────────────────────────────
+      - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=change-me-ignore-local-XXXX-XXXX-XXXXXXXXXXXX

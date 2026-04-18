@@ -2,6 +2,7 @@
   "name": "firebim-webapp",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -19,8 +20,9 @@
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-query": "^5.76.1",
     "@xyflow/react": "^12.10.1",
-    "axios": "^1.9.0",
-    "next": "^15.3.2",
+    "axios": "^1.15.0",
+    "next": "^15.5.15",
+    "next-auth": "^4.24.13",
     "openapi-typescript": "^7.8.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -29,6 +31,11 @@
     "react-toastify": "^11.0.5",
     "zod": "^3.25.20"
   },
+  "overrides": {
+    "form-data": ">=4.0.4",
+    "minimatch": "^5.1.8",
+    "picomatch": ">=4.0.4"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
@@ -36,7 +43,7 @@
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "eslint": "^9.27.0",
-    "eslint-config-next": "^15.3.2",
+    "eslint-config-next": "^15.5.15",
     "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }

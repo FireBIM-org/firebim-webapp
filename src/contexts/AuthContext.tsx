@@ -1,82 +1,62 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/router';
-import apiClient, { User, UserCreate } from '../utils/api-client';
+import { useSession, signIn, signOut } from 'next-auth/react';
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  email: string;
+  is_active: boolean;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  register: (userData: UserCreate) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      // Check if token exists in local storage
-      const hasToken = apiClient.initToken();
-      if (hasToken) {
-        try {
-          // Fetch user data with token
-          const userData = await apiClient.getCurrentUser();
-          setUser(userData);
-        } catch {
-          // Clear token if invalid
-          apiClient.clearToken();
-        }
-      }
-      setIsLoading(false);
-    };
-
-    initAuth();
-  }, []);
-
-  const login = async (username: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Login and get token
-      await apiClient.login(username, password);
-      // Fetch user data
-      const userData = await apiClient.getCurrentUser();
-      setUser(userData);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (session?.error === "RefreshAccessTokenError") {
+      // Token refresh failed — force re-login
+      signIn('authentik');
+      return;
     }
+    if (status === 'authenticated' && session?.user) {
+      setUser({
+        id: session.user.id ?? '',
+        username: session.user.username ?? session.user.name ?? '',
+        email: session.user.email ?? '',
+        is_active: true,
+      });
+    } else {
+      setUser(null);
+    }
+  }, [session, status]);
+
+  const login = async () => {
+    await signIn('authentik', { callbackUrl: '/dashboard' });
   };
 
-  const register = async (userData: UserCreate) => {
-    setIsLoading(true);
-    try {
-      // Register user
-      await apiClient.register(userData);
-      // Login automatically after registration
-      await login(userData.username, userData.password);
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    apiClient.clearToken();
+  const logout = async () => {
     setUser(null);
-    router.push('/');
+    await signOut({ callbackUrl: '/' });
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading: status === 'loading',
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

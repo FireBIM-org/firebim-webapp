@@ -10,18 +10,27 @@ const WEBAPP_BASE = (
 ).replace(/\/+$/, '');
 
 async function requestJson(url, init = {}) {
-  const response = await fetch(url, init);
-  const contentType = response.headers.get('content-type') || '';
-  let body = null;
+  try {
+    const response = await fetch(url, init);
+    const contentType = response.headers.get('content-type') || '';
+    let body = null;
 
-  if (contentType.includes('application/json')) {
-    body = await response.json();
-  } else {
-    const text = await response.text();
-    body = text || null;
+    if (contentType.includes('application/json')) {
+      body = await response.json();
+    } else {
+      const text = await response.text();
+      body = text || null;
+    }
+
+    return { ok: response.ok, status: response.status, body };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      body: { detail: error instanceof Error ? error.message : String(error) },
+      fetch_error: true,
+    };
   }
-
-  return { ok: response.ok, status: response.status, body };
 }
 
 function ensureOk(result, label) {
@@ -56,6 +65,14 @@ async function runDirectApiChecks() {
 
 async function runProxyChecks() {
   const proxyRulesHealth = await requestJson(`${WEBAPP_BASE}/api/proxy/rules/health`);
+
+  if (proxyRulesHealth.fetch_error) {
+    return {
+      proxy_available: false,
+      note: 'Webapp proxy could not be reached from this environment.',
+      detail: proxyRulesHealth.body,
+    };
+  }
 
   if (proxyRulesHealth.status === 404) {
     return {
