@@ -19,6 +19,9 @@ async function getDiscovery() {
       }
 
       return response.json() as Promise<{ token_endpoint: string }>;
+    }).catch((error) => {
+      discoveryPromise = null;
+      throw error;
     });
   }
 

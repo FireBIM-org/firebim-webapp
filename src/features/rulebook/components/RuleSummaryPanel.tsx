@@ -566,6 +566,7 @@ export function RuleSummaryPanel() {
               ))}
             </div>
           )}
+        </section>
 
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">

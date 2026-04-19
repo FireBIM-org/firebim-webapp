@@ -66,7 +66,12 @@ export type DeleteRuleElementResponse = {
 export async function deleteRuleElement(
   payload: DeleteRuleElementRequest
 ): Promise<DeleteRuleElementResponse> {
-  const elementId = payload.element_id || payload.graph_uri?.split('/').pop();
+  const elementId =
+    payload.element_id ||
+    payload.graph_uri
+      ?.split('/')
+      .filter(Boolean)
+      .pop();
 
   if (!elementId) {
     throw new Error('Delete rule element failed: missing element_id');
