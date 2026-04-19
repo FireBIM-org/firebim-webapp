@@ -622,8 +622,6 @@ export function RuleSummaryPanel() {
             </div>
           )}
         </section>
-
-        </section>
       </div>
     </aside>
   );
