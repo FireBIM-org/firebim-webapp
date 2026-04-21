@@ -70,6 +70,22 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
     });
+
+    // On 401 from the proxy the server-side refresh has already failed.
+    // Trigger a full re-login immediately so the user is not silently stuck.
+    // Guard: only run in the browser (no-op during SSR).
+    if (typeof window !== 'undefined') {
+      this.axiosInstance.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+          if (error.response?.status === 401) {
+            const { signIn } = await import('next-auth/react');
+            signIn('authentik');
+          }
+          return Promise.reject(error);
+        }
+      );
+    }
   }
 
   // Get user profile from API server (goes through proxy which adds auth)
