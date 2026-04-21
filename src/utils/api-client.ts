@@ -59,6 +59,10 @@ export interface AsyncCheckResult {
   error?: string;
 }
 
+// Module-level guard: prevents concurrent / repeated signIn() calls when
+// multiple in-flight requests all receive a 401 at the same time.
+let isSigningIn = false;
+
 // API client class — auth is handled by next-auth via the proxy routes
 export class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -78,9 +82,20 @@ export class ApiClient {
       this.axiosInstance.interceptors.response.use(
         (response) => response,
         async (error) => {
-          if (error.response?.status === 401) {
-            const { signIn } = await import('next-auth/react');
-            signIn('authentik');
+          if (error.response?.status === 401 && !isSigningIn) {
+            // Only trigger re-login for proxy-originated session errors.
+            // Upstream API 401s (e.g. wrong tenant, missing permission) carry
+            // different detail messages and re-auth won't help in those cases.
+            const detail = error.response?.data?.detail as string | undefined;
+            const isAuthSessionError =
+              detail === 'Session expired \u2014 please log in again' ||
+              detail === 'Not authenticated';
+
+            if (isAuthSessionError) {
+              isSigningIn = true;
+              const { signIn } = await import('next-auth/react');
+              signIn('authentik');
+            }
           }
           return Promise.reject(error);
         }

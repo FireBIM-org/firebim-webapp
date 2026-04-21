@@ -15,7 +15,7 @@ const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
 // cluster-internal address (e.g. http://authentik-server:9000/application/o/firebim/).
 // Falls back to the public issuerUrl if not set (works fine in local dev).
 const internalIssuerUrl = (
-  process.env.AUTHENTIK_INTERNAL_ISSUER_URL ?? process.env.AUTHENTIK_ISSUER_URL
+  process.env.AUTHENTIK_INTERNAL_ISSUER_URL?.trim() || process.env.AUTHENTIK_ISSUER_URL
 ).replace(/\/+$/, "");
 
 let discoveryPromise: Promise<{ token_endpoint: string }> | null = null;
