@@ -1,6 +1,7 @@
 import React from 'react';
 import FileInfo from '../components/FileInfo';
 
+// These values should be injected at build time. For now, use placeholders or environment variables.
 const buildInfo = {
   apiEndpoint: process.env.NEXT_PUBLIC_API_HOST || 'Not set',
   gitBranch: process.env.NEXT_PUBLIC_GIT_BRANCH || 'Unknown',
