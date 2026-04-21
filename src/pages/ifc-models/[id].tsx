@@ -46,15 +46,20 @@ export default function ModelDetail() {
       // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([blob], { type: mimeType }));
       
+      // Create a temporary anchor element and trigger the download
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
+      // Add null check to prevent TypeScript error
       a.download = model?.filename || `model-${id}.ifc`;
       
+      // Need to append to the document
       document.body.appendChild(a);
       
+      // Trigger the download
       a.click();
       
+      // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       

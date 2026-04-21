@@ -171,6 +171,7 @@ export default function Analysis() {
                       Synchronous (faster for small files)
                     </label>
                   </div>
+                  {/* TODO: Enable this option and make async submission work */}
                   <div className="flex items-center mt-2">
                     <input
                       id="async"
