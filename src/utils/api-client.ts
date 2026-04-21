@@ -1,8 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { components } from '../types/api';
 
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
-
 // Define User type based on the API schema
 export type User = components['schemas']['User'];
 
@@ -65,7 +63,8 @@ export class ApiClient {
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: API_HOST,
+      // Always use the webapp origin so authenticated browser requests stay on the Next.js proxy.
+      baseURL: '',
       headers: {
         'Content-Type': 'application/json',
       },
