@@ -88,13 +88,19 @@ export class ApiClient {
             // different detail messages and re-auth won't help in those cases.
             const detail = error.response?.data?.detail as string | undefined;
             const isAuthSessionError =
-              detail === 'Session expired \u2014 please log in again' ||
+              detail === 'Session expired — please log in again' ||
               detail === 'Not authenticated';
 
             if (isAuthSessionError) {
               isSigningIn = true;
-              const { signIn } = await import('next-auth/react');
-              signIn('authentik');
+              try {
+                const { signIn } = await import('next-auth/react');
+                await signIn('authentik');
+              } catch {
+                // Reset flag if signIn fails without redirecting so subsequent
+                // requests can retry rather than silently swallowing 401s.
+                isSigningIn = false;
+              }
             }
           }
           return Promise.reject(error);
