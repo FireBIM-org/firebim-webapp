@@ -7,13 +7,30 @@ if (!process.env.AUTHENTIK_ISSUER_URL) {
 }
 
 const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
+let discoveryPromise: Promise<{ token_endpoint: string }> | null = null;
+
+async function getDiscovery() {
+  if (!discoveryPromise) {
+    discoveryPromise = fetch(
+      `${issuerUrl}/.well-known/openid-configuration`
+    ).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`OIDC discovery failed: ${response.status}`);
+      }
+
+      return response.json() as Promise<{ token_endpoint: string }>;
+    }).catch((error) => {
+      discoveryPromise = null;
+      throw error;
+    });
+  }
+
+  return discoveryPromise;
+}
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const discovery = await fetch(
-      `${issuerUrl}/.well-known/openid-configuration`
-    );
-    const { token_endpoint } = await discovery.json();
+    const { token_endpoint } = await getDiscovery();
 
     const response = await fetch(token_endpoint, {
       method: "POST",

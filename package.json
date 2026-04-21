@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts"
+    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts",
+    "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs",
+    "test:api-access": "node scripts/verify-api-access.mjs",
+    "test:merge-safety": "pnpm lint && pnpm exec tsc --noEmit && pnpm run test:api-access && pnpm run test:rulebook-diagnostic"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -16,7 +19,9 @@
     "@hookform/resolvers": "^5.0.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-query": "^5.76.1",
+    "@xyflow/react": "^12.10.1",
     "axios": "^1.15.0",
+    "html-to-image": "^1.11.13",
     "next": "^15.5.15",
     "next-auth": "^4.24.13",
     "openapi-typescript": "^7.8.0",
@@ -25,6 +30,7 @@
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.56.4",
     "react-toastify": "^11.0.5",
+    "zustand": "^4.5.7",
     "zod": "^3.25.20"
   },
   "overrides": {

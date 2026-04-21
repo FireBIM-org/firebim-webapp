@@ -14,12 +14,15 @@ interface LayoutProps {
 const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const containerClassName = 'max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-10';
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', requiresAuth: true },
     { name: 'IFC Models', href: '/ifc-models', requiresAuth: true },
     { name: 'IDS Files', href: '/ids-files', requiresAuth: true },
     { name: 'Analysis', href: '/analysis', requiresAuth: true },
+    { name: 'RuleBuilder', href: '/rulebuilder', requiresAuth: true },
+    { name: 'RuleBook', href: '/rulebook', requiresAuth: true },
   ];
 
   return (
@@ -32,7 +35,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </Head>
 
       <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={containerClassName}>
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
@@ -95,13 +98,13 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="py-6 flex-grow bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={containerClassName}>
           {children}
         </div>
       </main>
       
       <footer className="bg-white border-t border-gray-200 pt-8 pb-3 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={containerClassName}>
           <p className="text-center text-gray-500 text-sm">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />
