@@ -34,7 +34,7 @@ pnpm generate:api
 
 ## Pre-commit checklist
 ```bash
-pnpm lint        # ESLint
+pnpm lint        # oxlint
 pnpm build       # TypeScript compile + Next.js build
 ```
 

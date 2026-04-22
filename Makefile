@@ -16,7 +16,7 @@ dev: ## Start Next.js dev server with Turbopack
 build: ## Build for production
 	pnpm build
 
-lint: ## Run ESLint
+lint: ## Run oxlint
 	pnpm lint
 
 generate-api: ## Regenerate TypeScript types from openapi.json

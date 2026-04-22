@@ -7,7 +7,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "generate:api": "openapi-typescript openapi.json --output src/types/api.ts",
     "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs",
     "test:api-access": "node scripts/verify-api-access.mjs",
@@ -39,13 +40,10 @@
     "picomatch": ">=4.0.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
-    "eslint": "^9.27.0",
-    "eslint-config-next": "^15.5.15",
     "oxlint": "^1.61.0",
     "tailwindcss": "^4.1.7",
     "typescript": "^5"
