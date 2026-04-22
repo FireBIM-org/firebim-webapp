@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [session, status]);
 
   useEffect(() => {
-    if (session?.error === "RefreshAccessTokenError") {
+    if (session?.error === 'RefreshAccessTokenError') {
       // Token refresh failed — force re-login (guard against multiple rapid calls)
       if (!isSigningIn.current) {
         isSigningIn.current = true;

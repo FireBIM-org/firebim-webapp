@@ -7,7 +7,7 @@ if (!process.env.AUTHENTIK_ISSUER_URL) {
 }
 
 // Public issuer URL — used for browser-facing OAuth redirects and the NextAuth wellKnown config.
-const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, '');
 
 // Internal issuer URL — used for server-side token refresh requests.
 // In containerised / K8s deployments the public URL may not be reachable from inside
@@ -16,18 +16,17 @@ const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
 // Falls back to the public issuerUrl if not set (works fine in local dev).
 const internalIssuerUrl = (
   process.env.AUTHENTIK_INTERNAL_ISSUER_URL?.trim() || process.env.AUTHENTIK_ISSUER_URL
-).replace(/\/+$/, "");
+).replace(/\/+$/, '');
 
 let discoveryPromise: Promise<{ token_endpoint: string }> | null = null;
 
 async function getDiscovery() {
   if (!discoveryPromise) {
-    discoveryPromise = fetch(
-      `${internalIssuerUrl}/.well-known/openid-configuration`
-    ).then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`OIDC discovery failed: ${response.status}`);
-      }
+    discoveryPromise = fetch(`${internalIssuerUrl}/.well-known/openid-configuration`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`OIDC discovery failed: ${response.status}`);
+        }
 
         return response.json() as Promise<{ token_endpoint: string }>;
       })
@@ -58,10 +57,10 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const refreshed = await response.json();
 
     if (!response.ok) {
-      console.error("Token refresh failed:", refreshed);
+      console.error('Token refresh failed:', refreshed);
       // 400 invalid_grant or 401 = refresh token is definitively dead → force re-login.
       if (response.status === 400 || response.status === 401) {
-        return { ...token, error: "RefreshAccessTokenError" };
+        return { ...token, error: 'RefreshAccessTokenError' };
       }
       // Other failures (5xx, network blip) are transient; return the current token
       // without an error flag so the next request retries the refresh automatically.
@@ -78,7 +77,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   } catch (error) {
     // Network error or discovery failure — treat as transient.
     // Return the current token WITHOUT an error flag so the next request retries the refresh.
-    console.error("Error refreshing access token:", error);
+    console.error('Error refreshing access token:', error);
     return token;
   }
 }
@@ -120,7 +119,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // If refresh already failed, stop retrying — let the client force re-login
-      if (token.error === "RefreshAccessTokenError") {
+      if (token.error === 'RefreshAccessTokenError') {
         return token;
       }
 

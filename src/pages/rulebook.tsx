@@ -4,10 +4,7 @@ import Layout from '../components/Layout';
 import { env } from '../config/env';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useRequireAuth } from '../hooks/useRequireAuth';
-import {
-  useRuleBookStore,
-  type RuleBookStore,
-} from '../features/rulebook/store';
+import { useRuleBookStore, type RuleBookStore } from '../features/rulebook/store';
 
 import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
 import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
@@ -19,18 +16,10 @@ import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution
 
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const rules_api_online = useRuleBookStore(
-    (state: RuleBookStore) => state.rules_api_online
-  );
-  const runner_rule_items = useRuleBookStore(
-    (state: RuleBookStore) => state.runner_rule_items
-  );
-  const available_rules = useRuleBookStore(
-    (state: RuleBookStore) => state.available_rules
-  );
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
+  const rules_api_online = useRuleBookStore((state: RuleBookStore) => state.rules_api_online);
+  const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
+  const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
   const execution_status = useRuleBookStore((state: RuleBookStore) => state.execution_status);
