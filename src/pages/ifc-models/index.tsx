@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import React, { useEffect } from 'react';
 
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
