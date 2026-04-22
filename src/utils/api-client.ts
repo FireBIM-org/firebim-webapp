@@ -82,25 +82,23 @@ export class ApiClient {
       this.axiosInstance.interceptors.response.use(
         (response) => response,
         async (error) => {
-          if (error.response?.status === 401 && !isSigningIn) {
-            // Only trigger re-login for proxy-originated session errors.
-            // Upstream API 401s (e.g. wrong tenant, missing permission) carry
-            // different detail messages and re-auth won't help in those cases.
-            const detail = error.response?.data?.detail as string | undefined;
-            const isAuthSessionError =
-              detail === 'Session expired — please log in again' ||
-              detail === 'Not authenticated';
+          // Any 401 from a proxy route means the session is dead (either the
+          // proxy itself couldn't authenticate, or the backend rejected the
+          // forwarded access token because it was expired/invalid).
+          // Re-login is always the correct action for /api/proxy/* 401s.
+          const isProxy401 =
+            error.response?.status === 401 &&
+            (error.config?.url as string | undefined)?.startsWith('/api/proxy/');
 
-            if (isAuthSessionError) {
-              isSigningIn = true;
-              try {
-                const { signIn } = await import('next-auth/react');
-                await signIn('authentik');
-              } catch {
-                // Reset flag if signIn fails without redirecting so subsequent
-                // requests can retry rather than silently swallowing 401s.
-                isSigningIn = false;
-              }
+          if (isProxy401 && !isSigningIn) {
+            isSigningIn = true;
+            try {
+              const { signIn } = await import('next-auth/react');
+              await signIn('authentik');
+            } catch {
+              // Reset flag if signIn throws without redirecting so subsequent
+              // requests can retry rather than silently swallowing 401s.
+              isSigningIn = false;
             }
           }
           return Promise.reject(error);

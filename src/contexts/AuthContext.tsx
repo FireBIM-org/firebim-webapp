@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, useEffect, useRef, ReactNode } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
 export interface AuthUser {
@@ -11,7 +11,7 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  login: () => Promise<void>;
+  login: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -19,8 +19,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { data: session, status } = useSession();
-  const [user, setUser] = useState<AuthUser | null>(null);
   const isSigningIn = useRef(false);
+
+  // Derive user synchronously so there is never a render where isLoading=false but user=null
+  const user = useMemo<AuthUser | null>(() => {
+    if (status === 'authenticated' && session?.user && !session.error) {
+      return {
+        id: session.user.id ?? '',
+        username: session.user.username ?? session.user.name ?? '',
+        email: session.user.email ?? '',
+        is_active: true,
+      };
+    }
+    return null;
+  }, [session, status]);
 
   useEffect(() => {
     if (session?.error === "RefreshAccessTokenError") {
@@ -29,27 +41,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isSigningIn.current = true;
         signIn('authentik');
       }
-      return;
-    }
-    isSigningIn.current = false;
-    if (status === 'authenticated' && session?.user) {
-      setUser({
-        id: session.user.id ?? '',
-        username: session.user.username ?? session.user.name ?? '',
-        email: session.user.email ?? '',
-        is_active: true,
-      });
     } else {
-      setUser(null);
+      isSigningIn.current = false;
     }
-  }, [session, status]);
+  }, [session]);
 
-  const login = async () => {
-    await signIn('authentik', { callbackUrl: '/dashboard' });
+  const login = async (callbackUrl = '/dashboard') => {
+    await signIn('authentik', { callbackUrl });
   };
 
   const logout = async () => {
-    setUser(null);
     await signOut({ callbackUrl: '/' });
   };
 

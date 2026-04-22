@@ -4,7 +4,7 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 import { env } from '../config/env';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 import {
   useRuleBookStore,
   type RuleBookStore,
@@ -19,7 +19,7 @@ import { RuleSummaryPanel } from '../features/rulebook/components/RuleSummaryPan
 import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution';
 
 export default function RuleBookPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
   const rules_api_online = useRuleBookStore(
     (state: RuleBookStore) => state.rules_api_online
@@ -70,12 +70,6 @@ export default function RuleBookPage() {
   const swaggerDocsUrl = env.apiDocsUrl;
   const [graphExpanded, setGraphExpanded] = useState(false);
   const [graphCollapsed, setGraphCollapsed] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, router, user]);
 
   useEffect(() => {
     const step_count = execution_timeline?.steps.length ?? 0;
