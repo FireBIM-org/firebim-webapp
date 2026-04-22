@@ -15,7 +15,6 @@ interface LayoutProps {
 const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const containerClassName = 'max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-10';
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', requiresAuth: true },
@@ -36,7 +35,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </Head>
 
       <nav className="bg-white shadow-sm">
-        <div className={containerClassName}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">
               <div className="flex flex-shrink-0 items-center">
@@ -91,11 +90,11 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="flex-grow bg-gray-50 py-6">
-        <div className={containerClassName}>{children}</div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
       </main>
 
       <footer className="mt-auto border-t border-gray-200 bg-white pt-8 pb-3">
-        <div className={containerClassName}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />

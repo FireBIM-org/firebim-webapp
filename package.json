@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.29.3",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint src/",
@@ -20,17 +20,20 @@
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
+    "@ifc-lite/geometry": "^1.16.5",
+    "@ifc-lite/parser": "^2.1.9",
+    "@ifc-lite/renderer": "^1.15.3",
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-query": "^5.76.1",
     "@xyflow/react": "^12.10.1",
     "axios": "^1.15.0",
+    "next": "16.2.3",
     "html-to-image": "^1.11.13",
-    "next": "^15.5.15",
     "next-auth": "^4.24.13",
     "openapi-typescript": "^7.8.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.8",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.56.4",
     "react-toastify": "^11.0.5",
     "zod": "^3.25.20",
@@ -39,6 +42,8 @@
   "overrides": {
     "form-data": ">=4.0.4",
     "minimatch": "^5.1.8",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "picomatch": ">=4.0.4"
   },
   "devDependencies": {
@@ -49,6 +54,6 @@
     "oxfmt": "^0.46.0",
     "oxlint": "^1.61.0",
     "tailwindcss": "^4.1.7",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
