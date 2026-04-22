@@ -1,31 +1,31 @@
-import { useSession, signIn, signOut } from 'next-auth/react'
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface AuthUser {
-  id: string
-  username: string
-  email: string
-  is_active: boolean
+  id: string;
+  username: string;
+  email: string;
+  is_active: boolean;
 }
 
 interface AuthContextType {
-  user: AuthUser | null
-  isLoading: boolean
-  login: () => Promise<void>
-  logout: () => void
+  user: AuthUser | null;
+  isLoading: boolean;
+  login: () => Promise<void>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { data: session, status } = useSession()
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const { data: session, status } = useSession();
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     if (session?.error === 'RefreshAccessTokenError') {
       // Token refresh failed — force re-login
-      signIn('authentik')
-      return
+      signIn('authentik');
+      return;
     }
     if (status === 'authenticated' && session?.user) {
       setUser({
@@ -33,20 +33,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         username: session.user.username ?? session.user.name ?? '',
         email: session.user.email ?? '',
         is_active: true,
-      })
+      });
     } else {
-      setUser(null)
+      setUser(null);
     }
-  }, [session, status])
+  }, [session, status]);
 
   const login = async () => {
-    await signIn('authentik', { callbackUrl: '/dashboard' })
-  }
+    await signIn('authentik', { callbackUrl: '/dashboard' });
+  };
 
   const logout = async () => {
-    setUser(null)
-    await signOut({ callbackUrl: '/' })
-  }
+    setUser(null);
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <AuthContext.Provider
@@ -59,13 +59,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     >
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
-}
+  return context;
+};
