@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import Layout from '../components/Layout';
 import { env } from '../config/env';
@@ -20,7 +19,6 @@ import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution
 
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const router = useRouter();
   const rules_api_online = useRuleBookStore(
     (state: RuleBookStore) => state.rules_api_online
   );

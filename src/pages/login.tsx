@@ -9,6 +9,7 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!router.isReady) return;
     const callbackUrl =
       typeof router.query.callbackUrl === 'string'
         ? router.query.callbackUrl

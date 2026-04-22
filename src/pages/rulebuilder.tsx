@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
@@ -240,7 +239,6 @@ function buildNumberedRuleLabel(
 
 export default function RuleBuilderPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const router = useRouter();
   const swaggerDocsUrl = env.apiDocsUrl;
   const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);

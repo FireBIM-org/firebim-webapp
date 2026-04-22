@@ -75,29 +75,28 @@ export class ApiClient {
       },
     });
 
-    // On 401 from the proxy the server-side refresh has already failed.
-    // Trigger a full re-login immediately so the user is not silently stuck.
+    // On 401 "Not authenticated" from the proxy the user has no active session.
+    // Trigger a full re-login so the user is not silently stuck.
+    // Note: "Session expired" (RefreshAccessTokenError) is handled centrally by
+    // AuthContext — triggering signIn from both places would cause a race.
     // Guard: only run in the browser (no-op during SSR).
     if (typeof window !== 'undefined') {
       this.axiosInstance.interceptors.response.use(
         (response) => response,
         async (error) => {
-          // Any 401 from a proxy route means the session is dead (either the
-          // proxy itself couldn't authenticate, or the backend rejected the
-          // forwarded access token because it was expired/invalid).
-          // Re-login is always the correct action for /api/proxy/* 401s.
-          const isProxy401 =
+          const detail = error.response?.data?.detail as string | undefined;
+          const isNoSession =
             error.response?.status === 401 &&
-            (error.config?.url as string | undefined)?.startsWith('/api/proxy/');
+            detail === 'Not authenticated';
 
-          if (isProxy401 && !isSigningIn) {
+          if (isNoSession && !isSigningIn) {
             isSigningIn = true;
             try {
               const { signIn } = await import('next-auth/react');
               await signIn('authentik');
-            } catch {
-              // Reset flag if signIn throws without redirecting so subsequent
-              // requests can retry rather than silently swallowing 401s.
+            } finally {
+              // Always reset so future 401s can trigger re-login if signIn
+              // resolves or throws without actually navigating away.
               isSigningIn = false;
             }
           }

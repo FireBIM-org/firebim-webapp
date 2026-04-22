@@ -23,6 +23,10 @@ export default async function handler(
     return res.status(401).json({ detail: "Session expired — please log in again" });
   }
 
+  if (session?.error === "RefreshAccessTokenTransientError") {
+    return res.status(503).json({ detail: "Token refresh failed temporarily — please retry" });
+  }
+
   if (!session?.accessToken) {
     return res.status(401).json({ detail: "Not authenticated" });
   }

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../components/Layout';
@@ -10,7 +9,6 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IdsFiles() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const router = useRouter();
 
   // Fetch user's IDS files
   const { 
