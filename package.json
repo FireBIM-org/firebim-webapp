@@ -7,14 +7,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "format:fix": "oxfmt src/",
-    "format": "oxfmt --check src/",
     "lint": "oxlint src/",
     "lint:fix": "oxlint --fix src/",
-    "tsc:noEmit": "tsc --noEmit",
-    "check": "npm run format && npm run lint && npm run tsc:noEmit",
-    "fix": "npm run format:fix && npm run lint:fix",
-    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts"
+    "format": "oxfmt src/",
+    "format:check": "oxfmt --check src/",
+    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts",
+    "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs",
+    "test:api-access": "node scripts/verify-api-access.mjs",
+    "test:merge-safety": "pnpm lint && pnpm exec tsc --noEmit && pnpm run test:api-access && pnpm run test:rulebook-diagnostic"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -25,15 +25,19 @@
     "@ifc-lite/renderer": "^1.15.3",
     "@tailwindcss/forms": "^0.5.10",
     "@tanstack/react-query": "^5.76.1",
+    "@xyflow/react": "^12.10.1",
     "axios": "^1.15.0",
     "next": "16.2.3",
+    "html-to-image": "^1.11.13",
     "next-auth": "^4.24.13",
     "openapi-typescript": "^7.8.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.56.4",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "zod": "^3.25.20",
+    "zustand": "^4.5.7"
   },
   "overrides": {
     "form-data": ">=4.0.4",
@@ -43,13 +47,12 @@
     "picomatch": ">=4.0.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
-    "@types/node": "^25.6.0",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "oxfmt": "^0.46.0",
+    "oxlint": "^1.61.0",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.9.3"
   }

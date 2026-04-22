@@ -11,21 +11,14 @@ import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ModelAnalysisTable from '../../components/ModelAnalysisTable';
 import PrimaryButton from '../../components/PrimaryButton';
-import { useAuth } from '../../contexts/AuthContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
 
 export default function ModelDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const [isDownloading, setIsDownloading] = useState(false);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
 
   // Fetch model details
   const {

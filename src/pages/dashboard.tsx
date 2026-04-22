@@ -1,23 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import Layout from '../components/Layout';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 import apiClient from '../utils/api-client';
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
+  const { user, isLoading: authLoading } = useRequireAuth();
 
   // Fetch user's IFC models
   const { data: models, isLoading: modelsLoading } = useQuery({

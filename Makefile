@@ -1,4 +1,4 @@
-.PHONY: help install dev build lint generate-api up up-build down logs
+.PHONY: help install dev build lint format generate-api up up-build down logs
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -16,8 +16,11 @@ dev: ## Start Next.js dev server with Turbopack
 build: ## Build for production
 	pnpm build
 
-lint: ## Run ESLint
+lint: ## Run oxlint
 	pnpm lint
+
+format: ## Format source files with oxfmt
+	pnpm format
 
 generate-api: ## Regenerate TypeScript types from openapi.json
 	pnpm generate:api
