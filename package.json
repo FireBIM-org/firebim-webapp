@@ -30,8 +30,8 @@
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.56.4",
     "react-toastify": "^11.0.5",
-    "zustand": "^4.5.7",
-    "zod": "^3.25.20"
+    "zod": "^3.25.20",
+    "zustand": "^4.5.7"
   },
   "overrides": {
     "form-data": ">=4.0.4",
@@ -46,6 +46,7 @@
     "@types/react-dom": "^19.1.5",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.5.15",
+    "oxlint": "^1.61.0",
     "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
