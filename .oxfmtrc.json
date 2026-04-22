@@ -23,6 +23,9 @@
       "unknown"
     ]
   },
+  "sortTailwindcss": {
+    "order": "smacss"
+  },
   "printWidth": 100,
   "tabWidth": 2,
   "useTabs": false,
