@@ -27,23 +27,17 @@ export default function Analysis() {
   }, [router.query]);
 
   // Fetch user's IFC models
-  const { 
-    data: models, 
-    isLoading: modelsLoading 
-  } = useQuery({
+  const { data: models, isLoading: modelsLoading } = useQuery({
     queryKey: ['models'],
     queryFn: () => apiClient.getModels(),
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Fetch user's IDS files
-  const { 
-    data: idsFiles, 
-    isLoading: idsLoading 
-  } = useQuery({
+  const { data: idsFiles, isLoading: idsLoading } = useQuery({
     queryKey: ['ids-files'],
     queryFn: () => apiClient.getIdsFiles(),
-    enabled: !!user
+    enabled: !!user,
   });
 
   const startAnalysis = async () => {
@@ -59,7 +53,7 @@ export default function Analysis() {
         // Start async processing
         const response = await apiClient.asyncCheckModelWithIds(selectedModelId, selectedIdsId);
         setCheckId(response.check_id);
-        
+
         // Navigate to results page with checkId
         router.push(`/analysis/results?checkId=${response.check_id}`);
       } else {
@@ -85,9 +79,7 @@ export default function Analysis() {
     <Layout title="Analysis | FireBIM">
       <div className="py-6">
         <h1 className="text-2xl font-semibold text-gray-900">Model Analysis</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Analyze IFC models against IDS specifications
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Analyze IFC models against IDS specifications</p>
       </div>
 
       <div className="mt-5 md:mt-0">
@@ -147,9 +139,7 @@ export default function Analysis() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Processing Method
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Processing Method</label>
                 <div className="mt-2">
                   <div className="flex items-center">
                     <input
@@ -205,13 +195,11 @@ export default function Analysis() {
           <div className="flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
             <p className="text-gray-700">
-              {processingMethod === 'async' 
-                ? 'Analysis in progress. Redirecting to results page...' 
+              {processingMethod === 'async'
+                ? 'Analysis in progress. Redirecting to results page...'
                 : 'Processing your request...'}
             </p>
-            {checkId && (
-              <p className="text-sm text-gray-500 mt-2">Check ID: {checkId}</p>
-            )}
+            {checkId && <p className="text-sm text-gray-500 mt-2">Check ID: {checkId}</p>}
           </div>
         </div>
       )}

@@ -13,38 +13,41 @@ export default function UploadModel() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) {
-      return;
-    }
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        return;
+      }
 
-    const file = acceptedFiles[0];
-    
-    // Check if the file is an IFC file
-    if (!file.name.toLowerCase().endsWith('.ifc')) {
-      toast.error('Please upload an IFC file (.ifc extension)');
-      return;
-    }
+      const file = acceptedFiles[0];
 
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      await apiClient.uploadModel(file);
-      toast.success('Model uploaded successfully!');
-      router.push('/ifc-models');
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload model. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [router]);
+      // Check if the file is an IFC file
+      if (!file.name.toLowerCase().endsWith('.ifc')) {
+        toast.error('Please upload an IFC file (.ifc extension)');
+        return;
+      }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      try {
+        await apiClient.uploadModel(file);
+        toast.success('Model uploaded successfully!');
+        router.push('/ifc-models');
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload model. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [router],
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
-    disabled: isUploading
+    disabled: isUploading,
   });
 
   if (authLoading || !user) {
@@ -91,8 +94,8 @@ export default function UploadModel() {
                       {isDragActive
                         ? 'Drop the file here'
                         : isUploading
-                        ? 'Uploading...'
-                        : 'Drag and drop an IFC file, or click to select'}
+                          ? 'Uploading...'
+                          : 'Drag and drop an IFC file, or click to select'}
                     </p>
                   </div>
                   <p className="text-xs text-gray-500">IFC files only</p>

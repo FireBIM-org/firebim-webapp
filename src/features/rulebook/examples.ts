@@ -43,19 +43,12 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
   {
     rule_id: 'it-rule-complex-large-current-graph-2911550a',
     label: 'Example rule - Bulding-Storey-Zone-Room-Wall',
-    graph_uri:
-      'https://firebim.org/graphs/rulebook/it-rule-complex-large-current-graph-2911550a',
+    graph_uri: 'https://firebim.org/graphs/rulebook/it-rule-complex-large-current-graph-2911550a',
     description:
       'Example copy of the complex Building height rule spanning Building, Storey, Zone, Room, and Wall checks.',
     shacl_ttl: createSeededRuleTtl(
       'it-rule-complex-large-current-graph-2911550a',
-      [
-        `${FBO}Building`,
-        `${FBO}Storey`,
-        `${FBO}Zone`,
-        `${FBO}Room`,
-        `${FBO}Wall`,
-      ],
+      [`${FBO}Building`, `${FBO}Storey`, `${FBO}Zone`, `${FBO}Room`, `${FBO}Wall`],
       [
         `${FBO}BuildingHeight`,
         `${FBO}StoreyNumber`,
@@ -64,7 +57,7 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
         `${FBO}FireRating`,
         `${FBO}OccupancyType`,
         `${FBO}LoadBearing`,
-      ]
+      ],
     ),
     rule_definition: {
       id: 'it-rule-complex-large-current-graph-2911550a',
@@ -171,17 +164,17 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
         createEndNode(
           'it-rule-complex-large-current-graph-2911550a-pass',
           'assembled-pass',
-          'passed'
+          'passed',
         ),
         createEndNode(
           'it-rule-complex-large-current-graph-2911550a-fail',
           'assembled-fail',
-          'failed'
+          'failed',
         ),
         createEndNode(
           'it-rule-complex-large-current-graph-2911550a-unknown',
           'assembled-unknown',
-          'unknown'
+          'unknown',
         ),
       ],
     },
@@ -195,7 +188,7 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
     shacl_ttl: createSeededRuleTtl(
       'it-rule-mismatch-auto-small',
       [`${FBO}NonExistingType`],
-      [`${FBO}NonExistingProperty`]
+      [`${FBO}NonExistingProperty`],
     ),
     rule_definition: {
       id: 'it-rule-mismatch-auto-small',
@@ -230,7 +223,7 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
     shacl_ttl: createSeededRuleTtl(
       'it-rule-unknown-auto-small',
       [`${FBO}SensorTypeSmokeSensor`],
-      [`${FBO}DoesNotExistYet`]
+      [`${FBO}DoesNotExistYet`],
     ),
     rule_definition: {
       id: 'it-rule-unknown-auto-small',
@@ -258,9 +251,7 @@ export const SEEDED_EXAMPLE_RULES: SeededExampleRule[] = [
   },
 ];
 
-export const SEEDED_EXAMPLE_RULE_IDS = SEEDED_EXAMPLE_RULES.map(
-  (item) => item.rule_id
-);
+export const SEEDED_EXAMPLE_RULE_IDS = SEEDED_EXAMPLE_RULES.map((item) => item.rule_id);
 
 export function getSeededExampleRuleListItems(): RuleListItem[] {
   return SEEDED_EXAMPLE_RULES.map((item) => ({
@@ -276,18 +267,17 @@ export function getSeededExampleRuleListItems(): RuleListItem[] {
       new Set(
         (Array.isArray(item.rule_definition.rule_elements)
           ? item.rule_definition.rule_elements
-          : [])
+          : []
+        )
           .map((element) => element.target_class)
-          .filter((value): value is string => Boolean(value))
-      )
+          .filter((value): value is string => Boolean(value)),
+      ),
     ),
     description: item.description,
   }));
 }
 
-export function getSeededExampleRuleDefinition(
-  rule_id: string
-): RuleDefinition | null {
+export function getSeededExampleRuleDefinition(rule_id: string): RuleDefinition | null {
   const match = SEEDED_EXAMPLE_RULES.find((item) => item.rule_id === rule_id);
   return match?.rule_definition ?? null;
 }
@@ -297,9 +287,7 @@ export function getSeededExampleRuleTtl(rule_id: string): string | null {
   return match?.shacl_ttl ?? null;
 }
 
-export function ensureSeededExampleRules(
-  api_rules: RuleListItem[]
-): RuleListItem[] {
+export function ensureSeededExampleRules(api_rules: RuleListItem[]): RuleListItem[] {
   const seeded = getSeededExampleRuleListItems();
   const merged = new Map<string, RuleListItem>();
   const seededById = new Map<string, RuleListItem>();

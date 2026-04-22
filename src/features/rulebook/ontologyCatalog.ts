@@ -171,6 +171,6 @@ export function cloneDefaultOntologyCatalog() {
     Object.entries(DEFAULT_ONTOLOGY_CATALOG).map(([key, value]) => [
       key,
       value.map((item) => ({ ...item })),
-    ])
+    ]),
   ) as BuildingGraphData['ontology_catalog'];
 }

@@ -54,10 +54,7 @@ function NodeItem({
   onToggleSelected?: (multi?: boolean) => void;
 }) {
   const handleDragStart = (event: React.DragEvent) => {
-    event.dataTransfer.setData(
-      'application/firebim-rule-node',
-      draggablePayload(item)
-    );
+    event.dataTransfer.setData('application/firebim-rule-node', draggablePayload(item));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -75,18 +72,12 @@ function NodeItem({
       onDragStart={handleDragStart}
       className={[
         'cursor-move overflow-hidden rounded-lg border bg-white text-sm shadow-sm transition',
-        selected
-          ? `${palette.border} ring-2 ${palette.ring}`
-          : `${palette.border} hover:shadow-md`,
+        selected ? `${palette.border} ring-2 ${palette.ring}` : `${palette.border} hover:shadow-md`,
       ].join(' ')}
     >
       <div className={`border-b px-3 py-2 ${palette.header}`}>
         <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
-          {item.type === 'start'
-            ? 'Start'
-            : item.type === 'decision'
-            ? 'Decision'
-            : 'End'}
+          {item.type === 'start' ? 'Start' : item.type === 'decision' ? 'Decision' : 'End'}
         </div>
 
         <div className="mt-1 font-medium text-gray-900">{item.label}</div>
@@ -94,15 +85,11 @@ function NodeItem({
 
       <div className={`px-3 py-2 ${palette.body}`}>
         {item.description && (
-          <div className="text-xs text-gray-500 line-clamp-2">
-            {item.description}
-          </div>
+          <div className="text-xs text-gray-500 line-clamp-2">{item.description}</div>
         )}
 
         {item.source === 'api' && (
-          <div className="mt-2 text-[10px] uppercase text-orange-600">
-            stored
-          </div>
+          <div className="mt-2 text-[10px] uppercase text-orange-600">stored</div>
         )}
       </div>
     </div>
@@ -173,9 +160,7 @@ function Category({
             <button
               type="button"
               onClick={() => {
-                const ok = window.confirm(
-                  'Are you sure you want to empty the waste bin?'
-                );
+                const ok = window.confirm('Are you sure you want to empty the waste bin?');
                 if (ok) onEmptyTrash();
               }}
               className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
@@ -199,9 +184,7 @@ function Category({
                 key={item.id}
                 item={item}
                 selected={selectedItemIds.includes(item.id)}
-                onToggleSelected={(multi) =>
-                  onToggleItemSelected?.(item.id, multi)
-                }
+                onToggleSelected={(multi) => onToggleItemSelected?.(item.id, multi)}
               />
             ))
           )}
@@ -246,8 +229,7 @@ export default function RuleLibraryPanel({
 
         return haystacks.some(
           (value: string | null | undefined) =>
-            typeof value === 'string' &&
-            value.toLowerCase().includes(normalizedQuery)
+            typeof value === 'string' && value.toLowerCase().includes(normalizedQuery),
         );
       }),
     }));
@@ -284,12 +266,8 @@ export default function RuleLibraryPanel({
     <aside className="flex w-80 flex-col border-r border-gray-200 bg-white">
       <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2">
         <div>
-          <div className="rule-workspace-header">
-            Rule element Library
-          </div>
-          <div className="text-xs text-gray-500">
-            Drag rule elements into the canvas
-          </div>
+          <div className="rule-workspace-header">Rule element Library</div>
+          <div className="text-xs text-gray-500">Drag rule elements into the canvas</div>
         </div>
 
         <button

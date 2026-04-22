@@ -18,8 +18,7 @@ type RuleData = {
 };
 
 function getEndOutputText(rule: RuleData) {
-  const outputText =
-    typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
+  const outputText = typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
 
   return outputText || 'No output text defined';
 }
@@ -32,7 +31,10 @@ function getEndNodeSentiment(rule: RuleData) {
   ]);
 }
 
-export function getNodePalette(nodeType: RuleData['element_type'], endSentiment?: ReturnType<typeof getEndNodeSentiment>) {
+export function getNodePalette(
+  nodeType: RuleData['element_type'],
+  endSentiment?: ReturnType<typeof getEndNodeSentiment>,
+) {
   if (nodeType === 'start') {
     return {
       border: 'border-sky-500',

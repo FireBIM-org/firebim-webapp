@@ -18,14 +18,14 @@ export default function IdsFileDetail() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Fetch IDS file details
-  const { 
-    data: idsFile, 
+  const {
+    data: idsFile,
     isLoading: idsLoading,
-    isError
+    isError,
   } = useQuery({
     queryKey: ['ids-file', id],
     queryFn: () => apiClient.getIdsFile(id as string),
-    enabled: !!user && !!id
+    enabled: !!user && !!id,
   });
 
   const handleDownload = async () => {
@@ -33,30 +33,30 @@ export default function IdsFileDetail() {
       setIsDownloading(true);
       console.log(`Initiating download for IDS file: ${id}`);
       const blob = await apiClient.downloadIdsFile(id as string);
-      
+
       // Determine the correct MIME type for IDS/XML files
       const mimeType = 'application/xml';
-      
+
       // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([blob], { type: mimeType }));
-      
+
       // Create a temporary anchor element and trigger the download
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
       // Add null check to prevent TypeScript error
       a.download = idsFile?.filename || `ids-${id}.ids`;
-      
+
       // Need to append to the document
       document.body.appendChild(a);
-      
+
       // Trigger the download
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
@@ -81,7 +81,10 @@ export default function IdsFileDetail() {
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Error Loading IDS File</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Could not load the IDS file details. It may have been deleted or you may not have permission to view it.</p>
+              <p>
+                Could not load the IDS file details. It may have been deleted or you may not have
+                permission to view it.
+              </p>
             </div>
             <div className="mt-5">
               <Link
@@ -115,7 +118,10 @@ export default function IdsFileDetail() {
             </h2>
           </div>
           <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
-            <PrimaryButton onClick={() => router.push(`/analysis?ids=${idsFile.id}`)} className="ml-3">
+            <PrimaryButton
+              onClick={() => router.push(`/analysis?ids=${idsFile.id}`)}
+              className="ml-3"
+            >
               Use for Analysis
             </PrimaryButton>
             <button
@@ -135,9 +141,17 @@ export default function IdsFileDetail() {
           fields={[
             { label: 'Filename', value: idsFile.filename },
             { label: 'File ID', value: idsFile.id },
-            { label: 'Size', value: idsFile.size ? `${Math.round(idsFile.size / 1024)} KB` : 'Unknown' },
-            { label: 'Uploaded', value: `${new Date(idsFile.created_at).toLocaleDateString()} ${new Date(idsFile.created_at).toLocaleTimeString()}` },
-            ...(idsFile.specification_version ? [{ label: 'IDS Version', value: idsFile.specification_version }] : []),
+            {
+              label: 'Size',
+              value: idsFile.size ? `${Math.round(idsFile.size / 1024)} KB` : 'Unknown',
+            },
+            {
+              label: 'Uploaded',
+              value: `${new Date(idsFile.created_at).toLocaleDateString()} ${new Date(idsFile.created_at).toLocaleTimeString()}`,
+            },
+            ...(idsFile.specification_version
+              ? [{ label: 'IDS Version', value: idsFile.specification_version }]
+              : []),
             ...(idsFile.rule_count ? [{ label: 'Rule Count', value: idsFile.rule_count }] : []),
           ]}
         />
@@ -145,9 +159,7 @@ export default function IdsFileDetail() {
         {idsFile.specifications && (
           <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Specifications
-              </h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Specifications</h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 Rules and requirements defined in this IDS file
               </p>
@@ -158,13 +170,22 @@ export default function IdsFileDetail() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Type
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Property
                         </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
                           Requirement
                         </th>
                       </tr>

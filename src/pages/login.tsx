@@ -11,9 +11,7 @@ export default function Login() {
   useEffect(() => {
     if (!router.isReady) return;
     const callbackUrl =
-      typeof router.query.callbackUrl === 'string'
-        ? router.query.callbackUrl
-        : '/dashboard';
+      typeof router.query.callbackUrl === 'string' ? router.query.callbackUrl : '/dashboard';
     // If already logged in, go to the intended destination
     if (!isLoading && user) {
       router.push(callbackUrl);

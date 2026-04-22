@@ -101,7 +101,7 @@ export const RULE_LIBRARY: RuleLibraryCategory[] = [
 ];
 
 export function createDefaultLibraryState(
-  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES,
 ): RuleLibraryState {
   const itemCategory: Record<string, string> = {};
   const itemLabels: Record<string, string> = {};
@@ -120,7 +120,7 @@ export function createDefaultLibraryState(
 }
 
 export function loadLibraryState(
-  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES
+  items: RuleNodeTemplate[] = DEFAULT_LOCAL_TEMPLATES,
 ): RuleLibraryState {
   if (typeof window === 'undefined') {
     return createDefaultLibraryState(items);
@@ -134,23 +134,15 @@ export function loadLibraryState(
 
     const parsed = JSON.parse(raw) as Partial<RuleLibraryState>;
 
-    const categories = Array.isArray(parsed.categories)
-      ? parsed.categories
-      : DEFAULT_CATEGORY_META;
+    const categories = Array.isArray(parsed.categories) ? parsed.categories : DEFAULT_CATEGORY_META;
 
     const itemCategory =
-      parsed.itemCategory && typeof parsed.itemCategory === 'object'
-        ? parsed.itemCategory
-        : {};
+      parsed.itemCategory && typeof parsed.itemCategory === 'object' ? parsed.itemCategory : {};
 
     const itemLabels =
-      parsed.itemLabels && typeof parsed.itemLabels === 'object'
-        ? parsed.itemLabels
-        : {};
+      parsed.itemLabels && typeof parsed.itemLabels === 'object' ? parsed.itemLabels : {};
 
-    const deletedItemIds = Array.isArray(parsed.deletedItemIds)
-      ? parsed.deletedItemIds
-      : [];
+    const deletedItemIds = Array.isArray(parsed.deletedItemIds) ? parsed.deletedItemIds : [];
 
     const mergedItemCategory: Record<string, string> = { ...itemCategory };
     const mergedItemLabels: Record<string, string> = { ...itemLabels };

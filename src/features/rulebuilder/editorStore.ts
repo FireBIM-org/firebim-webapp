@@ -177,7 +177,7 @@ function withClearedTransientRequests(state: EditorPresentState): EditorPresentS
 
 function reducePresentState(
   state: EditorPresentState,
-  event: Exclude<EditorEvent, UndoEvent | RedoEvent>
+  event: Exclude<EditorEvent, UndoEvent | RedoEvent>,
 ): EditorPresentState {
   switch (event.type) {
     case 'node.selected':

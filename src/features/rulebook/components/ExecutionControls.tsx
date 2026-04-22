@@ -23,40 +23,20 @@ const SOLVER_OPTIONS: Array<{
   { value: 'vertical', label: 'Vertical' },
 ];
 
-export function ExecutionControls({
-  onRun,
-  overlay = false,
-  showSolver = true,
-}: Props) {
-  const execution_status = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_status
-  );
-  const execution_solver = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_solver
-  );
-  const execution_timeline = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_timeline
-  );
-  const current_step_index = useRuleBookStore(
-    (state: RuleBookStore) => state.current_step_index
-  );
-  const runner_rule_items = useRuleBookStore(
-    (state: RuleBookStore) => state.runner_rule_items
-  );
+export function ExecutionControls({ onRun, overlay = false, showSolver = true }: Props) {
+  const execution_status = useRuleBookStore((state: RuleBookStore) => state.execution_status);
+  const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
+  const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
+  const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
+  const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
 
-  const setExecutionStatus = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionStatus
-  );
-  const setExecutionSolver = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionSolver
-  );
-  const setCurrentStepIndex = useRuleBookStore(
-    (state: RuleBookStore) => state.setCurrentStepIndex
-  );
+  const setExecutionStatus = useRuleBookStore((state: RuleBookStore) => state.setExecutionStatus);
+  const setExecutionSolver = useRuleBookStore((state: RuleBookStore) => state.setExecutionSolver);
+  const setCurrentStepIndex = useRuleBookStore((state: RuleBookStore) => state.setCurrentStepIndex);
   const setExecutionPlaybackMs = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionPlaybackMs
+    (state: RuleBookStore) => state.setExecutionPlaybackMs,
   );
   const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
@@ -172,11 +152,7 @@ export function ExecutionControls({
         <button
           type="button"
           onClick={handleForward}
-          disabled={
-            !execution_timeline ||
-            step_count === 0 ||
-            current_step_index >= step_count - 1
-          }
+          disabled={!execution_timeline || step_count === 0 || current_step_index >= step_count - 1}
           className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronRightIcon className="h-4 w-4" />
@@ -215,4 +191,3 @@ export function ExecutionControls({
     </div>
   );
 }
-

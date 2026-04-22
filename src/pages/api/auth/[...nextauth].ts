@@ -1,13 +1,13 @@
-import NextAuth from "next-auth";
-import type { NextAuthOptions } from "next-auth";
-import type { JWT } from "next-auth/jwt";
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
 if (!process.env.AUTHENTIK_ISSUER_URL) {
-  throw new Error("AUTHENTIK_ISSUER_URL environment variable is required");
+  throw new Error('AUTHENTIK_ISSUER_URL environment variable is required');
 }
 
 // Public issuer URL — used for browser-facing OAuth redirects and the NextAuth wellKnown config.
-const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, '');
 
 // Internal issuer URL — used for server-side token refresh requests.
 // In containerised / K8s deployments the public URL may not be reachable from inside
@@ -16,24 +16,24 @@ const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
 // Falls back to the public issuerUrl if not set (works fine in local dev).
 const internalIssuerUrl = (
   process.env.AUTHENTIK_INTERNAL_ISSUER_URL?.trim() || process.env.AUTHENTIK_ISSUER_URL
-).replace(/\/+$/, "");
+).replace(/\/+$/, '');
 
 let discoveryPromise: Promise<{ token_endpoint: string }> | null = null;
 
 async function getDiscovery() {
   if (!discoveryPromise) {
-    discoveryPromise = fetch(
-      `${internalIssuerUrl}/.well-known/openid-configuration`
-    ).then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`OIDC discovery failed: ${response.status}`);
-      }
+    discoveryPromise = fetch(`${internalIssuerUrl}/.well-known/openid-configuration`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`OIDC discovery failed: ${response.status}`);
+        }
 
-      return response.json() as Promise<{ token_endpoint: string }>;
-    }).catch((error) => {
-      discoveryPromise = null;
-      throw error;
-    });
+        return response.json() as Promise<{ token_endpoint: string }>;
+      })
+      .catch((error) => {
+        discoveryPromise = null;
+        throw error;
+      });
   }
 
   return discoveryPromise;
@@ -44,12 +44,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const { token_endpoint } = await getDiscovery();
 
     const response = await fetch(token_endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         client_id: process.env.AUTHENTIK_CLIENT_ID!,
         client_secret: process.env.AUTHENTIK_CLIENT_SECRET!,
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
         refresh_token: token.refreshToken as string,
       }),
     });
@@ -57,10 +57,10 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const refreshed = await response.json();
 
     if (!response.ok) {
-      console.error("Token refresh failed:", refreshed);
+      console.error('Token refresh failed:', refreshed);
       // 400 invalid_grant or 401 = refresh token is definitively dead → force re-login.
       if (response.status === 400 || response.status === 401) {
-        return { ...token, error: "RefreshAccessTokenError" };
+        return { ...token, error: 'RefreshAccessTokenError' };
       }
       // Other failures (5xx, network blip) are transient; return the current token
       // without an error flag so the next request retries the refresh automatically.
@@ -77,7 +77,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   } catch (error) {
     // Network error or discovery failure — treat as transient.
     // Return the current token WITHOUT an error flag so the next request retries the refresh.
-    console.error("Error refreshing access token:", error);
+    console.error('Error refreshing access token:', error);
     return token;
   }
 }
@@ -85,16 +85,16 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 export const authOptions: NextAuthOptions = {
   providers: [
     {
-      id: "authentik",
-      name: "Authentik",
-      type: "oauth",
+      id: 'authentik',
+      name: 'Authentik',
+      type: 'oauth',
       wellKnown: `${issuerUrl}/.well-known/openid-configuration`,
       idToken: true,
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
-      authorization: { params: { scope: "openid email profile offline_access" } },
+      authorization: { params: { scope: 'openid email profile offline_access' } },
       client: {
-        token_endpoint_auth_method: "client_secret_post",
+        token_endpoint_auth_method: 'client_secret_post',
       },
       profile(profile) {
         return {
@@ -115,20 +115,16 @@ export const authOptions: NextAuthOptions = {
         token.expiresAt = account.expires_at;
       }
       if (profile) {
-        token.username = (profile as Record<string, unknown>)
-          .preferred_username as string;
+        token.username = (profile as Record<string, unknown>).preferred_username as string;
       }
 
       // If refresh already failed, stop retrying — let the client force re-login
-      if (token.error === "RefreshAccessTokenError") {
+      if (token.error === 'RefreshAccessTokenError') {
         return token;
       }
 
       // If access token hasn't expired, return as-is
-      if (
-        typeof token.expiresAt === "number" &&
-        Date.now() / 1000 < token.expiresAt - 30
-      ) {
+      if (typeof token.expiresAt === 'number' && Date.now() / 1000 < token.expiresAt - 30) {
         return token;
       }
 
@@ -143,14 +139,14 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken as string | undefined;
       session.error = token.error as string | undefined;
       if (session.user) {
-        session.user.id = token.sub ?? "";
+        session.user.id = token.sub ?? '';
         session.user.username = token.username;
       }
       return session;
     },
   },
   pages: {
-    signIn: "/login",
+    signIn: '/login',
   },
 };
 

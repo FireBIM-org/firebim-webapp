@@ -2,11 +2,7 @@ import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import { getRuleOrNull, runCompatibilityCheck } from '../api';
 import { useRuleBookStore, type RuleBookStore } from '../store';
-import type {
-  CheckCompatibilityResponse,
-  CheckRunResponse,
-  RuleDefinition,
-} from '../types';
+import type { CheckCompatibilityResponse, CheckRunResponse, RuleDefinition } from '../types';
 
 type StepRawJson = {
   check_run?: CheckRunResponse;
@@ -64,50 +60,38 @@ function isPassingEndNode(element: RuleDefinition['rule_elements'][number]) {
     typeof element.config?.terminal_value === 'string'
       ? (element.config.terminal_value as string)
       : null,
-    typeof element.config?.end_kind === 'string'
-      ? (element.config.end_kind as string)
-      : null,
-    typeof element.config?.output_text === 'string'
-      ? (element.config.output_text as string)
-      : null,
+    typeof element.config?.end_kind === 'string' ? (element.config.end_kind as string) : null,
+    typeof element.config?.output_text === 'string' ? (element.config.output_text as string) : null,
   ]
     .filter((value): value is string => Boolean(value))
     .map((value: string) => value.toLowerCase());
 
   return candidates.some(
-    (value) =>
-      value.includes('pass') || value.includes('success') || value === 'true'
+    (value) => value.includes('pass') || value.includes('success') || value === 'true',
   );
 }
 
 function computeRuleStructureStats(
   definition: RuleDefinition,
-  fallbackLabel: string
+  fallbackLabel: string,
 ): RuleStructureStats {
-  const ruleElements = Array.isArray(definition.rule_elements)
-    ? definition.rule_elements
-    : [];
+  const ruleElements = Array.isArray(definition.rule_elements) ? definition.rule_elements : [];
   const elementById = new Map(
-    ruleElements.map((element: RuleDefinition['rule_elements'][number]) => [
-      element.id,
-      element,
-    ])
+    ruleElements.map((element: RuleDefinition['rule_elements'][number]) => [element.id, element]),
   );
   const targetClasses = Array.from(
     new Set(
       ruleElements
         .filter(
-          (element: RuleDefinition['rule_elements'][number]) =>
-            element.element_type === 'decision'
+          (element: RuleDefinition['rule_elements'][number]) => element.element_type === 'decision',
         )
         .map((element: RuleDefinition['rule_elements'][number]) => element.target_class)
         .filter((value): value is string => Boolean(value))
-        .map(formatTargetClass)
-    )
+        .map(formatTargetClass),
+    ),
   );
   const decisionCount = ruleElements.filter(
-    (element: RuleDefinition['rule_elements'][number]) =>
-      element.element_type === 'decision'
+    (element: RuleDefinition['rule_elements'][number]) => element.element_type === 'decision',
   ).length;
 
   const visited = new Set<string>();
@@ -150,28 +134,26 @@ function computeRuleStructureStats(
   walk(definition.entry, 0, visited);
 
   const passPaths = pathStats.filter(
-    (path: { isPass: boolean; decisionCount: number }) => path.isPass
+    (path: { isPass: boolean; decisionCount: number }) => path.isPass,
   );
   const minDecisionStepsToPass =
     passPaths.length > 0
       ? Math.min(
           ...passPaths.map(
-            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount
-          )
+            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount,
+          ),
         )
       : null;
   const maxDecisionStepsToPass =
     passPaths.length > 0
       ? Math.max(
           ...passPaths.map(
-            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount
-          )
+            (path: { isPass: boolean; decisionCount: number }) => path.decisionCount,
+          ),
         )
       : null;
 
-  const startElement = ruleElements.find(
-    (element) => element.element_type === 'start'
-  );
+  const startElement = ruleElements.find((element) => element.element_type === 'start');
 
   return {
     ruleId: definition.id,
@@ -186,26 +168,14 @@ function computeRuleStructureStats(
 }
 
 export function RuleSummaryPanel() {
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
-  const runner_rule_items = useRuleBookStore(
-    (state: RuleBookStore) => state.runner_rule_items
-  );
-  const available_rules = useRuleBookStore(
-    (state: RuleBookStore) => state.available_rules
-  );
-  const execution_timeline = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_timeline
-  );
-  const current_step_index = useRuleBookStore(
-    (state: RuleBookStore) => state.current_step_index
-  );
+  const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
+  const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
+  const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
+  const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
   const [collapsed, setCollapsed] = useState(false);
-  const [liveCompatibilities, setLiveCompatibilities] = useState<
-    CheckCompatibilityResponse[]
-  >([]);
+  const [liveCompatibilities, setLiveCompatibilities] = useState<CheckCompatibilityResponse[]>([]);
   const [liveCompatibilityLoading, setLiveCompatibilityLoading] = useState(false);
   const [ruleStructureStats, setRuleStructureStats] = useState<RuleStructureStats[]>([]);
   const [ruleStructureLoading, setRuleStructureLoading] = useState(false);
@@ -224,9 +194,7 @@ export function RuleSummaryPanel() {
   const compatibilityRefreshKey = useMemo(() => {
     const graphId = active_graph_data?.id ?? 'no-graph';
     const runnerKey =
-      runner_rule_items
-        .map((item: { rule_id: string }) => item.rule_id)
-        .join('|') || 'no-rules';
+      runner_rule_items.map((item: { rule_id: string }) => item.rule_id).join('|') || 'no-rules';
     return `${graphId}:${runnerKey}`;
   }, [active_graph_data?.id, runner_rule_items]);
 
@@ -246,26 +214,22 @@ export function RuleSummaryPanel() {
         const stats = await Promise.all(
           runner_rule_items.map(async (runnerItem: { rule_id: string; label: string }) => {
             const matchingRule = available_rules.find(
-              (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id
+              (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id,
             );
             const definition = await getRuleOrNull(runnerItem.rule_id);
             if (!definition) {
               return null;
             }
-            return computeRuleStructureStats(
-              definition,
-              matchingRule?.label ?? runnerItem.label
-            );
-          })
+            return computeRuleStructureStats(definition, matchingRule?.label ?? runnerItem.label);
+          }),
         );
 
         if (cancelled) return;
 
         setRuleStructureStats(
-          stats.filter(
-            (item: RuleStructureStats | null): item is RuleStructureStats =>
-              Boolean(item)
-          )
+          stats.filter((item: RuleStructureStats | null): item is RuleStructureStats =>
+            Boolean(item),
+          ),
         );
       } finally {
         if (!cancelled) {
@@ -317,17 +281,16 @@ export function RuleSummaryPanel() {
             } catch {
               return null;
             }
-          })
+          }),
         );
 
         if (cancelled) return;
 
         setLiveCompatibilities(
           results.filter(
-            (
-              result: CheckCompatibilityResponse | null
-            ): result is CheckCompatibilityResponse => Boolean(result)
-          )
+            (result: CheckCompatibilityResponse | null): result is CheckCompatibilityResponse =>
+              Boolean(result),
+          ),
         );
       } finally {
         if (!cancelled) {
@@ -341,12 +304,7 @@ export function RuleSummaryPanel() {
     return () => {
       cancelled = true;
     };
-  }, [
-    active_graph_data,
-    graph_loaded,
-    runner_rule_items,
-    compatibilityRefreshKey,
-  ]);
+  }, [active_graph_data, graph_loaded, runner_rule_items, compatibilityRefreshKey]);
 
   const runnerRuleClasses = useMemo(() => {
     const values = new Set<string>();
@@ -359,7 +317,7 @@ export function RuleSummaryPanel() {
 
     for (const runnerItem of runner_rule_items) {
       const matchingRule = available_rules.find(
-        (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id
+        (item: { rule_id: string }) => item.rule_id === runnerItem.rule_id,
       );
 
       for (const targetClass of matchingRule?.target_classes ?? []) {
@@ -383,9 +341,8 @@ export function RuleSummaryPanel() {
             .map((run: StepRawJson) => run.compatibility)
             .filter(
               (
-                runCompatibility: CheckCompatibilityResponse | null | undefined
-              ): runCompatibility is CheckCompatibilityResponse =>
-                Boolean(runCompatibility)
+                runCompatibility: CheckCompatibilityResponse | null | undefined,
+              ): runCompatibility is CheckCompatibilityResponse => Boolean(runCompatibility),
             );
 
     for (const runCompatibility of compatibilitySources) {
@@ -499,14 +456,15 @@ export function RuleSummaryPanel() {
             <div className="space-y-2">
               {runner_rule_items.map(
                 (item: { runner_item_id: string; label: string }, index: number) => (
-                <div
-                  key={item.runner_item_id}
-                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
-                >
-                  <span className="mr-2 text-xs text-gray-400">{index + 1}.</span>
-                  {item.label}
-                </div>
-              ))}
+                  <div
+                    key={item.runner_item_id}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"
+                  >
+                    <span className="mr-2 text-xs text-gray-400">{index + 1}.</span>
+                    {item.label}
+                  </div>
+                ),
+              )}
             </div>
           ) : (
             <div className="text-sm text-gray-400">No rules in the Rule Runner</div>
@@ -526,9 +484,7 @@ export function RuleSummaryPanel() {
           ) : (
             <div className="space-y-2 text-sm text-gray-700">
               <div>Score: {compatibility.compatibility_score}</div>
-              <div>
-                Missing target classes: {compatibility.missing_target_classes?.length ?? 0}
-              </div>
+              <div>Missing target classes: {compatibility.missing_target_classes?.length ?? 0}</div>
               <div>Missing properties: {compatibility.missing_properties?.length ?? 0}</div>
               <div>Found target classes: {compatibility.target_classes_found?.length ?? 0}</div>
             </div>
@@ -554,16 +510,17 @@ export function RuleSummaryPanel() {
               </div>
               {compatibilityTargetClassRows.map(
                 (row: { key: string; ruleValue: string; graphValue: string }) => (
-                <div
-                  key={row.key}
-                  className="grid grid-cols-2 border-t border-gray-100 text-sm text-gray-700 first:border-t-0"
-                >
-                  <div className="min-h-9 px-3 py-2">{row.ruleValue}</div>
-                  <div className="min-h-9 border-l border-gray-200 px-3 py-2">
-                    {row.graphValue}
+                  <div
+                    key={row.key}
+                    className="grid grid-cols-2 border-t border-gray-100 text-sm text-gray-700 first:border-t-0"
+                  >
+                    <div className="min-h-9 px-3 py-2">{row.ruleValue}</div>
+                    <div className="min-h-9 border-l border-gray-200 px-3 py-2">
+                      {row.graphValue}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
           )}
         </section>
@@ -576,7 +533,9 @@ export function RuleSummaryPanel() {
           {ruleStructureLoading && ruleStructureStats.length === 0 ? (
             <div className="text-sm text-gray-400">Loading rule structure stats...</div>
           ) : ruleStructureStats.length === 0 ? (
-            <div className="text-sm text-gray-400">Add rules to the Rule Runner to inspect structure</div>
+            <div className="text-sm text-gray-400">
+              Add rules to the Rule Runner to inspect structure
+            </div>
           ) : (
             <div className="space-y-3">
               {ruleStructureStats.map((stats: RuleStructureStats) => (
@@ -605,13 +564,17 @@ export function RuleSummaryPanel() {
                       <div className="mt-1 text-sm text-gray-800">{stats.passPathCount}</div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Min decisions to pass</div>
+                      <div className="uppercase tracking-wide text-gray-500">
+                        Min decisions to pass
+                      </div>
                       <div className="mt-1 text-sm text-gray-800">
                         {stats.minDecisionStepsToPass ?? 'n/a'}
                       </div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Max decisions to pass</div>
+                      <div className="uppercase tracking-wide text-gray-500">
+                        Max decisions to pass
+                      </div>
                       <div className="mt-1 text-sm text-gray-800">
                         {stats.maxDecisionStepsToPass ?? 'n/a'}
                       </div>

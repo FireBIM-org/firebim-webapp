@@ -18,14 +18,14 @@ export default function ModelDetail() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Fetch model details
-  const { 
-    data: model, 
+  const {
+    data: model,
     isLoading: modelLoading,
-    isError
+    isError,
   } = useQuery({
     queryKey: ['model', id],
     queryFn: () => apiClient.getModel(id as string),
-    enabled: !!user && !!id
+    enabled: !!user && !!id,
   });
 
   const handleDownload = async () => {
@@ -33,30 +33,30 @@ export default function ModelDetail() {
       setIsDownloading(true);
       console.log(`Initiating download for model: ${id}`);
       const blob = await apiClient.downloadModel(id as string);
-      
+
       // Determine the correct MIME type for IFC files
       const mimeType = 'application/ifc';
-      
+
       // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([blob], { type: mimeType }));
-      
+
       // Create a temporary anchor element and trigger the download
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
       // Add null check to prevent TypeScript error
       a.download = model?.filename || `model-${id}.ifc`;
-      
+
       // Need to append to the document
       document.body.appendChild(a);
-      
+
       // Trigger the download
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
@@ -81,7 +81,10 @@ export default function ModelDetail() {
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Error Loading Model</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Could not load the model details. It may have been deleted or you may not have permission to view it.</p>
+              <p>
+                Could not load the model details. It may have been deleted or you may not have
+                permission to view it.
+              </p>
             </div>
             <div className="mt-5">
               <Link
@@ -115,7 +118,10 @@ export default function ModelDetail() {
             </h2>
           </div>
           <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
-            <PrimaryButton onClick={() => router.push(`/analysis?model=${model.id}`)} className="ml-3">
+            <PrimaryButton
+              onClick={() => router.push(`/analysis?model=${model.id}`)}
+              className="ml-3"
+            >
               Analyze Model
             </PrimaryButton>
             <button
@@ -137,10 +143,20 @@ export default function ModelDetail() {
               fields={[
                 { label: 'Filename', value: model.filename },
                 { label: 'File ID', value: model.id },
-                { label: 'Size', value: model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown' },
-                { label: 'Uploaded', value: `${new Date(model.created_at).toLocaleDateString()} ${new Date(model.created_at).toLocaleTimeString()}` },
-                ...(model.schema_version ? [{ label: 'IFC Schema Version', value: model.schema_version }] : []),
-                ...(model.entity_count ? [{ label: 'Entity Count', value: model.entity_count }] : []),
+                {
+                  label: 'Size',
+                  value: model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown',
+                },
+                {
+                  label: 'Uploaded',
+                  value: `${new Date(model.created_at).toLocaleDateString()} ${new Date(model.created_at).toLocaleTimeString()}`,
+                },
+                ...(model.schema_version
+                  ? [{ label: 'IFC Schema Version', value: model.schema_version }]
+                  : []),
+                ...(model.entity_count
+                  ? [{ label: 'Entity Count', value: model.entity_count }]
+                  : []),
               ]}
             />
           </div>

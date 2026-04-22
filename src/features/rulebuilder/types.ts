@@ -48,7 +48,6 @@ export type RuleLibraryState = {
 
 export type RuleLibrarySelection = Record<string, boolean>;
 
-
 // Backward-compatible aliases while components are being renamed.
 export type RuleNodeType = RuleElementType;
 export type RuleNodeSource = RuleElementSource;

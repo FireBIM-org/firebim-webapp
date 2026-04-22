@@ -29,12 +29,10 @@ function defaultLibraryState(): RuleBookLibraryState {
   };
 }
 
-function normalizeLibraryState(
-  input: RuleBookLibraryState
-): RuleBookLibraryState {
+function normalizeLibraryState(input: RuleBookLibraryState): RuleBookLibraryState {
   const next_rule_category_map = { ...input.rule_category_map };
   const next_trashed_rule_ids = input.trashed_rule_ids.filter(
-    (rule_id) => !MANAGED_EXAMPLE_RULE_IDS.includes(rule_id)
+    (rule_id) => !MANAGED_EXAMPLE_RULE_IDS.includes(rule_id),
   );
 
   for (const rule_id of MANAGED_EXAMPLE_RULE_IDS) {
@@ -80,9 +78,7 @@ function readLibraryStateFromStorage(): RuleBookLibraryState {
         parsed.custom_rule_labels && typeof parsed.custom_rule_labels === 'object'
           ? parsed.custom_rule_labels
           : {},
-      trashed_rule_ids: Array.isArray(parsed.trashed_rule_ids)
-        ? parsed.trashed_rule_ids
-        : [],
+      trashed_rule_ids: Array.isArray(parsed.trashed_rule_ids) ? parsed.trashed_rule_ids : [],
     });
   } catch {
     return normalizeLibraryState(defaultLibraryState());
@@ -93,10 +89,7 @@ function persistLibraryState(library_state: RuleBookLibraryState) {
   if (typeof window === 'undefined') return;
 
   try {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(normalizeLibraryState(library_state))
-    );
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeLibraryState(library_state)));
   } catch {
     // ignore persistence errors
   }
@@ -195,9 +188,7 @@ export type RuleBookStore = {
   setGraphLoading: (value: boolean) => void;
   setGraphError: (value: string | null) => void;
 
-  setExecutionStatus: (
-    value: 'idle' | 'ready' | 'running' | 'paused' | 'complete'
-  ) => void;
+  setExecutionStatus: (value: 'idle' | 'ready' | 'running' | 'paused' | 'complete') => void;
   setExecutionSolver: (value: 'standard' | 'horizontal' | 'vertical') => void;
   setExecutionTimeline: (timeline: ExecutionTimeline | null) => void;
   setCurrentStepIndex: (value: number) => void;
@@ -244,8 +235,8 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
       library_state_hydrated: true,
       library_selection: Object.fromEntries(
         Object.entries(state.library_selection).filter(([rule_id]) =>
-          state.available_rules.some((item) => item.rule_id === rule_id)
-        )
+          state.available_rules.some((item) => item.rule_id === rule_id),
+        ),
       ),
     }));
   },
@@ -258,36 +249,30 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         available_rules: next,
         library_selection: Object.fromEntries(
           Object.entries(state.library_selection).filter(([rule_id]) =>
-            next.some((item) => item.rule_id === rule_id)
-          )
+            next.some((item) => item.rule_id === rule_id),
+          ),
         ),
       };
     }),
 
   upsertAvailableRule: (rule) =>
     set((state) => {
-      const rest = state.available_rules.filter(
-        (item) => item.rule_id !== rule.rule_id
-      );
+      const rest = state.available_rules.filter((item) => item.rule_id !== rule.rule_id);
 
       return {
         available_rules: uniqueByRuleId([...rest, rule]).sort((a, b) =>
-          a.label.localeCompare(b.label)
+          a.label.localeCompare(b.label),
         ),
       };
     }),
 
   removeAvailableRule: (rule_id) =>
     set((state) => {
-      const next_available_rules = state.available_rules.filter(
-        (item) => item.rule_id !== rule_id
-      );
+      const next_available_rules = state.available_rules.filter((item) => item.rule_id !== rule_id);
 
       const library_state = normalizeLibraryState({
         ...state.library_state,
-        trashed_rule_ids: state.library_state.trashed_rule_ids.filter(
-          (id) => id !== rule_id
-        ),
+        trashed_rule_ids: state.library_state.trashed_rule_ids.filter((id) => id !== rule_id),
       });
 
       persistLibraryState(library_state);
@@ -297,11 +282,10 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         library_state,
         library_selection: Object.fromEntries(
           Object.entries(state.library_selection).filter(
-            ([selected_rule_id]) => selected_rule_id !== rule_id
-          )
+            ([selected_rule_id]) => selected_rule_id !== rule_id,
+          ),
         ),
-        selected_rule_id:
-          state.selected_rule_id === rule_id ? null : state.selected_rule_id,
+        selected_rule_id: state.selected_rule_id === rule_id ? null : state.selected_rule_id,
       };
     }),
 
@@ -312,8 +296,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
   setRulesLoading: (value) => set({ rules_loading: value }),
   setRulesError: (value) => set({ rules_error: value }),
 
-  toggleLibraryCollapsed: () =>
-    set((state) => ({ library_collapsed: !state.library_collapsed })),
+  toggleLibraryCollapsed: () => set((state) => ({ library_collapsed: !state.library_collapsed })),
 
   toggleRuleSelected: (rule_id, multi = false) =>
     set((state) => {
@@ -332,8 +315,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
       }
 
       const already_only_selected =
-        Object.keys(state.library_selection).length === 1 &&
-        state.library_selection[rule_id];
+        Object.keys(state.library_selection).length === 1 && state.library_selection[rule_id];
 
       return {
         library_selection: already_only_selected ? {} : { [rule_id]: true },
@@ -346,8 +328,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
   createCategory: () =>
     set((state) => {
       const next_index =
-        state.library_state.categories.filter((category) => !category.system)
-          .length + 1;
+        state.library_state.categories.filter((category) => !category.system).length + 1;
 
       const next_category = {
         id: `custom-${Date.now()}`,
@@ -378,7 +359,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         categories: state.library_state.categories.map((category) =>
           category.id === category_id && !category.system
             ? { ...category, label: trimmed }
-            : category
+            : category,
         ),
       });
 
@@ -404,7 +385,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
       }
 
       const next_trashed_rule_ids = state.library_state.trashed_rule_ids.filter(
-        (rule_id) => !selected_rule_ids.includes(rule_id)
+        (rule_id) => !selected_rule_ids.includes(rule_id),
       );
 
       const library_state = normalizeLibraryState({
@@ -471,8 +452,8 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         library_state,
         library_selection: Object.fromEntries(
           Object.entries(state.library_selection).filter(
-            ([selected_rule_id]) => !rule_ids.includes(selected_rule_id)
-          )
+            ([selected_rule_id]) => !rule_ids.includes(selected_rule_id),
+          ),
         ),
         selected_rule_id: rule_ids.includes(state.selected_rule_id || '')
           ? null
@@ -484,9 +465,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
     set((state) => {
       const library_state = normalizeLibraryState({
         ...state.library_state,
-        trashed_rule_ids: state.library_state.trashed_rule_ids.filter(
-          (id) => id !== rule_id
-        ),
+        trashed_rule_ids: state.library_state.trashed_rule_ids.filter((id) => id !== rule_id),
       });
 
       persistLibraryState(library_state);
@@ -544,7 +523,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
   removeRuleFromRunner: (runner_item_id) =>
     set((state) => ({
       runner_rule_items: state.runner_rule_items.filter(
-        (item) => item.runner_item_id !== runner_item_id
+        (item) => item.runner_item_id !== runner_item_id,
       ),
     })),
 
@@ -597,7 +576,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
 
 export function getVisibleRuleLibraryGroups(
   available_rules: RuleListItem[],
-  library_state: RuleBookLibraryState
+  library_state: RuleBookLibraryState,
 ) {
   return sortRuleBookCategories(library_state.categories).map((category) => {
     const rules = available_rules

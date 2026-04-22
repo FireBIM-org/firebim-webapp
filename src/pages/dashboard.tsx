@@ -10,23 +10,17 @@ export default function Dashboard() {
   const { user, isLoading: authLoading } = useRequireAuth();
 
   // Fetch user's IFC models
-  const { 
-    data: models, 
-    isLoading: modelsLoading 
-  } = useQuery({
+  const { data: models, isLoading: modelsLoading } = useQuery({
     queryKey: ['models'],
     queryFn: () => apiClient.getModels(),
-    enabled: !!user
+    enabled: !!user,
   });
 
   // Fetch user's IDS files
-  const { 
-    data: idsFiles, 
-    isLoading: idsLoading 
-  } = useQuery({
+  const { data: idsFiles, isLoading: idsLoading } = useQuery({
     queryKey: ['ids-files'],
     queryFn: () => apiClient.getIdsFiles(),
-    enabled: !!user
+    enabled: !!user,
   });
 
   if (authLoading || !user) {
@@ -41,9 +35,7 @@ export default function Dashboard() {
     <Layout title="Dashboard | FireBIM">
       <div className="py-6">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Welcome back, {user.username}!
-        </p>
+        <p className="mt-1 text-sm text-gray-600">Welcome back, {user.username}!</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -51,9 +43,7 @@ export default function Dashboard() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Total IFC Models
-              </dt>
+              <dt className="text-sm font-medium text-gray-500 truncate">Total IFC Models</dt>
               <dd className="mt-1 text-3xl font-semibold text-gray-900">
                 {modelsLoading ? (
                   <div className="animate-pulse h-8 w-12 bg-gray-200 rounded"></div>
@@ -64,7 +54,10 @@ export default function Dashboard() {
             </dl>
           </div>
           <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <Link href="/ifc-models" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+            <Link
+              href="/ifc-models"
+              className="text-sm font-medium text-orange-600 hover:text-orange-500"
+            >
               View all models <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>
@@ -73,9 +66,7 @@ export default function Dashboard() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Total IDS Files
-              </dt>
+              <dt className="text-sm font-medium text-gray-500 truncate">Total IDS Files</dt>
               <dd className="mt-1 text-3xl font-semibold text-gray-900">
                 {idsLoading ? (
                   <div className="animate-pulse h-8 w-12 bg-gray-200 rounded"></div>
@@ -86,7 +77,10 @@ export default function Dashboard() {
             </dl>
           </div>
           <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <Link href="/ids-files" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+            <Link
+              href="/ids-files"
+              className="text-sm font-medium text-orange-600 hover:text-orange-500"
+            >
               View all IDS files <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>
@@ -95,16 +89,17 @@ export default function Dashboard() {
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Run Analysis
-              </dt>
+              <dt className="text-sm font-medium text-gray-500 truncate">Run Analysis</dt>
               <dd className="mt-1 text-lg font-medium text-gray-900">
                 Validate IFC models against IDS files
               </dd>
             </dl>
           </div>
           <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <Link href="/analysis" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+            <Link
+              href="/analysis"
+              className="text-sm font-medium text-orange-600 hover:text-orange-500"
+            >
               Start new analysis <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>
@@ -115,10 +110,24 @@ export default function Dashboard() {
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900">Quick Actions</h2>
         <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/ifc-models/upload" className="bg-white p-6 rounded-lg shadow flex items-center">
+          <Link
+            href="/ifc-models/upload"
+            className="bg-white p-6 rounded-lg shadow flex items-center"
+          >
             <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
             </div>
             <div className="ml-4">
@@ -127,10 +136,24 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link href="/ids-files/upload" className="bg-white p-6 rounded-lg shadow flex items-center">
+          <Link
+            href="/ids-files/upload"
+            className="bg-white p-6 rounded-lg shadow flex items-center"
+          >
             <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
             </div>
             <div className="ml-4">
@@ -141,8 +164,19 @@ export default function Dashboard() {
 
           <Link href="/analysis" className="bg-white p-6 rounded-lg shadow flex items-center">
             <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
               </svg>
             </div>
             <div className="ml-4">

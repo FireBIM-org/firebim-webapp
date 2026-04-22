@@ -100,7 +100,7 @@ export class ApiClient {
             }
           }
           return Promise.reject(error);
-        }
+        },
       );
     }
   }
