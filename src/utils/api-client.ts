@@ -84,10 +84,10 @@ export class ApiClient {
       this.axiosInstance.interceptors.response.use(
         (response) => response,
         async (error) => {
-          const detail = error.response?.data?.detail as string | undefined;
+          const code = error.response?.data?.code as string | undefined;
           const isNoSession =
             error.response?.status === 401 &&
-            detail === 'Not authenticated';
+            code === 'NOT_AUTHENTICATED';
 
           if (isNoSession && !isSigningIn) {
             isSigningIn = true;
