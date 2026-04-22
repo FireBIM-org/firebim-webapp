@@ -154,7 +154,7 @@ export default function AnalysisResults() {
   const getStatusBadge = (status: boolean) => {
     return (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(status)}`}
       >
         {status ? 'Passed' : 'Failed'}
       </span>
@@ -170,7 +170,7 @@ export default function AnalysisResults() {
   if (authLoading || !user) {
     return (
       <Layout title="Loading... | FireBIM">
-        <div className="flex justify-center items-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <LoadingSpinner />
         </div>
       </Layout>
@@ -180,7 +180,7 @@ export default function AnalysisResults() {
   if (!analysisResult) {
     return (
       <Layout title="Loading Analysis Results | FireBIM">
-        <div className="flex flex-col items-center justify-center h-64">
+        <div className="flex h-64 flex-col items-center justify-center">
           <LoadingSpinner className="mb-4" />
           <p className="text-gray-700">Loading analysis results...</p>
         </div>
@@ -198,10 +198,10 @@ export default function AnalysisResults() {
       </div>
 
       {analysisResult && (
-        <div className="mt-5 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-5 overflow-hidden bg-white shadow sm:rounded-lg">
           {/* Overall Summary Section */}
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
+          <div className="border-b border-gray-200 px-4 py-5 sm:px-6">
+            <div className="flex items-center justify-between">
               <h2 className="text-lg leading-6 font-medium text-gray-900">
                 {analysisResult.title}
               </h2>
@@ -219,8 +219,8 @@ export default function AnalysisResults() {
                 className={`${
                   activeTab === 'summary'
                     ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } border-b-2 px-6 py-4 text-sm font-medium whitespace-nowrap`}
                 onClick={() => setActiveTab('summary')}
               >
                 Summary
@@ -229,8 +229,8 @@ export default function AnalysisResults() {
                 className={`${
                   activeTab === 'details'
                     ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } border-b-2 px-6 py-4 text-sm font-medium whitespace-nowrap`}
                 onClick={() => setActiveTab('details')}
               >
                 Detailed Results
@@ -239,8 +239,8 @@ export default function AnalysisResults() {
                 className={`${
                   activeTab === 'raw'
                     ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                } border-b-2 px-6 py-4 text-sm font-medium whitespace-nowrap`}
                 onClick={() => setActiveTab('raw')}
               >
                 Raw JSON
@@ -253,10 +253,10 @@ export default function AnalysisResults() {
             {/* Summary Tab */}
             {activeTab === 'summary' && (
               <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {/* Overall Stats Card */}
-                  <div className="bg-gray-50 p-4 rounded-md shadow-sm">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Overall Results</h3>
+                  <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+                    <h3 className="mb-4 text-lg font-medium text-gray-900">Overall Results</h3>
 
                     <div className="space-y-4">
                       <div>
@@ -267,9 +267,9 @@ export default function AnalysisResults() {
                             {analysisResult.total_specifications}
                           </span>
                         </div>
-                        <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                        <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
                           <div
-                            className="bg-orange-600 h-2 rounded-full"
+                            className="h-2 rounded-full bg-orange-600"
                             style={{ width: `${analysisResult.percent_specifications_pass}%` }}
                           ></div>
                         </div>
@@ -288,9 +288,9 @@ export default function AnalysisResults() {
                             {analysisResult.total_requirements}
                           </span>
                         </div>
-                        <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                        <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
                           <div
-                            className="bg-orange-600 h-2 rounded-full"
+                            className="h-2 rounded-full bg-orange-600"
                             style={{ width: `${analysisResult.percent_requirements_pass}%` }}
                           ></div>
                         </div>
@@ -310,9 +310,9 @@ export default function AnalysisResults() {
                             {analysisResult.total_checks_pass}/{analysisResult.total_checks}
                           </span>
                         </div>
-                        <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                        <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
                           <div
-                            className="bg-orange-600 h-2 rounded-full"
+                            className="h-2 rounded-full bg-orange-600"
                             style={{ width: `${analysisResult.percent_checks_pass}%` }}
                           ></div>
                         </div>
@@ -326,8 +326,8 @@ export default function AnalysisResults() {
                   </div>
 
                   {/* Critical Issues Card */}
-                  <div className="bg-gray-50 p-4 rounded-md shadow-sm">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Critical Issues</h3>
+                  <div className="rounded-md bg-gray-50 p-4 shadow-sm">
+                    <h3 className="mb-4 text-lg font-medium text-gray-900">Critical Issues</h3>
 
                     <div className="space-y-2">
                       {analysisResult.specifications
@@ -336,10 +336,10 @@ export default function AnalysisResults() {
                         .map((spec, index) => (
                           <div
                             key={index}
-                            className="p-2 bg-red-50 border border-red-100 rounded-md"
+                            className="rounded-md border border-red-100 bg-red-50 p-2"
                           >
                             <p className="font-medium text-red-800">{spec.name}</p>
-                            <p className="text-sm text-red-700 mt-1">
+                            <p className="mt-1 text-sm text-red-700">
                               {spec.description || 'No description provided'}
                             </p>
                           </div>
@@ -355,51 +355,51 @@ export default function AnalysisResults() {
 
                 {/* Specifications Summary */}
                 <div className="mt-8">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Specifications Summary</h3>
+                  <h3 className="mb-4 text-lg font-medium text-gray-900">Specifications Summary</h3>
 
-                  <div className="overflow-hidden overflow-x-auto shadow border-b border-gray-200 sm:rounded-lg">
+                  <div className="overflow-hidden overflow-x-auto border-b border-gray-200 shadow sm:rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                           >
                             Specification
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                           >
                             Status
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                           >
                             Pass Rate
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                           >
                             Required
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 bg-white">
                         {analysisResult.specifications.map((spec, index) => (
                           <tr
                             key={index}
                             className={spec.required && !spec.status ? 'bg-red-50' : ''}
                           >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
                               {spec.name}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                               {getStatusBadge(spec.status)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                               <div className="flex items-center">
                                 <span
                                   className={getPercentageColorClass(
@@ -414,7 +414,7 @@ export default function AnalysisResults() {
                                     : Number(spec.percent_checks_pass).toFixed(1)}
                                   %
                                 </span>
-                                <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                <div className="ml-2 h-2 w-16 rounded-full bg-gray-200">
                                   <div
                                     className={`${spec.status ? 'bg-green-600' : 'bg-red-600'} h-2 rounded-full`}
                                     style={{
@@ -424,9 +424,9 @@ export default function AnalysisResults() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                               {spec.required ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
                                   Required
                                 </span>
                               ) : (
@@ -449,7 +449,7 @@ export default function AnalysisResults() {
                   {analysisResult.specifications.map((spec, specIndex) => (
                     <div
                       key={specIndex}
-                      className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                      className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
                     >
                       <div
                         className={`px-4 py-5 ${spec.status ? 'bg-green-50' : 'bg-red-50'} border-b border-gray-200 sm:px-6`}
@@ -465,14 +465,14 @@ export default function AnalysisResults() {
                         )}
                         <div className="mt-2 flex flex-wrap gap-2">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${spec.required ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${spec.required ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}
                           >
                             {spec.required ? 'Required' : 'Optional'}
                           </span>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
                             {spec.total_checks} checks
                           </span>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
                             {Number.isFinite(Number(spec.percent_checks_pass))
                               ? Number(spec.percent_checks_pass).toFixed(1)
                               : '0.0'}
@@ -482,12 +482,12 @@ export default function AnalysisResults() {
                       </div>
 
                       <div className="px-4 py-5 sm:p-6">
-                        <h4 className="text-md font-medium text-gray-700 mb-3">Requirements</h4>
+                        <h4 className="text-md mb-3 font-medium text-gray-700">Requirements</h4>
                         <div className="space-y-6">
                           {spec.requirements.map((req, reqIndex) => (
                             <div
                               key={reqIndex}
-                              className="border border-gray-200 rounded-md overflow-hidden"
+                              className="overflow-hidden rounded-md border border-gray-200"
                             >
                               <div
                                 className={`px-4 py-3 ${req.status ? 'bg-green-50' : 'bg-red-50'} border-b border-gray-200`}
@@ -507,7 +507,7 @@ export default function AnalysisResults() {
                                 <div className="px-4 py-3">
                                   <button
                                     type="button"
-                                    className="flex items-center justify-between w-full text-left"
+                                    className="flex w-full items-center justify-between text-left"
                                     onClick={() => toggleRequirement(specIndex, reqIndex)}
                                   >
                                     <h6 className="text-xs font-medium text-gray-700">
@@ -555,40 +555,40 @@ export default function AnalysisResults() {
                                           <tr>
                                             <th
                                               scope="col"
-                                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                              className="px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                             >
                                               ID
                                             </th>
                                             <th
                                               scope="col"
-                                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                              className="px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                             >
                                               Class
                                             </th>
                                             <th
                                               scope="col"
-                                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                              className="px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                             >
                                               Name
                                             </th>
                                             <th
                                               scope="col"
-                                              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                              className="px-3 py-2 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                                             >
                                               Reason
                                             </th>
                                           </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="divide-y divide-gray-200 bg-white">
                                           {req.failed_entities.map((entity, entityIndex) => (
                                             <tr key={entityIndex} className="hover:bg-gray-50">
-                                              <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                              <td className="px-3 py-2 text-xs whitespace-nowrap text-gray-500">
                                                 {entity.id}
                                               </td>
-                                              <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                              <td className="px-3 py-2 text-xs whitespace-nowrap text-gray-500">
                                                 {entity.class}
                                               </td>
-                                              <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                              <td className="px-3 py-2 text-xs whitespace-nowrap text-gray-500">
                                                 {entity.name || '-'}
                                               </td>
                                               <td className="px-3 py-2 text-xs text-gray-500">
@@ -615,8 +615,8 @@ export default function AnalysisResults() {
             {/* Raw JSON Tab */}
             {activeTab === 'raw' && (
               <div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <pre className="overflow-auto text-xs text-gray-800 max-h-[600px]">
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <pre className="max-h-[600px] overflow-auto text-xs text-gray-800">
                     {JSON.stringify(analysisResult, null, 2)}
                   </pre>
                 </div>

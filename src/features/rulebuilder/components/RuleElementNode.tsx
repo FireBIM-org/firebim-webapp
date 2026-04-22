@@ -143,8 +143,8 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
         />
       )}
 
-      <div className={`border-1 rounded-xl px-3 py-2 ${palette.header}`}>
-        <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
+      <div className={`rounded-xl border-1 px-3 py-2 ${palette.header}`}>
+        <div className={`text-[11px] font-semibold tracking-wide uppercase ${palette.badge}`}>
           {typeBadge(rule.element_type)}
         </div>
         <div className="mt-1 text-sm font-semibold text-slate-900">{label}</div>
@@ -205,7 +205,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
           {showFalseOutput && (
             <>
-              <div className="absolute left-1/2 top-2 -translate-x-1/2 text-[10px] font-medium text-slate-500">
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] font-medium text-slate-500">
                 False
               </div>
               <Handle
@@ -220,7 +220,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
           {showUnknownOutput && (
             <>
-              <div className="absolute left-[88%] top-2 -translate-x-1/2 text-[10px] font-medium text-slate-500">
+              <div className="absolute top-2 left-[88%] -translate-x-1/2 text-[10px] font-medium text-slate-500">
                 Unknown
               </div>
               <Handle

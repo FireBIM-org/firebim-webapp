@@ -78,7 +78,7 @@ export default function ModelDetail() {
   if (isError) {
     return (
       <Layout title="Error | FireBIM">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="overflow-hidden bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Error Loading Model</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -90,7 +90,7 @@ export default function ModelDetail() {
             <div className="mt-5">
               <Link
                 href="/ifc-models"
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none"
               >
                 Back to Models
               </Link>
@@ -111,14 +111,14 @@ export default function ModelDetail() {
 
   return (
     <Layout title={`Model: ${model.filename} | FireBIM`}>
-      <div className="max-w-3xl mx-auto">
+      <div className="mx-auto max-w-3xl">
         <div className="md:flex md:items-center md:justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl">
               {model.filename}
             </h2>
           </div>
-          <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
+          <div className="mt-4 flex flex-shrink-0 md:mt-0 md:ml-4">
             <PrimaryButton
               onClick={() => router.push(`/analysis?model=${model.id}`)}
               className="ml-3"
@@ -128,7 +128,7 @@ export default function ModelDetail() {
             <button
               type="button"
               onClick={handleDownload}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="ml-3 inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
               disabled={isDownloading}
             >
               {isDownloading ? 'Downloading...' : 'Download'}
@@ -136,7 +136,7 @@ export default function ModelDetail() {
           </div>
         </div>
 
-        <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-6 overflow-hidden bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6">
             <FileInfo
               title="Model Information"

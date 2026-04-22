@@ -1178,7 +1178,7 @@ export default function RuleBuilderPage() {
 
                   <div className="mb-3">
                     <div className="mb-1 font-medium text-gray-800">Connections</div>
-                    <div className="max-h-24 overflow-y-auto whitespace-nowrap rounded border bg-gray-50 p-2 text-xs font-mono">
+                    <div className="max-h-24 overflow-y-auto rounded border bg-gray-50 p-2 font-mono text-xs whitespace-nowrap">
                       {builtTreeResult.connections.length > 0 ? (
                         builtTreeResult.connections.map((c, i) => (
                           <div key={i}>
@@ -1194,7 +1194,7 @@ export default function RuleBuilderPage() {
                   {builtTreeResult.missingBranches.length > 0 && (
                     <div className="mb-3">
                       <div className="mb-1 font-medium text-red-700">Missing branches</div>
-                      <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
+                      <div className="space-y-1 rounded border border-red-200 bg-red-50 p-2 font-mono text-xs">
                         {builtTreeResult.missingBranches.map((m, i) => (
                           <div key={i}>
                             {m.source_id}.{m.branch} → {m.missing_target_id} ❌

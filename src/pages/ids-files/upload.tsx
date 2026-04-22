@@ -69,11 +69,11 @@ export default function UploadIdsFile() {
       </div>
 
       <div className="mt-5 md:mt-0">
-        <div className="shadow sm:rounded-md sm:overflow-hidden">
-          <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
+        <div className="shadow sm:overflow-hidden sm:rounded-md">
+          <div className="space-y-6 bg-white px-4 py-5 sm:p-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">IDS File</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+              <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                 <div className="space-y-1 text-center" {...getRootProps()}>
                   <input {...getInputProps()} id="fileInput" />
                   <svg
@@ -106,29 +106,29 @@ export default function UploadIdsFile() {
 
             {isUploading && (
               <div className="mt-4">
-                <div className="bg-gray-200 rounded-full overflow-hidden">
+                <div className="overflow-hidden rounded-full bg-gray-200">
                   <div
-                    className="h-2 bg-orange-500 rounded-full"
+                    className="h-2 rounded-full bg-orange-500"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
-                <p className="mt-2 text-sm text-gray-500 text-center">
+                <p className="mt-2 text-center text-sm text-gray-500">
                   Uploading... {uploadProgress}%
                 </p>
               </div>
             )}
           </div>
-          <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
+          <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
             <button
               onClick={() => router.push('/ids-files')}
               type="button"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 mr-3"
+              className="mr-3 inline-flex justify-center rounded-md border border-transparent bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none"
             >
               Cancel
             </button>
             <button
               type="button"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              className="inline-flex justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none"
               onClick={() => document.getElementById('fileInput')?.click()}
               disabled={isUploading}
             >

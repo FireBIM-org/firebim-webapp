@@ -20,7 +20,7 @@ const fields = [
 ];
 
 const BuildInfoPage: React.FC = () => (
-  <div className="max-w-2xl mx-auto py-10">
+  <div className="mx-auto max-w-2xl py-10">
     <FileInfo
       title="Build Information"
       description="Details about the current build and environment."

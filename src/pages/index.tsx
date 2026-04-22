@@ -30,7 +30,7 @@ export default function Home() {
                       <div className="rounded-md shadow">
                         <Link
                           href="/register"
-                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg"
+                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:px-10 md:py-4 md:text-lg"
                         >
                           Register
                         </Link>
@@ -38,7 +38,7 @@ export default function Home() {
                       <div className="mt-3 sm:mt-0 sm:ml-3">
                         <Link
                           href="/login"
-                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-gray-100 px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-200 md:py-4 md:px-10 md:text-lg"
+                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-gray-100 px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-200 md:px-10 md:py-4 md:text-lg"
                         >
                           Login
                         </Link>
@@ -48,7 +48,7 @@ export default function Home() {
                     <div className="rounded-md shadow">
                       <Link
                         href="/dashboard"
-                        className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg"
+                        className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:px-10 md:py-4 md:text-lg"
                       >
                         Go to Dashboard
                       </Link>
@@ -62,13 +62,13 @@ export default function Home() {
                     <Image
                       src="/window.svg"
                       alt="BIM Model Visualization"
-                      className="w-full h-64 object-cover"
+                      className="h-64 w-full object-cover"
                       width={800}
                       height={256}
                       priority
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl font-medium text-white bg-black bg-opacity-50 px-4 py-2 rounded">
+                      <span className="bg-opacity-50 rounded bg-black px-4 py-2 text-xl font-medium text-white">
                         BIM Model Analysis
                       </span>
                     </div>
@@ -83,7 +83,7 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="lg:text-center">
               <h2 className="text-lg font-semibold text-orange-600">Features</h2>
-              <p className="mt-2 text-3xl font-bold leading-8 tracking-tight text-gray-900 sm:text-4xl">
+              <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                 A better way to manage BIM models
               </p>
               <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">

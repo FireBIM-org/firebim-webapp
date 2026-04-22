@@ -119,14 +119,14 @@ export function GraphToolbar() {
     <div className="border-b border-gray-200 bg-white px-4 py-3">
       <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <label className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label className="shrink-0 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Building graph
           </label>
 
           <select
             value={selected_graph_source}
             onChange={(event) => setSelectedGraphSource(event.target.value)}
-            className="min-w-[320px] flex-1 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="min-w-[320px] flex-1 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           >
             {available_graphs.length === 0 ? (
               <option value="">No stored graphs found</option>

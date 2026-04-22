@@ -85,7 +85,7 @@ export default function Analysis() {
 
       <div className="mt-5 md:mt-0">
         <div className="shadow sm:rounded-md">
-          <div className="px-4 py-5 bg-white sm:p-6">
+          <div className="bg-white px-4 py-5 sm:p-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
                 <label htmlFor="model" className="block text-sm font-medium text-gray-700">
@@ -94,7 +94,7 @@ export default function Analysis() {
                 <select
                   id="model"
                   name="model"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  className="mt-1 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-orange-500 focus:ring-orange-500 focus:outline-none sm:text-sm"
                   value={selectedModelId}
                   onChange={(e) => setSelectedModelId(e.target.value)}
                 >
@@ -120,7 +120,7 @@ export default function Analysis() {
                 <select
                   id="ids"
                   name="ids"
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+                  className="mt-1 block w-full rounded-md border-gray-300 py-2 pr-10 pl-3 text-base focus:border-orange-500 focus:ring-orange-500 focus:outline-none sm:text-sm"
                   value={selectedIdsId}
                   onChange={(e) => setSelectedIdsId(e.target.value)}
                 >
@@ -147,7 +147,7 @@ export default function Analysis() {
                       id="sync"
                       name="processing-method"
                       type="radio"
-                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
+                      className="h-4 w-4 border-gray-300 text-orange-600 focus:ring-orange-500"
                       checked={processingMethod === 'sync'}
                       onChange={() => setProcessingMethod('sync')}
                     />
@@ -156,13 +156,13 @@ export default function Analysis() {
                     </label>
                   </div>
                   {/* TODO: Enable this option and make async submission work */}
-                  <div className="flex items-center mt-2">
+                  <div className="mt-2 flex items-center">
                     <input
                       id="async"
                       name="processing-method"
                       type="radio"
                       disabled={true}
-                      className="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300"
+                      className="h-4 w-4 border-gray-300 text-orange-600 focus:ring-orange-500"
                       checked={processingMethod === 'async'}
                       onChange={() => setProcessingMethod('async')}
                     />
@@ -174,14 +174,14 @@ export default function Analysis() {
               </div>
             </div>
           </div>
-          <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
+          <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
             <button
               type="button"
               onClick={startAnalysis}
               disabled={isProcessing || !selectedModelId || !selectedIdsId}
-              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${
+              className={`inline-flex justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none ${
                 isProcessing || !selectedModelId || !selectedIdsId
-                  ? 'opacity-70 cursor-not-allowed'
+                  ? 'cursor-not-allowed opacity-70'
                   : ''
               }`}
             >
@@ -192,15 +192,15 @@ export default function Analysis() {
       </div>
 
       {isProcessing && (
-        <div className="mt-8 p-4 bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="mt-8 overflow-hidden bg-white p-4 shadow sm:rounded-lg">
           <div className="flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
+            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-orange-500"></div>
             <p className="text-gray-700">
               {processingMethod === 'async'
                 ? 'Analysis in progress. Redirecting to results page...'
                 : 'Processing your request...'}
             </p>
-            {checkId && <p className="text-sm text-gray-500 mt-2">Check ID: {checkId}</p>}
+            {checkId && <p className="mt-2 text-sm text-gray-500">Check ID: {checkId}</p>}
           </div>
         </div>
       )}

@@ -62,7 +62,7 @@ function RuleCard({
       ].join(' ')}
     >
       <div className="border-b border-gray-100 px-3 py-2">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">Rule</div>
+        <div className="text-[11px] font-semibold tracking-wide text-sky-700 uppercase">Rule</div>
         <div className="mt-1 font-medium text-gray-900">{display_label}</div>
       </div>
 
@@ -74,7 +74,7 @@ function RuleCard({
         )}
 
         <div className="flex items-center justify-between pt-1">
-          <div className="text-[10px] uppercase tracking-wide text-orange-600">
+          <div className="text-[10px] tracking-wide text-orange-600 uppercase">
             {rule.source === 'api' ? 'stored' : 'example'}
           </div>
 
@@ -122,7 +122,7 @@ function CategorySection({
         <button
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="flex min-w-0 flex-1 items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-gray-500 hover:text-gray-700"
+          className="flex min-w-0 flex-1 items-center justify-between text-left text-xs font-semibold tracking-wide text-gray-500 uppercase hover:text-gray-700"
         >
           <span className="truncate">{label}</span>
           {open ? (
@@ -148,7 +148,7 @@ function CategorySection({
             <button
               type="button"
               onClick={() => onMoveSelectedRulesToCategory(category_id)}
-              className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-600 hover:bg-blue-50"
+              className="rounded px-2 py-1 text-[10px] font-semibold tracking-wide text-blue-600 uppercase hover:bg-blue-50"
               title="Move selected here"
             >
               Move here
@@ -602,14 +602,14 @@ export default function RuleBookLibraryPanel({
                 });
               }}
               placeholder="Search rules"
-              className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              className="w-full rounded-md border border-gray-300 py-2 pr-9 pl-9 text-sm text-gray-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             />
-            <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <MagnifyingGlassIcon className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="absolute top-2 right-2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                 title="Clear search"
               >
                 <XMarkIcon className="h-4 w-4" />
