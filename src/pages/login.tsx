@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import React, { useEffect } from 'react';
+
 import Layout from '../components/Layout';
-import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const { user, isLoading, login } = useAuth();

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import {
   ArrowPathIcon,
   ChevronLeftIcon,
@@ -6,6 +5,8 @@ import {
   PauseIcon,
   PlayIcon,
 } from '@heroicons/react/24/outline';
+import { useMemo } from 'react';
+
 import { useRuleBookStore, type RuleBookStore } from '../store';
 
 type Props = {

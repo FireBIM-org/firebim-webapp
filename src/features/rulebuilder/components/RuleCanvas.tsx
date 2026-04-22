@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import {
   Background,
@@ -17,17 +16,19 @@ import {
   type NodeTypes,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { toPng } from 'html-to-image';
+import '@xyflow/react/dist/style.css';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import RuleBranchEdge from './RuleBranchEdge';
-import { getRuleElement } from '../api';
-import RuleElementNode from './RuleElementNode';
-import { BuildTreeRequest, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
 import {
   buildRuleTreeFromStart,
   extractRulesFromCanvasNodes,
 } from '@/features/rulebuilder/buildTree';
+import { BuildTreeRequest, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
+
+import { getRuleElement } from '../api';
+import RuleBranchEdge from './RuleBranchEdge';
+import RuleElementNode from './RuleElementNode';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];

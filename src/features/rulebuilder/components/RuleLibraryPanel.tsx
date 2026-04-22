@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import {
   ArrowPathIcon,
   ChevronDownIcon,
@@ -10,6 +9,8 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useMemo, useState } from 'react';
+
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
 import { getNodePalette } from './RuleElementNode';
 

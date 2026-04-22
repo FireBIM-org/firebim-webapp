@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+
+import BackLink from '../../components/BackLink';
+import FileInfo from '../../components/FileInfo';
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PrimaryButton from '../../components/PrimaryButton';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { IDSSpecification } from '../../utils/api-client';
-import FileInfo from '../../components/FileInfo';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import BackLink from '../../components/BackLink';
-import PrimaryButton from '../../components/PrimaryButton';
 
 export default function IdsFileDetail() {
   const router = useRouter();

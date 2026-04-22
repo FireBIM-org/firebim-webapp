@@ -10,8 +10,7 @@ import {
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/ruleSentiment';
-import { useRuleBookStore, type RuleBookStore } from '../store';
+
 import type {
   BuildingGraphData,
   BuildingGraphEdge,
@@ -20,6 +19,9 @@ import type {
   ExecutionStep,
   NodeEvaluationResult,
 } from '../types';
+
+import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/ruleSentiment';
+import { useRuleBookStore, type RuleBookStore } from '../store';
 import { ExecutionControls } from './ExecutionControls';
 
 type Props = {

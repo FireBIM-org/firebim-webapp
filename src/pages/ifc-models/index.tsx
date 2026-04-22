@@ -1,11 +1,12 @@
-import React from 'react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
+
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { type IFCModel } from '../../utils/api-client';
-import Image from 'next/image';
-import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IfcModels() {
   const { user, isLoading: authLoading } = useRequireAuth();

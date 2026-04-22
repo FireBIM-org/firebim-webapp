@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
 import { ArrowPathIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useRuleBookStore, type RuleBookStore } from '../store';
+import { useMemo, useRef, useState } from 'react';
+
 import type { RuleRunnerItem } from '../types';
+
+import { useRuleBookStore, type RuleBookStore } from '../store';
 
 type DragPayload = {
   kind: 'rulebook-rule' | 'rulebook-runner-item';

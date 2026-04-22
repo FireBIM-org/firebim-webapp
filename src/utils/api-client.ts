@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+
 import { components } from '../types/api';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';

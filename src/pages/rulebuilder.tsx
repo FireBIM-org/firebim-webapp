@@ -1,19 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  BookOpenIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
-import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
-import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
-import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
-import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
-import { RULE_LIBRARY } from '@/features/rulebuilder/library';
-import {
-  RuleData,
-  BuiltTreeResult,
-  useRuleBuilderEditor,
-} from '@/features/rulebuilder/editorStore';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
@@ -28,14 +25,18 @@ import {
   checkRuleCompleteness,
   publishRule,
 } from '@/features/rulebuilder/api';
-import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
+import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
+import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
+import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import {
-  BookOpenIcon,
-  ArrowTopRightOnSquareIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline';
+  RuleData,
+  BuiltTreeResult,
+  useRuleBuilderEditor,
+} from '@/features/rulebuilder/editorStore';
+import { RULE_LIBRARY } from '@/features/rulebuilder/library';
+import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';

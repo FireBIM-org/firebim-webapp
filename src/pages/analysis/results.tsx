@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+
+import BackLink from '../../components/BackLink';
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import BackLink from '../../components/BackLink';
 
 interface AnalysisResult {
   title: string;

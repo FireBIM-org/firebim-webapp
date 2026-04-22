@@ -1,5 +1,6 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
+
 import { useRuleBookStore, type RuleBookStore } from '../store';
 
 function localNameFromToken(token: string | null | undefined) {

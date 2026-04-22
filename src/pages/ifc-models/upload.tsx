@@ -1,11 +1,12 @@
-import React, { useCallback, useState } from 'react';
 import { useRouter } from 'next/router';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
+
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
-import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function UploadModel() {
   const { user, isLoading: authLoading } = useRequireAuth();

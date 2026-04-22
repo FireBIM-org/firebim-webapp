@@ -1,5 +1,8 @@
-import { useCallback, useEffect } from 'react';
 import { ArrowPathIcon, ArrowUpTrayIcon, CubeTransparentIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect } from 'react';
+
+import type { BuildingGraphData } from '../types';
+
 import {
   fetchStoredBuildingGraphRaw,
   listStoredBuildingGraphs,
@@ -7,7 +10,6 @@ import {
 } from '../api';
 import { cloneDefaultOntologyCatalog } from '../ontologyCatalog';
 import { useRuleBookStore, type RuleBookStore } from '../store';
-import type { BuildingGraphData } from '../types';
 
 export function GraphToolbar() {
   const available_graphs = useRuleBookStore((state: RuleBookStore) => state.available_graphs);

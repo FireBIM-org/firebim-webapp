@@ -1,4 +1,5 @@
 import React from 'react';
+
 import FileInfo from '../components/FileInfo';
 
 // These values should be injected at build time. For now, use placeholders or environment variables.

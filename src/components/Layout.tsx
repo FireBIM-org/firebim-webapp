@@ -1,10 +1,11 @@
-import React, { ReactNode } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext';
+import React, { ReactNode } from 'react';
 
 import Analytics from '@/components/Analytics';
+
+import { useAuth } from '../contexts/AuthContext';
 
 interface LayoutProps {
   children: ReactNode;

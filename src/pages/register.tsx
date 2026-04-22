@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
 import type { GetServerSideProps } from 'next';
+
+import { useRouter } from 'next/router';
+import React, { useEffect } from 'react';
+
 import Layout from '../components/Layout';
-import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 // Derive the Authentik base URL from the issuer URL (server-side)
 // AUTHENTIK_ISSUER_URL = https://auth.example.com/application/o/firebim/

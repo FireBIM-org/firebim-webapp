@@ -1,5 +1,6 @@
-import { ChangeEvent } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+import { ChangeEvent } from 'react';
+
 import type { RuleData } from '@/features/rulebuilder/editorStore';
 
 type RuleElementType = RuleData['element_type'];

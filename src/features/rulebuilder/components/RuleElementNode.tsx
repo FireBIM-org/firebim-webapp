@@ -1,4 +1,5 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+
 import { classifyTerminalSentimentFromMany } from '../../../lib/ruleSentiment';
 
 type RuleData = {

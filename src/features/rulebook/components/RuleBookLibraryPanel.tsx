@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowPathIcon,
   Bars3Icon,
@@ -10,10 +9,13 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import type { RuleListItem } from '../types';
+
 import { deleteRule, getRule, getRulesHealth, listRules } from '../api';
 import { ensureSeededExampleRules, getSeededExampleRuleDefinition } from '../examples';
 import { getVisibleRuleLibraryGroups, useRuleBookStore, type RuleBookStore } from '../store';
-import type { RuleListItem } from '../types';
 
 type Props = {
   collapsed?: boolean;

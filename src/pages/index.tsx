@@ -1,8 +1,9 @@
-import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import React from 'react';
+
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import Image from 'next/image';
 
 export default function Home() {
   const { user } = useAuth();

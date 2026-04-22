@@ -1,8 +1,10 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
+
+import type { CheckCompatibilityResponse, CheckRunResponse, RuleDefinition } from '../types';
+
 import { getRuleOrNull, runCompatibilityCheck } from '../api';
 import { useRuleBookStore, type RuleBookStore } from '../store';
-import type { CheckCompatibilityResponse, CheckRunResponse, RuleDefinition } from '../types';
 
 type StepRawJson = {
   check_run?: CheckRunResponse;
