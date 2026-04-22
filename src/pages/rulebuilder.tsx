@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
@@ -239,8 +238,7 @@ function buildNumberedRuleLabel(
 }
 
 export default function RuleBuilderPage() {
-  const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const swaggerDocsUrl = env.apiDocsUrl;
   const localLibraryItems = useMemo(() => normalizeLocalLibraryItems(), []);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
@@ -284,12 +282,6 @@ export default function RuleBuilderPage() {
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
   const [rulePublishState, setRulePublishState] = useState<PublishState>('idle');
   const [rulePublishMessage, setRulePublishMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, router, user]);
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],

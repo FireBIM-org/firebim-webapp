@@ -43,7 +43,7 @@ cd ../firebim-api-server
 docker compose up -d
 ```
 
-Wait for Authentik to finish initialising at [http://localhost:9090](http://localhost:9090) before starting the webapp.
+Wait for Authentik to finish initialising at [http://localhost:9080](http://localhost:9080) before starting the webapp.
 
 ### 2. Configure the webapp
 

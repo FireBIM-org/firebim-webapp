@@ -20,11 +20,11 @@ export default async function handler(
   const session = await getServerSession(req, res, authOptions);
 
   if (session?.error === "RefreshAccessTokenError") {
-    return res.status(401).json({ detail: "Session expired — please log in again" });
+    return res.status(401).json({ code: "SESSION_EXPIRED", detail: "Session expired — please log in again" });
   }
 
   if (!session?.accessToken) {
-    return res.status(401).json({ detail: "Not authenticated" });
+    return res.status(401).json({ code: "NOT_AUTHENTICATED", detail: "Not authenticated" });
   }
 
   // Build the upstream URL from the catch-all segments
