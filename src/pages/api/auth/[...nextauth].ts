@@ -62,10 +62,9 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       if (response.status === 400 || response.status === 401) {
         return { ...token, error: "RefreshAccessTokenError" };
       }
-      // Other failures (5xx, network blip) are transient. Signal the proxy to
-      // return 503 so the client can retry rather than receiving an upstream 401
-      // with an expired access token that looks like a permissions error.
-      return { ...token, error: "RefreshAccessTokenTransientError" };
+      // Other failures (5xx, network blip) are transient; return the current token
+      // without an error flag so the next request retries the refresh automatically.
+      return token;
     }
 
     return {
@@ -77,10 +76,9 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     };
   } catch (error) {
     // Network error or discovery failure — treat as transient.
-    // Signal the proxy to return 503 so the client can retry rather than
-    // forwarding an expired access token that produces a silent upstream 401.
+    // Return the current token WITHOUT an error flag so the next request retries the refresh.
     console.error("Error refreshing access token:", error);
-    return { ...token, error: "RefreshAccessTokenTransientError" };
+    return token;
   }
 }
 
