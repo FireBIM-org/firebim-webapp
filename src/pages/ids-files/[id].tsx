@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+
+import BackLink from '../../components/BackLink';
+import FileInfo from '../../components/FileInfo';
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import PrimaryButton from '../../components/PrimaryButton';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { IDSSpecification } from '../../utils/api-client';
-import FileInfo from '../../components/FileInfo';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import BackLink from '../../components/BackLink';
-import PrimaryButton from '../../components/PrimaryButton';
 
 export default function IdsFileDetail() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function IdsFileDetail() {
   if (isError) {
     return (
       <Layout title="Error | FireBIM">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="overflow-hidden bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Error Loading IDS File</h3>
             <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -89,7 +90,7 @@ export default function IdsFileDetail() {
             <div className="mt-5">
               <Link
                 href="/ids-files"
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none"
               >
                 Back to IDS Files
               </Link>
@@ -110,14 +111,14 @@ export default function IdsFileDetail() {
 
   return (
     <Layout title={`IDS File: ${idsFile.filename} | FireBIM`}>
-      <div className="max-w-3xl mx-auto">
+      <div className="mx-auto max-w-3xl">
         <div className="md:flex md:items-center md:justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl">
               {idsFile.filename}
             </h2>
           </div>
-          <div className="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
+          <div className="mt-4 flex flex-shrink-0 md:mt-0 md:ml-4">
             <PrimaryButton
               onClick={() => router.push(`/analysis?ids=${idsFile.id}`)}
               className="ml-3"
@@ -127,7 +128,7 @@ export default function IdsFileDetail() {
             <button
               type="button"
               onClick={handleDownload}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="ml-3 inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
               disabled={isDownloading}
             >
               {isDownloading ? 'Downloading...' : 'Download'}
@@ -157,7 +158,7 @@ export default function IdsFileDetail() {
         />
 
         {idsFile.specifications && (
-          <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="mt-6 overflow-hidden bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Specifications</h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
@@ -172,31 +173,31 @@ export default function IdsFileDetail() {
                       <tr>
                         <th
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                         >
                           Type
                         </th>
                         <th
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                         >
                           Property
                         </th>
                         <th
                           scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
                         >
                           Requirement
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 bg-white">
                       {idsFile.specifications.map((spec: IDSSpecification, index: number) => (
                         <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                             {spec.entity_type || 'Any'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                             {spec.property || 'N/A'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">

@@ -1,5 +1,6 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
+
 import { useRuleBookStore, type RuleBookStore } from '../store';
 
 function localNameFromToken(token: string | null | undefined) {
@@ -111,7 +112,7 @@ export function ExecutionConsole() {
     return (
       <div className="border-t border-gray-200 bg-slate-950 px-4 py-2 text-slate-100">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
             Execution console
           </div>
           <button
@@ -130,7 +131,7 @@ export function ExecutionConsole() {
   return (
     <div className="border-t border-gray-200 bg-slate-950 px-4 py-3 text-slate-100">
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <div className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
           Execution console
         </div>
         <button
@@ -190,7 +191,7 @@ export function ExecutionConsole() {
           (compatibilitySummary.missing_target_classes.length > 0 ||
             compatibilitySummary.missing_properties.length > 0) ? (
             <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 px-3 py-3">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-300">
+              <div className="mb-2 text-xs font-semibold tracking-wide text-amber-300 uppercase">
                 Missing targets explained
               </div>
 
@@ -214,7 +215,7 @@ export function ExecutionConsole() {
 
               {compatibilitySummary.target_classes_required.length > 0 ? (
                 <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900 px-3 py-3">
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
                     Target overview
                   </div>
                   <div className="space-y-1 text-xs text-slate-200">
@@ -236,7 +237,7 @@ export function ExecutionConsole() {
 
               {compatibilitySummary.missing_properties.length > 0 ? (
                 <div className="mt-3 rounded-lg border border-slate-800 bg-slate-900 px-3 py-3">
-                  <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">
                     Missing properties
                   </div>
                   <div className="space-y-1 text-xs text-slate-200">
@@ -260,7 +261,7 @@ export function ExecutionConsole() {
 
           {raw_json ? (
             <details className="rounded-xl border border-slate-800 bg-slate-900">
-              <summary className="cursor-pointer px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-300">
+              <summary className="cursor-pointer px-3 py-2 text-xs font-semibold tracking-wide text-slate-300 uppercase">
                 Raw backend JSON
               </summary>
               <pre className="max-h-[240px] overflow-auto border-t border-slate-800 px-3 py-3 text-xs text-slate-200">

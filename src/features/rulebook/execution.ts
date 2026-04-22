@@ -1,4 +1,3 @@
-import { getRuleOrNull, runDiagnosticCheck } from './api';
 import type {
   BuildingGraphData,
   DiagnosticRunResponse,
@@ -9,6 +8,8 @@ import type {
   RuleListItem,
   RuleRunnerItem,
 } from './types';
+
+import { getRuleOrNull, runDiagnosticCheck } from './api';
 
 type StepRawJson = {
   diagnostic_run: DiagnosticRunResponse;

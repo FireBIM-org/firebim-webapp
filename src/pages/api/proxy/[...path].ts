@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+
 import { getServerSession } from 'next-auth/next';
+
 import { authOptions } from '../auth/[...nextauth]';
 
 const API_BACKEND = process.env.API_BACKEND_URL || 'http://localhost:8000';

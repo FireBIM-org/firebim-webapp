@@ -1,18 +1,18 @@
-import React, { useCallback, useEffect, useState } from 'react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
-import Layout from '../components/Layout';
-import { env } from '../config/env';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useRequireAuth } from '../hooks/useRequireAuth';
-import { useRuleBookStore, type RuleBookStore } from '../features/rulebook/store';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
-import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
-import { RuleRunner } from '../features/rulebook/components/RuleRunner';
+import Layout from '../components/Layout';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { env } from '../config/env';
 import { BuildingGraphView } from '../features/rulebook/components/BuildingGraphView';
 import { ExecutionConsole } from '../features/rulebook/components/ExecutionConsole';
+import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
+import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
+import { RuleRunner } from '../features/rulebook/components/RuleRunner';
 import { RuleSummaryPanel } from '../features/rulebook/components/RuleSummaryPanel';
 import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution';
+import { useRuleBookStore, type RuleBookStore } from '../features/rulebook/store';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useRequireAuth();

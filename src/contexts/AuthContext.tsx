@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useMemo, useEffect, useRef, ReactNode } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
+import React, { createContext, useContext, useMemo, useEffect, useRef, ReactNode } from 'react';
 
 export interface AuthUser {
   id: string;

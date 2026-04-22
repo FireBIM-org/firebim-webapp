@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import { SEEDED_EXAMPLE_RULE_IDS } from './examples';
 
 const MANAGED_EXAMPLE_RULE_IDS = [
@@ -7,7 +8,6 @@ const MANAGED_EXAMPLE_RULE_IDS = [
   'building-large-height-fire-check',
   'large-building-fire-height-sequence',
 ];
-import { DEFAULT_RULEBOOK_CATEGORIES } from './library';
 import type {
   BuildingGraphData,
   ExecutionTimeline,
@@ -17,6 +17,8 @@ import type {
   RuleListItem,
   RuleRunnerItem,
 } from './types';
+
+import { DEFAULT_RULEBOOK_CATEGORIES } from './library';
 
 const STORAGE_KEY = 'firebim-rulebook-library-state-v1';
 

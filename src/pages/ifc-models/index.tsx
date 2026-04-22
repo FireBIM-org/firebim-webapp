@@ -1,11 +1,12 @@
-import React from 'react';
-import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import Image from 'next/image';
+import Link from 'next/link';
+import React from 'react';
+
 import Layout from '../../components/Layout';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { type IFCModel } from '../../utils/api-client';
-import Image from 'next/image';
-import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IfcModels() {
   const { user, isLoading: authLoading } = useRequireAuth();
@@ -35,7 +36,7 @@ export default function IfcModels() {
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
           <Link
             href="/ifc-models/upload"
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 sm:w-auto"
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none sm:w-auto"
           >
             Upload Model
           </Link>
@@ -43,11 +44,11 @@ export default function IfcModels() {
       </div>
 
       <div className="mt-8 flex flex-col">
-        <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <div className="ring-opacity-5 overflow-hidden shadow ring-1 ring-black md:rounded-lg">
               {modelsLoading ? (
-                <div className="py-12 flex justify-center">
+                <div className="flex justify-center py-12">
                   <LoadingSpinner />
                 </div>
               ) : !models || models.length === 0 ? (
@@ -56,7 +57,7 @@ export default function IfcModels() {
                   <div className="mt-6">
                     <Link
                       href="/ifc-models/upload"
-                      className="inline-flex items-center rounded-md border border-transparent bg-orange-100 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                      className="inline-flex items-center rounded-md border border-transparent bg-orange-100 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-200 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:outline-none"
                     >
                       Upload IFC Model
                     </Link>
@@ -68,7 +69,7 @@ export default function IfcModels() {
                     <tr>
                       <th
                         scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                        className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
                         Name
                       </th>
@@ -84,7 +85,7 @@ export default function IfcModels() {
                       >
                         Size
                       </th>
-                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <th scope="col" className="relative py-3.5 pr-4 pl-3 sm:pr-6">
                         <span className="sr-only">Actions</span>
                       </th>
                     </tr>
@@ -92,9 +93,9 @@ export default function IfcModels() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {models.map((model: IFCModel) => (
                       <tr key={model.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                        <td className="py-4 pr-3 pl-4 text-sm whitespace-nowrap sm:pl-6">
                           <div className="flex items-center">
-                            <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-md">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-gray-100">
                               <Image
                                 src="/file.svg"
                                 alt=""
@@ -109,16 +110,16 @@ export default function IfcModels() {
                             </div>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
                           {new Date(model.created_at).toLocaleDateString()}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
                           {model.size ? `${Math.round(model.size / 1024)} KB` : 'N/A'}
                         </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
                           <Link
                             href={`/ifc-models/${model.id}`}
-                            className="text-orange-600 hover:text-orange-900 mr-4"
+                            className="mr-4 text-orange-600 hover:text-orange-900"
                           >
                             View<span className="sr-only">, {model.filename}</span>
                           </Link>

@@ -1,8 +1,10 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
+
+import type { CheckCompatibilityResponse, CheckRunResponse, RuleDefinition } from '../types';
+
 import { getRuleOrNull, runCompatibilityCheck } from '../api';
 import { useRuleBookStore, type RuleBookStore } from '../store';
-import type { CheckCompatibilityResponse, CheckRunResponse, RuleDefinition } from '../types';
 
 type StepRawJson = {
   check_run?: CheckRunResponse;
@@ -412,21 +414,21 @@ export function RuleSummaryPanel() {
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Building graph
           </div>
 
           {graph_loaded && active_graph_data ? (
             <div className="space-y-3 text-sm text-gray-700">
               <div className="flex flex-wrap items-baseline gap-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <span className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
                   Name:
                 </span>
                 <span className="font-medium text-gray-900">{active_graph_data.label}</span>
               </div>
 
               <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-                <div className="grid grid-cols-3 border-b border-gray-200 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                <div className="grid grid-cols-3 border-b border-gray-200 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
                   <div className="px-3 py-2 text-center">Nodes</div>
                   <div className="border-l border-gray-200 px-3 py-2 text-center">Edges</div>
                   <div className="border-l border-gray-200 px-3 py-2 text-center">Triples</div>
@@ -448,7 +450,7 @@ export function RuleSummaryPanel() {
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Rule runner
           </div>
 
@@ -472,7 +474,7 @@ export function RuleSummaryPanel() {
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Compatibility
           </div>
 
@@ -492,7 +494,7 @@ export function RuleSummaryPanel() {
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Matching classes
           </div>
 
@@ -504,7 +506,7 @@ export function RuleSummaryPanel() {
             </div>
           ) : (
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-              <div className="grid grid-cols-2 border-b border-gray-200 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+              <div className="grid grid-cols-2 border-b border-gray-200 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
                 <div className="px-3 py-2">Rule(s)</div>
                 <div className="border-l border-gray-200 px-3 py-2">Graph</div>
               </div>
@@ -526,7 +528,7 @@ export function RuleSummaryPanel() {
         </section>
 
         <section className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Rule structure
           </div>
 
@@ -546,25 +548,25 @@ export function RuleSummaryPanel() {
                   <div className="font-medium text-gray-900">{stats.label}</div>
                   <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Target</div>
+                      <div className="tracking-wide text-gray-500 uppercase">Target</div>
                       <div className="mt-1 text-sm text-gray-800">
                         {stats.targetClasses.length > 0 ? stats.targetClasses.join(', ') : 'n/a'}
                       </div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Decision elements</div>
+                      <div className="tracking-wide text-gray-500 uppercase">Decision elements</div>
                       <div className="mt-1 text-sm text-gray-800">{stats.decisionCount}</div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Terminal paths</div>
+                      <div className="tracking-wide text-gray-500 uppercase">Terminal paths</div>
                       <div className="mt-1 text-sm text-gray-800">{stats.terminalPathCount}</div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">Pass paths</div>
+                      <div className="tracking-wide text-gray-500 uppercase">Pass paths</div>
                       <div className="mt-1 text-sm text-gray-800">{stats.passPathCount}</div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">
+                      <div className="tracking-wide text-gray-500 uppercase">
                         Min decisions to pass
                       </div>
                       <div className="mt-1 text-sm text-gray-800">
@@ -572,7 +574,7 @@ export function RuleSummaryPanel() {
                       </div>
                     </div>
                     <div>
-                      <div className="uppercase tracking-wide text-gray-500">
+                      <div className="tracking-wide text-gray-500 uppercase">
                         Max decisions to pass
                       </div>
                       <div className="mt-1 text-sm text-gray-800">

@@ -1,6 +1,7 @@
-import NextAuth from 'next-auth';
 import type { NextAuthOptions } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+
+import NextAuth from 'next-auth';
 
 if (!process.env.AUTHENTIK_ISSUER_URL) {
   throw new Error('AUTHENTIK_ISSUER_URL environment variable is required');

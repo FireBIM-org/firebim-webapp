@@ -1,7 +1,9 @@
-import React from 'react';
 import type { AppProps } from 'next/app';
+
 import { SessionProvider } from 'next-auth/react';
+import React from 'react';
 import { ToastContainer } from 'react-toastify';
+
 import { AuthProvider } from '../contexts/AuthContext';
 import { QueryProvider } from '../contexts/QueryProvider';
 import '../styles/globals.css';

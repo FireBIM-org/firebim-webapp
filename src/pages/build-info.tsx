@@ -1,4 +1,5 @@
 import React from 'react';
+
 import FileInfo from '../components/FileInfo';
 
 // These values should be injected at build time. For now, use placeholders or environment variables.
@@ -19,7 +20,7 @@ const fields = [
 ];
 
 const BuildInfoPage: React.FC = () => (
-  <div className="max-w-2xl mx-auto py-10">
+  <div className="mx-auto max-w-2xl py-10">
     <FileInfo
       title="Build Information"
       description="Details about the current build and environment."

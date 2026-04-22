@@ -1,5 +1,6 @@
-import { ChangeEvent } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
+import { ChangeEvent } from 'react';
+
 import type { RuleData } from '@/features/rulebuilder/editorStore';
 
 type RuleElementType = RuleData['element_type'];
@@ -197,21 +198,21 @@ export default function RuleInspectorPanel({
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 ID
               </label>
               <input value={inputValue(selectedRule.id)} disabled className={disabledClass} />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Rule element type
               </label>
               <input value={inputValue(elementType)} disabled className={disabledClass} />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Label
               </label>
               <input
@@ -222,7 +223,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Target class
               </label>
               <input
@@ -234,7 +235,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Property path
               </label>
               <input
@@ -246,7 +247,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Operator
               </label>
               <input
@@ -258,7 +259,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 {isEnd ? 'Output (value)' : 'Value'}
               </label>
 
@@ -277,7 +278,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Element ID
               </label>
               <input
@@ -288,7 +289,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 Graph URI
               </label>
               <input
@@ -299,7 +300,7 @@ export default function RuleInspectorPanel({
             </div>
 
             <div className="pt-2">
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 JSON preview
               </label>
               <pre className="max-h-72 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">

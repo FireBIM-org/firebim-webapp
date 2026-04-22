@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import {
   ArrowPathIcon,
   ChevronDownIcon,
@@ -10,6 +9,8 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useMemo, useState } from 'react';
+
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
 import { getNodePalette } from './RuleElementNode';
 
@@ -76,7 +77,7 @@ function NodeItem({
       ].join(' ')}
     >
       <div className={`border-b px-3 py-2 ${palette.header}`}>
-        <div className={`text-[11px] font-semibold uppercase tracking-wide ${palette.badge}`}>
+        <div className={`text-[11px] font-semibold tracking-wide uppercase ${palette.badge}`}>
           {item.type === 'start' ? 'Start' : item.type === 'decision' ? 'Decision' : 'End'}
         </div>
 
@@ -85,11 +86,11 @@ function NodeItem({
 
       <div className={`px-3 py-2 ${palette.body}`}>
         {item.description && (
-          <div className="text-xs text-gray-500 line-clamp-2">{item.description}</div>
+          <div className="line-clamp-2 text-xs text-gray-500">{item.description}</div>
         )}
 
         {item.source === 'api' && (
-          <div className="mt-2 text-[10px] uppercase text-orange-600">stored</div>
+          <div className="mt-2 text-[10px] text-orange-600 uppercase">stored</div>
         )}
       </div>
     </div>
@@ -123,7 +124,7 @@ function Category({
         <button
           type="button"
           onClick={() => setOpen((prev: boolean) => !prev)}
-          className="flex min-w-0 flex-1 items-center justify-between text-left text-xs font-semibold uppercase tracking-wide text-gray-500 hover:text-gray-700"
+          className="flex min-w-0 flex-1 items-center justify-between text-left text-xs font-semibold tracking-wide text-gray-500 uppercase hover:text-gray-700"
         >
           <span className="truncate">{category.label}</span>
           {open ? (
@@ -149,7 +150,7 @@ function Category({
             <button
               type="button"
               onClick={() => onMoveSelectedToCategory(category.id)}
-              className="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-600 hover:bg-blue-50"
+              className="rounded px-2 py-1 text-[10px] font-semibold tracking-wide text-blue-600 uppercase hover:bg-blue-50"
               title="Move selected here"
             >
               Move here
@@ -344,14 +345,14 @@ export default function RuleLibraryPanel({
                 });
               }}
               placeholder="Search rule elements"
-              className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-9 text-sm text-gray-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              className="w-full rounded-md border border-gray-300 py-2 pr-9 pl-9 text-sm text-gray-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             />
-            <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <MagnifyingGlassIcon className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="absolute top-2 right-2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                 title="Clear search"
               >
                 <XMarkIcon className="h-4 w-4" />

@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
 import { ArrowPathIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useRuleBookStore, type RuleBookStore } from '../store';
+import { useMemo, useRef, useState } from 'react';
+
 import type { RuleRunnerItem } from '../types';
+
+import { useRuleBookStore, type RuleBookStore } from '../store';
 
 type DragPayload = {
   kind: 'rulebook-rule' | 'rulebook-runner-item';
@@ -60,7 +62,7 @@ function RuleRunnerPill({
       onDragStart={handleDragStart}
       className="group inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-sky-200 bg-white px-3 text-xs shadow-sm transition hover:border-sky-300 hover:shadow-md"
     >
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-700">Rule</div>
+      <div className="text-[10px] font-semibold tracking-wide text-sky-700 uppercase">Rule</div>
 
       <div className="max-w-[180px] truncate font-medium text-gray-900">{item.label}</div>
 
@@ -226,7 +228,7 @@ export function RuleRunner({ onRun }: Props) {
         ].join(' ')}
       >
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
             Rule Runner
           </div>
 

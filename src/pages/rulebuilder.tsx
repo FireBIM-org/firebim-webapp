@@ -1,19 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  BookOpenIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  Bars3Icon,
+} from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
-import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
-import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
-import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
-import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
-import { RULE_LIBRARY } from '@/features/rulebuilder/library';
-import {
-  RuleData,
-  BuiltTreeResult,
-  useRuleBuilderEditor,
-} from '@/features/rulebuilder/editorStore';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
@@ -28,14 +25,18 @@ import {
   checkRuleCompleteness,
   publishRule,
 } from '@/features/rulebuilder/api';
-import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
+import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
+import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
+import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
 import {
-  BookOpenIcon,
-  ArrowTopRightOnSquareIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline';
+  RuleData,
+  BuiltTreeResult,
+  useRuleBuilderEditor,
+} from '@/features/rulebuilder/editorStore';
+import { RULE_LIBRARY } from '@/features/rulebuilder/library';
+import { RuleLibraryCategory } from '@/features/rulebuilder/types';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
@@ -1177,7 +1178,7 @@ export default function RuleBuilderPage() {
 
                   <div className="mb-3">
                     <div className="mb-1 font-medium text-gray-800">Connections</div>
-                    <div className="max-h-24 overflow-y-auto whitespace-nowrap rounded border bg-gray-50 p-2 text-xs font-mono">
+                    <div className="max-h-24 overflow-y-auto rounded border bg-gray-50 p-2 font-mono text-xs whitespace-nowrap">
                       {builtTreeResult.connections.length > 0 ? (
                         builtTreeResult.connections.map((c, i) => (
                           <div key={i}>
@@ -1193,7 +1194,7 @@ export default function RuleBuilderPage() {
                   {builtTreeResult.missingBranches.length > 0 && (
                     <div className="mb-3">
                       <div className="mb-1 font-medium text-red-700">Missing branches</div>
-                      <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
+                      <div className="space-y-1 rounded border border-red-200 bg-red-50 p-2 font-mono text-xs">
                         {builtTreeResult.missingBranches.map((m, i) => (
                           <div key={i}>
                             {m.source_id}.{m.branch} → {m.missing_target_id} ❌
