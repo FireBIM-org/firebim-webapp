@@ -34,6 +34,7 @@ pnpm generate:api
 
 ## Pre-commit checklist
 ```bash
+pnpm format      # oxfmt — format source files
 pnpm lint        # oxlint
 pnpm build       # TypeScript compile + Next.js build
 ```
