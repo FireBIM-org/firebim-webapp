@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import BackLink from '../../components/BackLink';
@@ -77,7 +77,7 @@ interface Entity {
 }
 
 export default function AnalysisResults() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
   const { checkId, modelId, idsId } = router.query;
   const [activeTab, setActiveTab] = useState<'summary' | 'details' | 'raw'>('summary');
@@ -98,13 +98,6 @@ export default function AnalysisResults() {
     const key = `${specIndex}-${reqIndex}`;
     return !!expandedRequirements[key];
   };
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
 
   // If we have a checkId from an async check
   const { data: checkResult } = useQuery({

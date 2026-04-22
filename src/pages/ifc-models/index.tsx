@@ -1,23 +1,14 @@
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import React from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../components/Layout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { type IFCModel } from '../../utils/api-client';
 import Image from 'next/image';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function IfcModels() {
-  const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
+  const { user, isLoading: authLoading } = useRequireAuth();
 
   // Fetch user's IFC models
   const { data: models, isLoading: modelsLoading } = useQuery({

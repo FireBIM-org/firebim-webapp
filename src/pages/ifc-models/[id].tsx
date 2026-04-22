@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
 import FileInfo from '../../components/FileInfo';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -14,15 +14,8 @@ import PrimaryButton from '../../components/PrimaryButton';
 export default function ModelDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const [isDownloading, setIsDownloading] = useState(false);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
 
   // Fetch model details
   const {

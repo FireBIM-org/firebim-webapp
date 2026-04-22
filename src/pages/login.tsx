@@ -9,14 +9,19 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    // If already logged in, go to dashboard
+    if (!router.isReady) return;
+    const callbackUrl =
+      typeof router.query.callbackUrl === 'string'
+        ? router.query.callbackUrl
+        : '/dashboard';
+    // If already logged in, go to the intended destination
     if (!isLoading && user) {
-      router.push('/dashboard');
+      router.push(callbackUrl);
       return;
     }
     // Automatically redirect to Authentik sign-in
     if (!isLoading && !user) {
-      login();
+      login(callbackUrl);
     }
   }, [isLoading, user, router, login]);
 

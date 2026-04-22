@@ -3,25 +3,18 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient, { IFCModel, IDSFile } from '../../utils/api-client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function Analysis() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [selectedIdsId, setSelectedIdsId] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMethod, setProcessingMethod] = useState<'sync' | 'async'>('sync');
   const [checkId, setCheckId] = useState<string>('');
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, user, router]);
 
   // Check query parameters for pre-selected model and/or ids
   useEffect(() => {
