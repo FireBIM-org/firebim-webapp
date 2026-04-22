@@ -23,11 +23,7 @@ import { toPng } from 'html-to-image';
 import RuleBranchEdge from './RuleBranchEdge';
 import { getRuleElement } from '../api';
 import RuleElementNode from './RuleElementNode';
-import {
-  BuildTreeRequest,
-  BuiltTreeResult,
-  RuleData,
-} from '@/features/rulebuilder/editorStore';
+import { BuildTreeRequest, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
 import {
   buildRuleTreeFromStart,
   extractRulesFromCanvasNodes,
@@ -89,7 +85,7 @@ function nextLabelWithBase(base: string, nodes: Node[]) {
         const label = rule?.label || node.data?.label;
         return typeof label === 'string' ? label.trim() : '';
       })
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   if (!used.has(cleanBase)) return cleanBase;
@@ -243,9 +239,7 @@ function RuleCanvasInner({
     (changes: EdgeChange[]) => {
       const removedEdges = changes
         .flatMap((change: EdgeChange) =>
-          change.type === 'remove' && 'id' in change
-            ? [currentEdgeById(edges, change.id)]
-            : []
+          change.type === 'remove' && 'id' in change ? [currentEdgeById(edges, change.id)] : [],
         )
         .filter((edge): edge is Edge => Boolean(edge));
 
@@ -289,7 +283,7 @@ function RuleCanvasInner({
             const selected = nextNodes.find((node: Node) => node.id === selectedNodeId);
             onSelectedNodeChange(
               selected?.id || null,
-              (selected?.data?.rule as RuleData | undefined) || null
+              (selected?.data?.rule as RuleData | undefined) || null,
             );
           });
 
@@ -301,7 +295,7 @@ function RuleCanvasInner({
 
       setEdges((current: Edge[]) => applyEdgeChanges(changes, current));
     },
-    [edges, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
+    [edges, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes],
   );
 
   const onConnect = useCallback(
@@ -374,14 +368,14 @@ function RuleCanvasInner({
           const selected = nextNodes.find((node: Node) => node.id === selectedNodeId);
           onSelectedNodeChange(
             selected?.id || null,
-            (selected?.data?.rule as RuleData | undefined) || null
+            (selected?.data?.rule as RuleData | undefined) || null,
           );
         });
 
         return nextNodes;
       });
     },
-    [nodes, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes]
+    [nodes, onSelectedNodeChange, selectedNodeId, syncEdgesFromNodes],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -393,7 +387,7 @@ function RuleCanvasInner({
     (_event, node) => {
       onSelectedNodeChange(node.id, (node.data?.rule as RuleData) || null);
     },
-    [onSelectedNodeChange]
+    [onSelectedNodeChange],
   );
 
   const onPaneClick = useCallback(() => {
@@ -481,7 +475,7 @@ function RuleCanvasInner({
         return nextNodes;
       });
     },
-    [reactFlowInstance, onSelectedNodeChange, syncEdgesFromNodes]
+    [reactFlowInstance, onSelectedNodeChange, syncEdgesFromNodes],
   );
 
   useEffect(() => {
@@ -490,7 +484,9 @@ function RuleCanvasInner({
 
     lastHandledBuildTreeRequestId.current = buildTreeRequest.requestId;
 
-    const rules = extractRulesFromCanvasNodes(nodes as Array<{ id: string; data?: { rule?: RuleData } }>);
+    const rules = extractRulesFromCanvasNodes(
+      nodes as Array<{ id: string; data?: { rule?: RuleData } }>,
+    );
     const result = buildRuleTreeFromStart(buildTreeRequest.startNodeId, rules);
 
     onTreeBuilt(result);
@@ -526,9 +522,7 @@ function RuleCanvasInner({
     lastHandledDuplicateRequestId.current = duplicateRequest.requestId;
 
     setNodes((current: Node[]) => {
-      const sourceNode = current.find(
-        (node: Node) => node.id === duplicateRequest.sourceNodeId
-      );
+      const sourceNode = current.find((node: Node) => node.id === duplicateRequest.sourceNodeId);
       if (!sourceNode) return current;
 
       const sourceRule = (sourceNode.data?.rule as RuleData) || null;
@@ -624,7 +618,7 @@ function RuleCanvasInner({
     setNodes((current: Node[]) => {
       const label = nextLabelWithBase(
         derivedRule.label || derivedRule.id || 'New rule element',
-        current
+        current,
       );
 
       const normalizedRule: RuleData = {
@@ -673,9 +667,7 @@ function RuleCanvasInner({
   }, [selectedNodeId, selectedRule, onSelectedNodeChange]);
 
   const handleExportCanvas = useCallback(async () => {
-    const canvas = wrapperRef.current?.querySelector(
-      '.react-flow__viewport'
-    ) as HTMLElement | null;
+    const canvas = wrapperRef.current?.querySelector('.react-flow__viewport') as HTMLElement | null;
 
     if (!canvas) {
       window.alert('Canvas export failed: no canvas was found.');
@@ -683,10 +675,7 @@ function RuleCanvasInner({
     }
 
     const suggestedName = entryNodeFileName;
-    const enteredName = window.prompt(
-      'Save canvas as PNG',
-      suggestedName
-    );
+    const enteredName = window.prompt('Save canvas as PNG', suggestedName);
 
     if (enteredName === null) {
       return;
@@ -751,9 +740,7 @@ const edgeTypes = {
   ruleBranch: RuleBranchEdge,
 };
 
-function getEdgeVisualProps(
-  phase: 'idle' | 'connected' | 'complete'
-) {
+function getEdgeVisualProps(phase: 'idle' | 'connected' | 'complete') {
   switch (phase) {
     case 'connected':
       return {

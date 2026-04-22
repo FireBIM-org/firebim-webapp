@@ -28,18 +28,11 @@ const WARNING_PATTERNS = [
   'no value',
 ];
 
-const SUCCESS_PATTERNS = [
-  'passed',
-  'pass',
-  'ok',
-  'okay',
-  'good',
-  'success',
-  'valid',
-  'conforms',
-];
+const SUCCESS_PATTERNS = ['passed', 'pass', 'ok', 'okay', 'good', 'success', 'valid', 'conforms'];
 
-export function classifyTerminalSentiment(text: string | null | undefined): Exclude<RuleSentiment, 'idle'> | null {
+export function classifyTerminalSentiment(
+  text: string | null | undefined,
+): Exclude<RuleSentiment, 'idle'> | null {
   if (!text) {
     return null;
   }
@@ -62,7 +55,7 @@ export function classifyTerminalSentiment(text: string | null | undefined): Excl
 }
 
 export function classifyTerminalSentimentFromMany(
-  texts: Array<string | null | undefined>
+  texts: Array<string | null | undefined>,
 ): Exclude<RuleSentiment, 'idle'> | null {
   let hasWarning = false;
   let hasSuccess = false;

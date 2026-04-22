@@ -22,7 +22,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    if (session?.error === "RefreshAccessTokenError") {
+    if (session?.error === 'RefreshAccessTokenError') {
       // Token refresh failed — force re-login
       signIn('authentik');
       return;

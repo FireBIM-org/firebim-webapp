@@ -1,8 +1,4 @@
-import {
-  BuiltTreeConnection,
-  BuiltTreeResult,
-  RuleData,
-} from '@/features/rulebuilder/editorStore';
+import { BuiltTreeConnection, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
 
 type CanvasRuleNode = {
   id: string;
@@ -20,13 +16,8 @@ function toBranchKey(branch: Branch): 'true_path' | 'false_path' | 'unknown_path
   return 'unknown_path';
 }
 
-export function buildRuleTreeFromStart(
-  startNodeId: string,
-  rules: RuleData[]
-): BuiltTreeResult {
-  const byId = new Map<string, RuleData>(
-    rules.map((rule: RuleData) => [rule.id, rule] as const)
-  );
+export function buildRuleTreeFromStart(startNodeId: string, rules: RuleData[]): BuiltTreeResult {
+  const byId = new Map<string, RuleData>(rules.map((rule: RuleData) => [rule.id, rule] as const));
 
   const visited = new Set<string>();
   const activePath = new Set<string>();
@@ -174,7 +165,7 @@ export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
 export function buildRuleDraftFromTree(
   ruleId: string,
   tree: BuiltTreeResult,
-  ruleLabel?: string | null
+  ruleLabel?: string | null,
 ): RuleDraft {
   return {
     id: ruleId,

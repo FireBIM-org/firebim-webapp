@@ -50,24 +50,23 @@ export default function RuleInspectorPanel({
   const isDecision = elementType === 'decision';
   const isEnd = elementType === 'end';
 
-  const handleTextChange =
-    (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
+  const handleTextChange = (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
 
-      if (field === 'value' && isEnd) {
-        onChange({
-          value,
-          config: {
-            ...selectedRule?.config,
-            end_kind: 'output',
-            output_text: value,
-          },
-        });
-        return;
-      }
+    if (field === 'value' && isEnd) {
+      onChange({
+        value,
+        config: {
+          ...selectedRule?.config,
+          end_kind: 'output',
+          output_text: value,
+        },
+      });
+      return;
+    }
 
-      onChange({ [field]: value });
-    };
+    onChange({ [field]: value });
+  };
 
   if (collapsed) {
     return (
@@ -113,8 +112,7 @@ export default function RuleInspectorPanel({
   const disabledClass =
     'w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500';
 
-  const activeClass =
-    'w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
+  const activeClass = 'w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 
   return (
     <aside className="w-80 border-l border-gray-200 bg-white">
@@ -178,9 +176,7 @@ export default function RuleInspectorPanel({
             disabled={publishState === 'saving'}
             className="w-full rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {publishState === 'saving'
-              ? 'Publishing...'
-              : 'Publish selected rule element'}
+            {publishState === 'saving' ? 'Publishing...' : 'Publish selected rule element'}
           </button>
 
           {publishMessage && (
@@ -189,8 +185,8 @@ export default function RuleInspectorPanel({
                 publishState === 'error'
                   ? 'text-red-600'
                   : publishState === 'success'
-                  ? 'text-green-600'
-                  : 'text-gray-500'
+                    ? 'text-green-600'
+                    : 'text-gray-500'
               }`}
             >
               {publishMessage}

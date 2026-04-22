@@ -1,9 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import {
-  ArrowPathIcon,
-  PlayIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowPathIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useRuleBookStore, type RuleBookStore } from '../store';
 import type { RuleRunnerItem } from '../types';
 
@@ -54,10 +50,7 @@ function RuleRunnerPill({
       from_index: index,
     };
 
-    event.dataTransfer.setData(
-      'application/firebim-rulebook-runner-item',
-      JSON.stringify(payload)
-    );
+    event.dataTransfer.setData('application/firebim-rulebook-runner-item', JSON.stringify(payload));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -67,13 +60,9 @@ function RuleRunnerPill({
       onDragStart={handleDragStart}
       className="group inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-sky-200 bg-white px-3 text-xs shadow-sm transition hover:border-sky-300 hover:shadow-md"
     >
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-700">
-        Rule
-      </div>
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-700">Rule</div>
 
-      <div className="max-w-[180px] truncate font-medium text-gray-900">
-        {item.label}
-      </div>
+      <div className="max-w-[180px] truncate font-medium text-gray-900">{item.label}</div>
 
       <button
         type="button"
@@ -88,41 +77,29 @@ function RuleRunnerPill({
 }
 
 export function RuleRunner({ onRun }: Props) {
-  const runner_rule_items = useRuleBookStore(
-    (state: RuleBookStore) => state.runner_rule_items
-  );
-  const available_rules = useRuleBookStore(
-    (state: RuleBookStore) => state.available_rules
-  );
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
+  const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
+  const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
-  const execution_solver = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_solver
-  );
+  const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
   const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
 
-  const addRuleToRunner = useRuleBookStore(
-    (state: RuleBookStore) => state.addRuleToRunner
-  );
+  const addRuleToRunner = useRuleBookStore((state: RuleBookStore) => state.addRuleToRunner);
   const removeRuleFromRunner = useRuleBookStore(
-    (state: RuleBookStore) => state.removeRuleFromRunner
+    (state: RuleBookStore) => state.removeRuleFromRunner,
   );
   const moveRunnerItem = useRuleBookStore((state: RuleBookStore) => state.moveRunnerItem);
   const clearRunner = useRuleBookStore((state: RuleBookStore) => state.clearRunner);
   const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
   const [is_drag_over, setIsDragOver] = useState(false);
-  const [dragging_runner_item_id, setDraggingRunnerItemId] = useState<string | null>(
-    null
-  );
+  const [dragging_runner_item_id, setDraggingRunnerItemId] = useState<string | null>(null);
 
   const runner_ref = useRef<HTMLDivElement | null>(null);
 
   const runner_rule_ids = useMemo(
     () => runner_rule_items.map((item: RuleRunnerItem) => item.rule_id),
-    [runner_rule_items]
+    [runner_rule_items],
   );
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -134,7 +111,7 @@ export function RuleRunner({ onRun }: Props) {
 
     if (payload.kind === 'rulebook-rule' && payload.rule_id) {
       const rule = available_rules.find(
-        (item: RuleRunnerItem | { rule_id: string }) => item.rule_id === payload.rule_id
+        (item: RuleRunnerItem | { rule_id: string }) => item.rule_id === payload.rule_id,
       );
       if (!rule) return;
 
@@ -142,10 +119,7 @@ export function RuleRunner({ onRun }: Props) {
       return;
     }
 
-    if (
-      payload.kind === 'rulebook-runner-item' &&
-      typeof payload.from_index === 'number'
-    ) {
+    if (payload.kind === 'rulebook-runner-item' && typeof payload.from_index === 'number') {
       const target = event.target as HTMLElement | null;
       const target_pill = target?.closest('[data-runner-index]');
       const to_index_attr = target_pill?.getAttribute('data-runner-index');
@@ -271,15 +245,9 @@ export function RuleRunner({ onRun }: Props) {
                 data-runner-index={index}
                 onDragStart={() => handleRunnerItemDragStart(item.runner_item_id)}
                 onDragEnd={handleRunnerItemDragEnd}
-                className={
-                  dragging_runner_item_id === item.runner_item_id ? 'opacity-80' : ''
-                }
+                className={dragging_runner_item_id === item.runner_item_id ? 'opacity-80' : ''}
               >
-                <RuleRunnerPill
-                  item={item}
-                  index={index}
-                  onRemove={removeRuleFromRunner}
-                />
+                <RuleRunnerPill item={item} index={index} onRemove={removeRuleFromRunner} />
               </div>
             ))}
           </div>

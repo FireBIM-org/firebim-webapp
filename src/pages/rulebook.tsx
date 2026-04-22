@@ -5,10 +5,7 @@ import Layout from '../components/Layout';
 import { env } from '../config/env';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  useRuleBookStore,
-  type RuleBookStore,
-} from '../features/rulebook/store';
+import { useRuleBookStore, type RuleBookStore } from '../features/rulebook/store';
 
 import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
 import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
@@ -21,50 +18,28 @@ import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const rules_api_online = useRuleBookStore(
-    (state: RuleBookStore) => state.rules_api_online
-  );
-  const runner_rule_items = useRuleBookStore(
-    (state: RuleBookStore) => state.runner_rule_items
-  );
-  const available_rules = useRuleBookStore(
-    (state: RuleBookStore) => state.available_rules
-  );
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
+  const rules_api_online = useRuleBookStore((state: RuleBookStore) => state.rules_api_online);
+  const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
+  const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
-  const execution_solver = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_solver
-  );
-  const execution_status = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_status
-  );
-  const execution_timeline = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_timeline
-  );
-  const current_step_index = useRuleBookStore(
-    (state: RuleBookStore) => state.current_step_index
-  );
+  const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
+  const execution_status = useRuleBookStore((state: RuleBookStore) => state.execution_status);
+  const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
+  const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
   const execution_playback_ms = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_playback_ms
+    (state: RuleBookStore) => state.execution_playback_ms,
   );
 
-  const setRulesLoading = useRuleBookStore(
-    (state: RuleBookStore) => state.setRulesLoading
-  );
+  const setRulesLoading = useRuleBookStore((state: RuleBookStore) => state.setRulesLoading);
   const setRulesError = useRuleBookStore((state: RuleBookStore) => state.setRulesError);
-  const setExecutionStatus = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionStatus
-  );
+  const setExecutionStatus = useRuleBookStore((state: RuleBookStore) => state.setExecutionStatus);
   const setExecutionTimeline = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionTimeline
+    (state: RuleBookStore) => state.setExecutionTimeline,
   );
-  const setCurrentStepIndex = useRuleBookStore(
-    (state: RuleBookStore) => state.setCurrentStepIndex
-  );
+  const setCurrentStepIndex = useRuleBookStore((state: RuleBookStore) => state.setCurrentStepIndex);
   const setExecutionPlaybackMs = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionPlaybackMs
+    (state: RuleBookStore) => state.setExecutionPlaybackMs,
   );
 
   const swaggerDocsUrl = env.apiDocsUrl;
@@ -115,7 +90,7 @@ export default function RuleBookPage() {
 
     if (active_graph_data.source !== 'api') {
       setRulesError(
-        'Backend checks require a stored building graph from the Graphs API. Select a stored graph from the API section in the graph dropdown.'
+        'Backend checks require a stored building graph from the Graphs API. Select a stored graph from the API section in the graph dropdown.',
       );
       setExecutionStatus('ready');
       return;
@@ -137,9 +112,7 @@ export default function RuleBookPage() {
       setExecutionPlaybackMs(900);
       setExecutionStatus('paused');
     } catch (error) {
-      setRulesError(
-        error instanceof Error ? error.message : 'Failed to run Rule Runner'
-      );
+      setRulesError(error instanceof Error ? error.message : 'Failed to run Rule Runner');
       setExecutionTimeline(null);
       setExecutionStatus('ready');
     } finally {
@@ -166,7 +139,7 @@ export default function RuleBookPage() {
 
     if (active_graph_data.source !== 'api') {
       setRulesError(
-        'Backend checks require a stored building graph from the Graphs API. Select a stored graph from the API section in the graph dropdown.'
+        'Backend checks require a stored building graph from the Graphs API. Select a stored graph from the API section in the graph dropdown.',
       );
       setExecutionStatus('ready');
       return;
@@ -188,9 +161,7 @@ export default function RuleBookPage() {
       setExecutionPlaybackMs(90);
       setExecutionStatus('running');
     } catch (error) {
-      setRulesError(
-        error instanceof Error ? error.message : 'Failed to run Rule Runner'
-      );
+      setRulesError(error instanceof Error ? error.message : 'Failed to run Rule Runner');
       setExecutionTimeline(null);
       setExecutionStatus('ready');
     } finally {
@@ -299,4 +270,3 @@ export default function RuleBookPage() {
     </Layout>
   );
 }
-

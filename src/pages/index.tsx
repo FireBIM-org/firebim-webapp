@@ -20,25 +20,35 @@ export default function Home() {
                 </h1>
                 <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
                   FireBIM allows you to upload, manage, and analyze IFC models using IDS files.
-                  Validate your building information models against industry standards and requirements.
+                  Validate your building information models against industry standards and
+                  requirements.
                 </p>
                 <div className="mt-8 sm:flex sm:justify-center lg:justify-start">
                   {!user ? (
                     <>
                       <div className="rounded-md shadow">
-                        <Link href="/register" className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg">
+                        <Link
+                          href="/register"
+                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg"
+                        >
                           Register
                         </Link>
                       </div>
                       <div className="mt-3 sm:mt-0 sm:ml-3">
-                        <Link href="/login" className="flex w-full items-center justify-center rounded-md border border-transparent bg-gray-100 px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-200 md:py-4 md:px-10 md:text-lg">
+                        <Link
+                          href="/login"
+                          className="flex w-full items-center justify-center rounded-md border border-transparent bg-gray-100 px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-200 md:py-4 md:px-10 md:text-lg"
+                        >
                           Login
                         </Link>
                       </div>
                     </>
                   ) : (
                     <div className="rounded-md shadow">
-                      <Link href="/dashboard" className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg">
+                      <Link
+                        href="/dashboard"
+                        className="flex w-full items-center justify-center rounded-md border border-transparent bg-orange-600 px-8 py-3 text-base font-medium text-white hover:bg-orange-700 md:py-4 md:px-10 md:text-lg"
+                      >
                         Go to Dashboard
                       </Link>
                     </div>
@@ -87,12 +97,25 @@ export default function Home() {
                     <div className="-mt-6">
                       <div>
                         <span className="inline-flex items-center justify-center rounded-md bg-orange-500 p-3 shadow-lg">
-                          <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          <svg
+                            className="h-6 w-6 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
                           </svg>
                         </span>
                       </div>
-                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">Upload IFC Models</h3>
+                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">
+                        Upload IFC Models
+                      </h3>
                       <p className="mt-5 text-base text-gray-500">
                         Upload your IFC models to analyze and validate against specifications.
                       </p>
@@ -105,14 +128,28 @@ export default function Home() {
                     <div className="-mt-6">
                       <div>
                         <span className="inline-flex items-center justify-center rounded-md bg-orange-500 p-3 shadow-lg">
-                          <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          <svg
+                            className="h-6 w-6 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
                           </svg>
                         </span>
                       </div>
-                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">Manage IDS Files</h3>
+                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">
+                        Manage IDS Files
+                      </h3>
                       <p className="mt-5 text-base text-gray-500">
-                        Upload and manage Information Delivery Specification files for model validation.
+                        Upload and manage Information Delivery Specification files for model
+                        validation.
                       </p>
                     </div>
                   </div>
@@ -123,14 +160,28 @@ export default function Home() {
                     <div className="-mt-6">
                       <div>
                         <span className="inline-flex items-center justify-center rounded-md bg-orange-500 p-3 shadow-lg">
-                          <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                          <svg
+                            className="h-6 w-6 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                            />
                           </svg>
                         </span>
                       </div>
-                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">Analyze and Validate</h3>
+                      <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">
+                        Analyze and Validate
+                      </h3>
                       <p className="mt-5 text-base text-gray-500">
-                        Run compliance checks on your models against IDS specifications to ensure they meet requirements.
+                        Run compliance checks on your models against IDS specifications to ensure
+                        they meet requirements.
                       </p>
                     </div>
                   </div>

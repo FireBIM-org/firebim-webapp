@@ -11,15 +11,8 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { deleteRule, getRule, getRulesHealth, listRules } from '../api';
-import {
-  ensureSeededExampleRules,
-  getSeededExampleRuleDefinition,
-} from '../examples';
-import {
-  getVisibleRuleLibraryGroups,
-  useRuleBookStore,
-  type RuleBookStore,
-} from '../store';
+import { ensureSeededExampleRules, getSeededExampleRuleDefinition } from '../examples';
+import { getVisibleRuleLibraryGroups, useRuleBookStore, type RuleBookStore } from '../store';
 import type { RuleListItem } from '../types';
 
 type Props = {
@@ -50,10 +43,7 @@ function RuleCard({
   onClick: (event: React.MouseEvent) => void;
 }) {
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
-    event.dataTransfer.setData(
-      'application/firebim-rulebook-rule',
-      buildDraggablePayload(rule)
-    );
+    event.dataTransfer.setData('application/firebim-rulebook-rule', buildDraggablePayload(rule));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -70,21 +60,15 @@ function RuleCard({
       ].join(' ')}
     >
       <div className="border-b border-gray-100 px-3 py-2">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">
-          Rule
-        </div>
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-700">Rule</div>
         <div className="mt-1 font-medium text-gray-900">{display_label}</div>
       </div>
 
       <div className="space-y-1 px-3 py-2">
         {rule.description ? (
-          <div className="line-clamp-2 text-xs text-gray-500">
-            {rule.description}
-          </div>
+          <div className="line-clamp-2 text-xs text-gray-500">{rule.description}</div>
         ) : (
-          <div className="text-xs text-gray-400">
-            Stored rule ready for the Rule Runner
-          </div>
+          <div className="text-xs text-gray-400">Stored rule ready for the Rule Runner</div>
         )}
 
         <div className="flex items-center justify-between pt-1">
@@ -93,9 +77,7 @@ function RuleCard({
           </div>
 
           {typeof rule.rule_element_count === 'number' && (
-            <div className="text-[10px] text-gray-500">
-              {rule.rule_element_count} rule elements
-            </div>
+            <div className="text-[10px] text-gray-500">{rule.rule_element_count} rule elements</div>
           )}
         </div>
       </div>
@@ -128,9 +110,7 @@ function CategorySection({
 }) {
   const [open, setOpen] = useState(true);
   const safe_rules = Array.isArray(rules) ? rules : [];
-  const safe_selected_rule_ids = Array.isArray(selected_rule_ids)
-    ? selected_rule_ids
-    : [];
+  const safe_selected_rule_ids = Array.isArray(selected_rule_ids) ? selected_rule_ids : [];
   const selected_count = safe_selected_rule_ids.length;
   const is_waste_bin = category_id === 'waste-bin';
 
@@ -198,14 +178,9 @@ function CategorySection({
                 key={rule.rule_id}
                 rule={rule}
                 selected={safe_selected_rule_ids.includes(rule.rule_id)}
-                display_label={
-                  custom_rule_labels[rule.rule_id] || rule.label || rule.rule_id
-                }
+                display_label={custom_rule_labels[rule.rule_id] || rule.label || rule.rule_id}
                 onClick={(event) =>
-                  onToggleRuleSelected(
-                    rule.rule_id,
-                    event.metaKey || event.ctrlKey
-                  )
+                  onToggleRuleSelected(rule.rule_id, event.metaKey || event.ctrlKey)
                 }
               />
             ))
@@ -221,67 +196,43 @@ export default function RuleBookLibraryPanel({
   onToggleCollapsed,
   showApiStatus = true,
 }: Props) {
-  const store_collapsed = useRuleBookStore(
-    (state: RuleBookStore) => state.library_collapsed
-  );
-  const available_rules = useRuleBookStore(
-    (state: RuleBookStore) => state.available_rules
-  );
+  const store_collapsed = useRuleBookStore((state: RuleBookStore) => state.library_collapsed);
+  const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
   const library_state = useRuleBookStore((state: RuleBookStore) => state.library_state);
   const library_state_hydrated = useRuleBookStore(
-    (state: RuleBookStore) => state.library_state_hydrated
+    (state: RuleBookStore) => state.library_state_hydrated,
   );
-  const library_selection = useRuleBookStore(
-    (state: RuleBookStore) => state.library_selection
-  );
-  const rules_api_online = useRuleBookStore(
-    (state: RuleBookStore) => state.rules_api_online
-  );
+  const library_selection = useRuleBookStore((state: RuleBookStore) => state.library_selection);
+  const rules_api_online = useRuleBookStore((state: RuleBookStore) => state.rules_api_online);
   const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
   const rules_error = useRuleBookStore((state: RuleBookStore) => state.rules_error);
 
   const hydrateLibraryStateFromStorage = useRuleBookStore(
-    (state: RuleBookStore) => state.hydrateLibraryStateFromStorage
+    (state: RuleBookStore) => state.hydrateLibraryStateFromStorage,
   );
-  const setAvailableRules = useRuleBookStore(
-    (state: RuleBookStore) => state.setAvailableRules
-  );
-  const setSelectedRuleId = useRuleBookStore(
-    (state: RuleBookStore) => state.setSelectedRuleId
-  );
+  const setAvailableRules = useRuleBookStore((state: RuleBookStore) => state.setAvailableRules);
+  const setSelectedRuleId = useRuleBookStore((state: RuleBookStore) => state.setSelectedRuleId);
   const setSelectedRuleDefinition = useRuleBookStore(
-    (state: RuleBookStore) => state.setSelectedRuleDefinition
+    (state: RuleBookStore) => state.setSelectedRuleDefinition,
   );
-  const setRulesApiOnline = useRuleBookStore(
-    (state: RuleBookStore) => state.setRulesApiOnline
-  );
-  const setRulesLoading = useRuleBookStore(
-    (state: RuleBookStore) => state.setRulesLoading
-  );
+  const setRulesApiOnline = useRuleBookStore((state: RuleBookStore) => state.setRulesApiOnline);
+  const setRulesLoading = useRuleBookStore((state: RuleBookStore) => state.setRulesLoading);
   const setRulesError = useRuleBookStore((state: RuleBookStore) => state.setRulesError);
   const toggleLibraryCollapsed = useRuleBookStore(
-    (state: RuleBookStore) => state.toggleLibraryCollapsed
+    (state: RuleBookStore) => state.toggleLibraryCollapsed,
   );
-  const toggleRuleSelected = useRuleBookStore(
-    (state: RuleBookStore) => state.toggleRuleSelected
-  );
+  const toggleRuleSelected = useRuleBookStore((state: RuleBookStore) => state.toggleRuleSelected);
   const createCategory = useRuleBookStore((state: RuleBookStore) => state.createCategory);
   const renameCategory = useRuleBookStore((state: RuleBookStore) => state.renameCategory);
   const moveSelectedRulesToCategory = useRuleBookStore(
-    (state: RuleBookStore) => state.moveSelectedRulesToCategory
+    (state: RuleBookStore) => state.moveSelectedRulesToCategory,
   );
   const moveSelectedRulesToWasteBin = useRuleBookStore(
-    (state: RuleBookStore) => state.moveSelectedRulesToWasteBin
+    (state: RuleBookStore) => state.moveSelectedRulesToWasteBin,
   );
-  const emptyWasteBinLocal = useRuleBookStore(
-    (state: RuleBookStore) => state.emptyWasteBinLocal
-  );
-  const moveRulesToWasteBin = useRuleBookStore(
-    (state: RuleBookStore) => state.moveRulesToWasteBin
-  );
-  const removeAvailableRule = useRuleBookStore(
-    (state: RuleBookStore) => state.removeAvailableRule
-  );
+  const emptyWasteBinLocal = useRuleBookStore((state: RuleBookStore) => state.emptyWasteBinLocal);
+  const moveRulesToWasteBin = useRuleBookStore((state: RuleBookStore) => state.moveRulesToWasteBin);
+  const removeAvailableRule = useRuleBookStore((state: RuleBookStore) => state.removeAvailableRule);
 
   const is_collapsed = collapsed ?? store_collapsed;
   const [searchOpen, setSearchOpen] = useState(false);
@@ -292,7 +243,7 @@ export default function RuleBookLibraryPanel({
       Object.entries(library_selection)
         .filter((entry: [string, unknown]) => Boolean(entry[1]))
         .map(([rule_id]: [string, unknown]) => rule_id),
-    [library_selection]
+    [library_selection],
   );
 
   useEffect(() => {
@@ -301,31 +252,33 @@ export default function RuleBookLibraryPanel({
 
   const grouped_categories = useMemo(
     () => getVisibleRuleLibraryGroups(available_rules, library_state),
-    [available_rules, library_state]
+    [available_rules, library_state],
   );
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const visibleCategories = useMemo(() => {
     if (!normalizedQuery) return grouped_categories;
 
-    return grouped_categories.map((category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => ({
-      ...category,
-      rules: (Array.isArray(category.rules) ? category.rules : []).filter(
-        (rule: RuleListItem) => {
-        const haystacks = [
-          library_state.custom_rule_labels[rule.rule_id],
-          rule.label,
-          rule.description,
-          rule.rule_id,
-          rule.graph_uri,
-        ];
+    return grouped_categories.map(
+      (category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => ({
+        ...category,
+        rules: (Array.isArray(category.rules) ? category.rules : []).filter(
+          (rule: RuleListItem) => {
+            const haystacks = [
+              library_state.custom_rule_labels[rule.rule_id],
+              rule.label,
+              rule.description,
+              rule.rule_id,
+              rule.graph_uri,
+            ];
 
-        return haystacks.some(
-          (value: string | null | undefined) =>
-            typeof value === 'string' &&
-            value.toLowerCase().includes(normalizedQuery)
-        );
+            return haystacks.some(
+              (value: string | null | undefined) =>
+                typeof value === 'string' && value.toLowerCase().includes(normalizedQuery),
+            );
+          },
+        ),
       }),
-    }));
+    );
   }, [grouped_categories, library_state.custom_rule_labels, normalizedQuery]);
 
   const runHiddenSearchCommand = useCallback(async () => {
@@ -337,7 +290,7 @@ export default function RuleBookLibraryPanel({
 
     const apiRules = available_rules.filter(
       (rule: RuleListItem) =>
-        rule.source === 'api' && !library_state.trashed_rule_ids.includes(rule.rule_id)
+        rule.source === 'api' && !library_state.trashed_rule_ids.includes(rule.rule_id),
     );
     const duplicatesToTrash: string[] = [];
     const latestByLabel = new Map<string, string>();
@@ -363,7 +316,7 @@ export default function RuleBookLibraryPanel({
     }
 
     const ok = window.confirm(
-      `Move ${duplicatesToTrash.length} older duplicate rule(s) to the waste bin?`
+      `Move ${duplicatesToTrash.length} older duplicate rule(s) to the waste bin?`,
     );
 
     if (!ok) {
@@ -371,9 +324,7 @@ export default function RuleBookLibraryPanel({
     }
 
     moveRulesToWasteBin(duplicatesToTrash);
-    window.alert(
-      `Moved ${duplicatesToTrash.length} older duplicate rule(s) to the waste bin.`
-    );
+    window.alert(`Moved ${duplicatesToTrash.length} older duplicate rule(s) to the waste bin.`);
     return true;
   }, [
     available_rules,
@@ -428,14 +379,13 @@ export default function RuleBookLibraryPanel({
     let cancelled = false;
     const selected_rule_id = selected_rule_ids[0];
     const selected_rule = available_rules.find(
-      (rule: RuleListItem) => rule.rule_id === selected_rule_id
+      (rule: RuleListItem) => rule.rule_id === selected_rule_id,
     );
 
     async function loadSelectedRule() {
       try {
         if (selected_rule?.source === 'example') {
-          const example_definition =
-            getSeededExampleRuleDefinition(selected_rule_id);
+          const example_definition = getSeededExampleRuleDefinition(selected_rule_id);
 
           if (cancelled) return;
 
@@ -463,12 +413,7 @@ export default function RuleBookLibraryPanel({
     return () => {
       cancelled = true;
     };
-  }, [
-    available_rules,
-    selected_rule_ids,
-    setSelectedRuleDefinition,
-    setSelectedRuleId,
-  ]);
+  }, [available_rules, selected_rule_ids, setSelectedRuleDefinition, setSelectedRuleId]);
 
   const handleToggleCollapsed = () => {
     if (onToggleCollapsed) {
@@ -481,7 +426,7 @@ export default function RuleBookLibraryPanel({
 
   const handleRenameCategory = (category_id: string) => {
     const category = library_state.categories.find(
-      (item: { id: string }) => item.id === category_id
+      (item: { id: string }) => item.id === category_id,
     );
 
     if (!category || category.system) return;
@@ -495,21 +440,17 @@ export default function RuleBookLibraryPanel({
 
   const handleEmptyWasteBin = async () => {
     const waste_bin_group = grouped_categories.find(
-      (group: { id: string }) => group.id === 'waste-bin'
+      (group: { id: string }) => group.id === 'waste-bin',
     );
-    const trashed_rules = Array.isArray(waste_bin_group?.rules)
-      ? waste_bin_group.rules
-      : [];
-    const api_rules_to_delete = trashed_rules.filter(
-      (rule: RuleListItem) => rule.source === 'api'
-    );
+    const trashed_rules = Array.isArray(waste_bin_group?.rules) ? waste_bin_group.rules : [];
+    const api_rules_to_delete = trashed_rules.filter((rule: RuleListItem) => rule.source === 'api');
 
     if (trashed_rules.length === 0) {
       return;
     }
 
     const ok = window.confirm(
-      `Are you sure you want to permanently delete ${trashed_rules.length} rule(s)?`
+      `Are you sure you want to permanently delete ${trashed_rules.length} rule(s)?`,
     );
 
     if (!ok) return;
@@ -531,9 +472,7 @@ export default function RuleBookLibraryPanel({
         removeAvailableRule(rule.rule_id);
       }
     } catch (error) {
-      setRulesError(
-        error instanceof Error ? error.message : 'Failed to empty waste bin'
-      );
+      setRulesError(error instanceof Error ? error.message : 'Failed to empty waste bin');
     } finally {
       setRulesLoading(false);
     }
@@ -558,9 +497,7 @@ export default function RuleBookLibraryPanel({
       <div className="border-b border-gray-200 px-3 py-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="rule-workspace-header">
-              Rule library
-            </div>
+            <div className="rule-workspace-header">Rule library</div>
             <div className="text-xs text-gray-500">
               Browse stored Rules and drag them into the Rule Runner
             </div>
@@ -623,9 +560,7 @@ export default function RuleBookLibraryPanel({
           title="Refresh rules"
           aria-label="Refresh rules"
         >
-          <ArrowPathIcon
-            className={['h-4 w-4', rules_loading ? 'animate-spin' : ''].join(' ')}
-          />
+          <ArrowPathIcon className={['h-4 w-4', rules_loading ? 'animate-spin' : ''].join(' ')} />
         </button>
 
         <button
@@ -684,9 +619,7 @@ export default function RuleBookLibraryPanel({
 
       {(rules_loading || rules_error) && (
         <div className="border-b border-gray-200 px-3 py-2">
-          {rules_loading && (
-            <div className="text-xs text-gray-500">Loading rules…</div>
-          )}
+          {rules_loading && <div className="text-xs text-gray-500">Loading rules…</div>}
 
           {!rules_loading && rules_error && (
             <div className="text-xs text-red-600">{rules_error}</div>
@@ -695,21 +628,23 @@ export default function RuleBookLibraryPanel({
       )}
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
-        {visibleCategories.map((category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => (
-          <CategorySection
-            key={category.id}
-            category_id={category.id}
-            label={category.label}
-            system={category.system}
-            rules={category.rules}
-            selected_rule_ids={selected_rule_ids}
-            custom_rule_labels={library_state.custom_rule_labels}
-            onToggleRuleSelected={toggleRuleSelected}
-            onMoveSelectedRulesToCategory={moveSelectedRulesToCategory}
-            onRenameCategory={handleRenameCategory}
-            onEmptyWasteBin={handleEmptyWasteBin}
-          />
-        ))}
+        {visibleCategories.map(
+          (category: { id: string; label: string; system?: boolean; rules: RuleListItem[] }) => (
+            <CategorySection
+              key={category.id}
+              category_id={category.id}
+              label={category.label}
+              system={category.system}
+              rules={category.rules}
+              selected_rule_ids={selected_rule_ids}
+              custom_rule_labels={library_state.custom_rule_labels}
+              onToggleRuleSelected={toggleRuleSelected}
+              onMoveSelectedRulesToCategory={moveSelectedRulesToCategory}
+              onRenameCategory={handleRenameCategory}
+              onEmptyWasteBin={handleEmptyWasteBin}
+            />
+          ),
+        )}
       </div>
     </aside>
   );

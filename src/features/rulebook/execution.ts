@@ -71,10 +71,7 @@ function extractTargetNodeIds(event: DiagnosticSequenceEvent): string[] {
 }
 
 function buildRuleElementMap(rule_definition?: RuleDefinition | null) {
-  const map = new Map<
-    string,
-    RuleDefinition['rule_elements'][number]
-  >();
+  const map = new Map<string, RuleDefinition['rule_elements'][number]>();
 
   for (const element of rule_definition?.rule_elements ?? []) {
     map.set(element.id, element);
@@ -83,16 +80,13 @@ function buildRuleElementMap(rule_definition?: RuleDefinition | null) {
   return map;
 }
 
-function getEndNodeOutput(
-  element?: RuleDefinition['rule_elements'][number]
-): string | null {
+function getEndNodeOutput(element?: RuleDefinition['rule_elements'][number]): string | null {
   if (!element) {
     return null;
   }
 
   const terminal =
-    (typeof element.config?.terminal_value === 'string' &&
-      element.config.terminal_value) ||
+    (typeof element.config?.terminal_value === 'string' && element.config.terminal_value) ||
     (typeof element.value === 'string' && element.value) ||
     (typeof element.label === 'string' && element.label) ||
     null;
@@ -106,20 +100,15 @@ function buildStepDisplay(input: {
   rule_elements_by_id: Map<string, RuleDefinition['rule_elements'][number]>;
 }) {
   const event_type =
-    typeof input.event.event_type === 'string'
-      ? input.event.event_type
-      : 'diagnostic_event';
+    typeof input.event.event_type === 'string' ? input.event.event_type : 'diagnostic_event';
   const sample_target_label =
     localNameFromToken(
-      (typeof input.event.sample_target === 'string' &&
-        input.event.sample_target) ||
-        input.event.target_node
+      (typeof input.event.sample_target === 'string' && input.event.sample_target) ||
+        input.event.target_node,
     ) ?? null;
   const target_class_label = localNameFromToken(input.event.target_class);
   const property_label = localNameFromToken(
-    typeof input.event.property_path === 'string'
-      ? input.event.property_path
-      : null
+    typeof input.event.property_path === 'string' ? input.event.property_path : null,
   );
   const current_node_id = localNameFromToken(input.event.node_id);
   const current_element = current_node_id
@@ -131,7 +120,7 @@ function buildStepDisplay(input: {
       : null;
   const resolveBranchTaken = (
     element?: RuleDefinition['rule_elements'][number],
-    terminal_node_id?: string | null
+    terminal_node_id?: string | null,
   ): 'True' | 'False' | 'Unknown' | null => {
     if (!element) {
       return null;
@@ -159,19 +148,15 @@ function buildStepDisplay(input: {
       ? (input.event.node_sequence as string[])
       : [];
     const last_decision_id =
-      [...node_sequence]
-        .reverse()
-        .find((node_id) => {
-          const element = input.rule_elements_by_id.get(node_id);
-          return element?.element_type === 'decision';
-        }) ?? null;
+      [...node_sequence].reverse().find((node_id) => {
+        const element = input.rule_elements_by_id.get(node_id);
+        return element?.element_type === 'decision';
+      }) ?? null;
     const last_decision = last_decision_id
       ? input.rule_elements_by_id.get(last_decision_id)
       : undefined;
     const terminal_id = localNameFromToken(input.event.terminal_node_id);
-    const terminal_element = terminal_id
-      ? input.rule_elements_by_id.get(terminal_id)
-      : undefined;
+    const terminal_element = terminal_id ? input.rule_elements_by_id.get(terminal_id) : undefined;
     const terminal_output = getEndNodeOutput(terminal_element);
     const branch_taken = resolveBranchTaken(last_decision, terminal_id);
 
@@ -180,14 +165,11 @@ function buildStepDisplay(input: {
       node_id: last_decision_id,
       node_label: last_decision?.label ?? null,
       sample_target_label,
-      target_class_label:
-        localNameFromToken(last_decision?.target_class) ?? target_class_label,
-      property_label:
-        localNameFromToken(last_decision?.property_path) ?? property_label,
+      target_class_label: localNameFromToken(last_decision?.target_class) ?? target_class_label,
+      property_label: localNameFromToken(last_decision?.property_path) ?? property_label,
       property_path: last_decision?.property_path ?? null,
       operator: last_decision?.operator ?? null,
-      expected_value:
-        last_decision?.value == null ? null : String(last_decision.value),
+      expected_value: last_decision?.value == null ? null : String(last_decision.value),
       true_path: localNameFromToken(last_decision?.true_path) ?? null,
       false_path: localNameFromToken(last_decision?.false_path) ?? null,
       unknown_path: localNameFromToken(last_decision?.unknown_path) ?? null,
@@ -195,9 +177,7 @@ function buildStepDisplay(input: {
       terminal_label:
         terminal_element?.label ??
         terminal_id ??
-        (typeof input.event.final_status === 'string'
-          ? input.event.final_status
-          : 'End'),
+        (typeof input.event.final_status === 'string' ? input.event.final_status : 'End'),
       terminal_output,
       outcome_label: terminal_output
         ? `${terminal_element?.label ?? 'End node'}: ${terminal_output}`
@@ -218,10 +198,9 @@ function buildStepDisplay(input: {
       property_path:
         typeof input.event.property_path === 'string'
           ? input.event.property_path
-          : current_element?.property_path ?? null,
+          : (current_element?.property_path ?? null),
       operator: current_element?.operator ?? null,
-      expected_value:
-        current_element?.value == null ? null : String(current_element.value),
+      expected_value: current_element?.value == null ? null : String(current_element.value),
       true_path: localNameFromToken(current_element?.true_path) ?? null,
       false_path: localNameFromToken(current_element?.false_path) ?? null,
       unknown_path: localNameFromToken(current_element?.unknown_path) ?? null,
@@ -242,19 +221,17 @@ function buildStepDisplay(input: {
     property_path:
       typeof input.event.property_path === 'string'
         ? input.event.property_path
-        : current_element?.property_path ?? null,
+        : (current_element?.property_path ?? null),
     operator: current_element?.operator ?? null,
-    expected_value:
-      current_element?.value == null ? null : String(current_element.value),
+    expected_value: current_element?.value == null ? null : String(current_element.value),
     true_path: localNameFromToken(current_element?.true_path) ?? null,
     false_path: localNameFromToken(current_element?.false_path) ?? null,
     unknown_path: localNameFromToken(current_element?.unknown_path) ?? null,
     branch_taken: resolveBranchTaken(current_element),
     terminal_label: null,
     terminal_output: null,
-    outcome_label: typeof input.event.final_status === 'string'
-      ? input.event.final_status
-      : event_type,
+    outcome_label:
+      typeof input.event.final_status === 'string' ? input.event.final_status : event_type,
   };
 }
 
@@ -282,14 +259,15 @@ function buildConsoleLines(input: {
     return [
       ...base,
       ...(input.diagnostic_run.message ? [input.diagnostic_run.message] : []),
-      ...((input.diagnostic_run.report_text ?? '')
+      ...(input.diagnostic_run.report_text ?? '')
         .split('\n')
         .map((line) => line.trim())
-        .filter(Boolean)),
+        .filter(Boolean),
     ];
   }
 
-  const eventType = typeof input.event.event_type === 'string' ? input.event.event_type : 'diagnostic_event';
+  const eventType =
+    typeof input.event.event_type === 'string' ? input.event.event_type : 'diagnostic_event';
   const eventTarget = extractTargetNodeIds(input.event).join(', ');
   const lines = [...base, `Event: ${eventType}${eventTarget ? ` - target=${eventTarget}` : ''}`];
 
@@ -318,7 +296,7 @@ function summarizeNodeResults(node_results: Record<string, NodeEvaluationResult>
       false_count: 0,
       unknown_count: 0,
       affected_node_count: 0,
-    }
+    },
   );
 }
 
@@ -410,13 +388,10 @@ function buildExecutionStepsFromDiagnosticRun(input: {
   let stepIndex = input.starting_step_index;
   const sequence_events = input.diagnostic_run.sequence_events ?? [];
 
-  const findNextRelevantEvent = (
-    startIndex: number,
-    event: DiagnosticSequenceEvent
-  ) => {
+  const findNextRelevantEvent = (startIndex: number, event: DiagnosticSequenceEvent) => {
     const current_node_id = localNameFromToken(event.node_id);
     const current_target = localNameFromToken(
-      typeof event.sample_target === 'string' ? event.sample_target : event.target_node
+      typeof event.sample_target === 'string' ? event.sample_target : event.target_node,
     );
 
     for (let index = startIndex + 1; index < sequence_events.length; index += 1) {
@@ -425,7 +400,7 @@ function buildExecutionStepsFromDiagnosticRun(input: {
       if (
         candidate.event_type === 'transition' &&
         localNameFromToken(
-          typeof candidate.from_node_id === 'string' ? candidate.from_node_id : null
+          typeof candidate.from_node_id === 'string' ? candidate.from_node_id : null,
         ) === current_node_id
       ) {
         return candidate;
@@ -435,11 +410,11 @@ function buildExecutionStepsFromDiagnosticRun(input: {
         candidate.event_type === 'chain_complete' &&
         (!current_target ||
           localNameFromToken(
-            typeof candidate.target_node === 'string' ? candidate.target_node : null
+            typeof candidate.target_node === 'string' ? candidate.target_node : null,
           ) === current_target) &&
         Array.isArray(candidate.node_sequence) &&
         (candidate.node_sequence as string[]).some(
-          (node_id) => localNameFromToken(node_id) === current_node_id
+          (node_id) => localNameFromToken(node_id) === current_node_id,
         )
       ) {
         return candidate;
@@ -449,7 +424,11 @@ function buildExecutionStepsFromDiagnosticRun(input: {
     return undefined;
   };
 
-  for (let currentEventIndex = 0; currentEventIndex < sequence_events.length; currentEventIndex += 1) {
+  for (
+    let currentEventIndex = 0;
+    currentEventIndex < sequence_events.length;
+    currentEventIndex += 1
+  ) {
     const event = sequence_events[currentEventIndex];
     const next_event = findNextRelevantEvent(currentEventIndex, event);
     const eventTargetIds = extractTargetNodeIds(event);
@@ -475,7 +454,7 @@ function buildExecutionStepsFromDiagnosticRun(input: {
         next_event,
         cumulative_node_results,
         rule_definition: input.rule_definition,
-      })
+      }),
     );
     stepIndex += 1;
   }
@@ -511,9 +490,7 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   let next_step_index = 0;
 
   for (const runner_item of input.runner_rule_items) {
-    const library_item = input.available_rules.find(
-      (rule) => rule.rule_id === runner_item.rule_id
-    );
+    const library_item = input.available_rules.find((rule) => rule.rule_id === runner_item.rule_id);
 
     const [diagnostic_run, rule_definition] = await Promise.all([
       runDiagnosticCheck({

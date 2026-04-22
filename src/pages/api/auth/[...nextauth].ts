@@ -1,28 +1,28 @@
-import NextAuth from "next-auth";
-import type { NextAuthOptions } from "next-auth";
-import type { JWT } from "next-auth/jwt";
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
 if (!process.env.AUTHENTIK_ISSUER_URL) {
-  throw new Error("AUTHENTIK_ISSUER_URL environment variable is required");
+  throw new Error('AUTHENTIK_ISSUER_URL environment variable is required');
 }
 
-const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, "");
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, '');
 let discoveryPromise: Promise<{ token_endpoint: string }> | null = null;
 
 async function getDiscovery() {
   if (!discoveryPromise) {
-    discoveryPromise = fetch(
-      `${issuerUrl}/.well-known/openid-configuration`
-    ).then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`OIDC discovery failed: ${response.status}`);
-      }
+    discoveryPromise = fetch(`${issuerUrl}/.well-known/openid-configuration`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`OIDC discovery failed: ${response.status}`);
+        }
 
-      return response.json() as Promise<{ token_endpoint: string }>;
-    }).catch((error) => {
-      discoveryPromise = null;
-      throw error;
-    });
+        return response.json() as Promise<{ token_endpoint: string }>;
+      })
+      .catch((error) => {
+        discoveryPromise = null;
+        throw error;
+      });
   }
 
   return discoveryPromise;
@@ -33,12 +33,12 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const { token_endpoint } = await getDiscovery();
 
     const response = await fetch(token_endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         client_id: process.env.AUTHENTIK_CLIENT_ID!,
         client_secret: process.env.AUTHENTIK_CLIENT_SECRET!,
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
         refresh_token: token.refreshToken as string,
       }),
     });
@@ -46,8 +46,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     const refreshed = await response.json();
 
     if (!response.ok) {
-      console.error("Token refresh failed:", refreshed);
-      return { ...token, error: "RefreshAccessTokenError" };
+      console.error('Token refresh failed:', refreshed);
+      return { ...token, error: 'RefreshAccessTokenError' };
     }
 
     return {
@@ -57,24 +57,24 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       expiresAt: Math.floor(Date.now() / 1000) + (refreshed.expires_in ?? 300),
     };
   } catch (error) {
-    console.error("Error refreshing access token:", error);
-    return { ...token, error: "RefreshAccessTokenError" };
+    console.error('Error refreshing access token:', error);
+    return { ...token, error: 'RefreshAccessTokenError' };
   }
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
     {
-      id: "authentik",
-      name: "Authentik",
-      type: "oauth",
+      id: 'authentik',
+      name: 'Authentik',
+      type: 'oauth',
       wellKnown: `${issuerUrl}/.well-known/openid-configuration`,
       idToken: true,
       clientId: process.env.AUTHENTIK_CLIENT_ID,
       clientSecret: process.env.AUTHENTIK_CLIENT_SECRET,
-      authorization: { params: { scope: "openid email profile offline_access" } },
+      authorization: { params: { scope: 'openid email profile offline_access' } },
       client: {
-        token_endpoint_auth_method: "client_secret_post",
+        token_endpoint_auth_method: 'client_secret_post',
       },
       profile(profile) {
         return {
@@ -95,15 +95,11 @@ export const authOptions: NextAuthOptions = {
         token.expiresAt = account.expires_at;
       }
       if (profile) {
-        token.username = (profile as Record<string, unknown>)
-          .preferred_username as string;
+        token.username = (profile as Record<string, unknown>).preferred_username as string;
       }
 
       // If access token hasn't expired, return as-is
-      if (
-        typeof token.expiresAt === "number" &&
-        Date.now() / 1000 < token.expiresAt - 30
-      ) {
+      if (typeof token.expiresAt === 'number' && Date.now() / 1000 < token.expiresAt - 30) {
         return token;
       }
 
@@ -118,14 +114,14 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken as string | undefined;
       session.error = token.error as string | undefined;
       if (session.user) {
-        session.user.id = token.sub ?? "";
+        session.user.id = token.sub ?? '';
         session.user.username = token.username;
       }
       return session;
     },
   },
   pages: {
-    signIn: "/login",
+    signIn: '/login',
   },
 };
 

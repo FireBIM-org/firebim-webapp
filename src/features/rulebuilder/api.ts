@@ -64,14 +64,9 @@ export type DeleteRuleElementResponse = {
 };
 
 export async function deleteRuleElement(
-  payload: DeleteRuleElementRequest
+  payload: DeleteRuleElementRequest,
 ): Promise<DeleteRuleElementResponse> {
-  const elementId =
-    payload.element_id ||
-    payload.graph_uri
-      ?.split('/')
-      .filter(Boolean)
-      .pop();
+  const elementId = payload.element_id || payload.graph_uri?.split('/').filter(Boolean).pop();
 
   if (!elementId) {
     throw new Error('Delete rule element failed: missing element_id');
@@ -276,8 +271,8 @@ function normalizeRuleElement(input: unknown): RuleElementJson {
     raw.rule_element && typeof raw.rule_element === 'object'
       ? (raw.rule_element as Record<string, unknown>)
       : raw.element && typeof raw.element === 'object'
-      ? (raw.element as Record<string, unknown>)
-      : raw;
+        ? (raw.element as Record<string, unknown>)
+        : raw;
 
   const id = String(ruleElement.id ?? raw.element_id ?? '');
   const elementType =
@@ -286,10 +281,10 @@ function normalizeRuleElement(input: unknown): RuleElementJson {
     ruleElement.element_type === 'end'
       ? ruleElement.element_type
       : ruleElement.node_type === 'start' ||
-        ruleElement.node_type === 'decision' ||
-        ruleElement.node_type === 'end'
-      ? ruleElement.node_type
-      : 'decision';
+          ruleElement.node_type === 'decision' ||
+          ruleElement.node_type === 'end'
+        ? ruleElement.node_type
+        : 'decision';
 
   return {
     id,
@@ -304,7 +299,8 @@ function normalizeRuleElement(input: unknown): RuleElementJson {
     unknown_path: (ruleElement.unknown_path as string | null | undefined) ?? null,
     label: (ruleElement.label as string | null | undefined) ?? null,
     config: (ruleElement.config as Record<string, unknown> | undefined) ?? {},
-    graph_uri: (raw.graph_uri as string | null | undefined) ??
+    graph_uri:
+      (raw.graph_uri as string | null | undefined) ??
       (ruleElement.graph_uri as string | null | undefined) ??
       null,
   };
@@ -328,14 +324,10 @@ export async function getRulesHealth(): Promise<RuleHealthResponse> {
 }
 
 export async function connectRuleElementBranch(
-  payload: ConnectRuleRequest
+  payload: ConnectRuleRequest,
 ): Promise<ConnectRuleResponse> {
   const apiBranch: ApiRuleBranch =
-    payload.branch === 'true_path'
-      ? 'true'
-      : payload.branch === 'false_path'
-      ? 'false'
-      : 'unknown';
+    payload.branch === 'true_path' ? 'true' : payload.branch === 'false_path' ? 'false' : 'unknown';
 
   const res = await fetch(`${env.apiBaseUrl}/rules/connect`, {
     method: 'POST',
@@ -359,7 +351,7 @@ export async function connectRuleElementBranch(
 }
 
 export async function checkRuleCompleteness(
-  payload: CheckRuleCompletenessRequest
+  payload: CheckRuleCompletenessRequest,
 ): Promise<CheckRuleCompletenessResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/check-completeness`, {
     method: 'POST',
@@ -372,9 +364,7 @@ export async function checkRuleCompleteness(
   return parseJsonResponse<CheckRuleCompletenessResponse>(res);
 }
 
-export async function publishRule(
-  payload: PublishRuleRequest
-): Promise<PublishRuleResponse> {
+export async function publishRule(payload: PublishRuleRequest): Promise<PublishRuleResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/publish`, {
     method: 'POST',
     headers: {
@@ -399,12 +389,12 @@ export async function listRules(): Promise<RuleListItem[]> {
   const items = Array.isArray(data)
     ? data
     : Array.isArray(data?.items)
-    ? data.items
-    : Array.isArray(data?.rules)
-    ? data.rules
-    : Array.isArray(data?.graph_uris)
-    ? data.graph_uris.map((graph_uri: string) => ({ graph_uri }))
-    : [];
+      ? data.items
+      : Array.isArray(data?.rules)
+        ? data.rules
+        : Array.isArray(data?.graph_uris)
+          ? data.graph_uris.map((graph_uri: string) => ({ graph_uri }))
+          : [];
 
   return items.map((item: unknown, index: number) => {
     const raw = (item ?? {}) as Record<string, unknown>;
@@ -420,18 +410,15 @@ export async function listRules(): Promise<RuleListItem[]> {
 
     return {
       rule_id,
-      label:
-        (raw.label as string | undefined) ??
-        (raw.name as string | undefined) ??
-        rule_id,
+      label: (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? rule_id,
       graph_uri,
       entry: (raw.entry as string | undefined) ?? null,
       rule_element_count:
         typeof raw.rule_element_count === 'number'
           ? raw.rule_element_count
           : typeof raw.element_count === 'number'
-          ? raw.element_count
-          : null,
+            ? raw.element_count
+            : null,
     };
   });
 }
@@ -466,9 +453,7 @@ export async function listRuleElements(): Promise<RuleElementListItem[]> {
   return [];
 }
 
-export async function getRuleElement(
-  id: string
-): Promise<{ rule_element: RuleElementJson }> {
+export async function getRuleElement(id: string): Promise<{ rule_element: RuleElementJson }> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
   const data = await parseJsonResponse<Record<string, unknown>>(res);
 
@@ -478,14 +463,13 @@ export async function getRuleElement(
   return {
     rule_element: {
       ...normalized,
-      graph_uri:
-        (data.graph_uri as string | null | undefined) ?? normalized.graph_uri ?? null,
+      graph_uri: (data.graph_uri as string | null | undefined) ?? normalized.graph_uri ?? null,
     },
   };
 }
 
 export async function getRuleElementOrNull(
-  id: string
+  id: string,
 ): Promise<{ rule_element: RuleElementJson } | null> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements/${id}`);
 
@@ -513,60 +497,60 @@ export async function getRuleElementOrNull(
 export async function listRuleElementsDetailed(): Promise<DetailedRuleElementListItem[]> {
   const basic = await listRuleElements();
   const detailed = await Promise.all(
-    basic.map(async (item: RuleElementListItem, index: number): Promise<DetailedRuleElementListItem> => {
-      const id = item.element_id || item.id || `rule-element-${index}`;
-      const listElementType =
-        item.element_type === 'start' ||
-        item.element_type === 'decision' ||
-        item.element_type === 'end'
-          ? item.element_type
-          : null;
-      const hasListMetadata =
-        typeof item.label === 'string' &&
-        item.label.trim() !== '' &&
-        listElementType !== null;
+    basic.map(
+      async (item: RuleElementListItem, index: number): Promise<DetailedRuleElementListItem> => {
+        const id = item.element_id || item.id || `rule-element-${index}`;
+        const listElementType =
+          item.element_type === 'start' ||
+          item.element_type === 'decision' ||
+          item.element_type === 'end'
+            ? item.element_type
+            : null;
+        const hasListMetadata =
+          typeof item.label === 'string' && item.label.trim() !== '' && listElementType !== null;
 
-      if (hasListMetadata) {
-        return {
-          item_id: `api:${id}`,
-          element_id: id,
-          graph_uri: item.graph_uri || '',
-          element_type: listElementType,
-          label: item.label!.trim(),
-        };
-      }
+        if (hasListMetadata) {
+          return {
+            item_id: `api:${id}`,
+            element_id: id,
+            graph_uri: item.graph_uri || '',
+            element_type: listElementType,
+            label: item.label!.trim(),
+          };
+        }
 
-      try {
-        const res = await getRuleElement(id);
-        const ruleElement = res.rule_element;
+        try {
+          const res = await getRuleElement(id);
+          const ruleElement = res.rule_element;
 
-        return {
-          item_id: `api:${id}`,
-          element_id: id,
-          graph_uri: item.graph_uri || ruleElement.graph_uri || '',
-          element_type: ruleElement.element_type,
-          label: ruleElement.label || ruleElement.id || id,
-        };
-      } catch {
-        return {
-          item_id: `api:${id}`,
-          element_id: id,
-          graph_uri: item.graph_uri || '',
-          element_type:
-            item.element_type === 'start' || item.element_type === 'end'
-              ? item.element_type
-              : 'decision',
-          label: item.label?.trim() || id,
-        };
-      }
-    })
+          return {
+            item_id: `api:${id}`,
+            element_id: id,
+            graph_uri: item.graph_uri || ruleElement.graph_uri || '',
+            element_type: ruleElement.element_type,
+            label: ruleElement.label || ruleElement.id || id,
+          };
+        } catch {
+          return {
+            item_id: `api:${id}`,
+            element_id: id,
+            graph_uri: item.graph_uri || '',
+            element_type:
+              item.element_type === 'start' || item.element_type === 'end'
+                ? item.element_type
+                : 'decision',
+            label: item.label?.trim() || id,
+          };
+        }
+      },
+    ),
   );
 
   return detailed;
 }
 
 export async function publishRuleElement(
-  payload: RuleElementJson
+  payload: RuleElementJson,
 ): Promise<PublishRuleElementResponse> {
   const res = await fetch(`${env.apiBaseUrl}/rules/rule-elements`, {
     method: 'POST',

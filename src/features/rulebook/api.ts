@@ -58,15 +58,13 @@ function getRuleIdFromGraphUri(graph_uri?: string | null): string | null {
 function normalizeRuleDefinition(input: unknown): RuleDefinition {
   const raw = (input ?? {}) as Record<string, unknown>;
   const rule =
-    raw.rule && typeof raw.rule === 'object'
-      ? (raw.rule as Record<string, unknown>)
-      : raw;
+    raw.rule && typeof raw.rule === 'object' ? (raw.rule as Record<string, unknown>) : raw;
 
   const raw_rule_elements = Array.isArray(rule.rule_elements)
     ? rule.rule_elements
     : Array.isArray(rule.elements)
-    ? rule.elements
-    : [];
+      ? rule.elements
+      : [];
 
   return {
     id: String(rule.id ?? ''),
@@ -82,19 +80,15 @@ function normalizeRuleDefinition(input: unknown): RuleDefinition {
           element.element_type === 'end'
             ? element.element_type
             : 'decision',
-        target_class:
-          (element.target_class as string | null | undefined) ?? null,
-        property_path:
-          (element.property_path as string | null | undefined) ?? null,
+        target_class: (element.target_class as string | null | undefined) ?? null,
+        property_path: (element.property_path as string | null | undefined) ?? null,
         operator: (element.operator as string | null | undefined) ?? null,
         value: element.value,
         true_path: (element.true_path as string | null | undefined) ?? null,
         false_path: (element.false_path as string | null | undefined) ?? null,
-        unknown_path:
-          (element.unknown_path as string | null | undefined) ?? null,
+        unknown_path: (element.unknown_path as string | null | undefined) ?? null,
         label: (element.label as string | null | undefined) ?? null,
-        config:
-          (element.config as Record<string, unknown> | undefined) ?? {},
+        config: (element.config as Record<string, unknown> | undefined) ?? {},
         graph_uri: (element.graph_uri as string | null | undefined) ?? null,
       };
     }),
@@ -111,7 +105,7 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 }
 
 async function requestJsonWithFallback<T>(
-  attempts: Array<{ url: string; init?: RequestInit }>
+  attempts: Array<{ url: string; init?: RequestInit }>,
 ): Promise<T> {
   let last_error: Error | null = null;
 
@@ -132,10 +126,10 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
   const items = Array.isArray(raw.graphs)
     ? raw.graphs
     : Array.isArray(raw.items)
-    ? raw.items
-    : Array.isArray(input)
-    ? input
-    : [];
+      ? raw.items
+      : Array.isArray(input)
+        ? input
+        : [];
 
   const result: GraphListApiItem[] = [];
 
@@ -146,9 +140,7 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
       (typeof item === 'string' ? item : undefined) ??
       null;
     const graph_id =
-      (graph.graph_id as string | undefined) ??
-      getRuleIdFromGraphUri(graph_uri) ??
-      null;
+      (graph.graph_id as string | undefined) ?? getRuleIdFromGraphUri(graph_uri) ?? null;
 
     if (!graph_id) {
       continue;
@@ -157,15 +149,9 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
     result.push({
       graph_id,
       graph_uri,
-      label:
-        (graph.label as string | undefined) ??
-        (graph.name as string | undefined) ??
-        graph_id,
-      source:
-        (graph.source as string | undefined) ??
-        (graph_uri ? 'api' : null),
-      triple_count:
-        typeof graph.triple_count === 'number' ? graph.triple_count : null,
+      label: (graph.label as string | undefined) ?? (graph.name as string | undefined) ?? graph_id,
+      source: (graph.source as string | undefined) ?? (graph_uri ? 'api' : null),
+      triple_count: typeof graph.triple_count === 'number' ? graph.triple_count : null,
     });
   }
 
@@ -185,10 +171,7 @@ function localNameFromToken(token: string): string {
   return parts[parts.length - 1] ?? token;
 }
 
-function expandPrefixedIri(
-  token: string,
-  prefixes: Record<string, string>
-): string {
+function expandPrefixedIri(token: string, prefixes: Record<string, string>): string {
   if (token === 'a') {
     return 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
   }
@@ -257,12 +240,13 @@ function kindFromTypeToken(type_token: string): BuildingGraphData['nodes'][numbe
 
 export function parseBuildingGraphTtl(
   payload: GraphFetchApiResponse,
-  ontology_catalog: BuildingGraphData['ontology_catalog']
+  ontology_catalog: BuildingGraphData['ontology_catalog'],
 ): BuildingGraphData {
   const prefixes = Object.fromEntries(
-    Array.from(payload.ttl.matchAll(/PREFIX\s+([A-Za-z][\w-]*):\s*<([^>]+)>/g)).map(
-      (match) => [match[1], match[2]]
-    )
+    Array.from(payload.ttl.matchAll(/PREFIX\s+([A-Za-z][\w-]*):\s*<([^>]+)>/g)).map((match) => [
+      match[1],
+      match[2],
+    ]),
   );
 
   const nodes = new Map<string, BuildingGraphData['nodes'][number]>();
@@ -385,12 +369,12 @@ export async function listRules(): Promise<RuleListItem[]> {
   const items = Array.isArray(data)
     ? data
     : Array.isArray(data?.items)
-    ? data.items
-    : Array.isArray(data?.rules)
-    ? data.rules
-    : Array.isArray(data?.graph_uris)
-    ? data.graph_uris.map((graph_uri: string) => ({ graph_uri }))
-    : [];
+      ? data.items
+      : Array.isArray(data?.rules)
+        ? data.rules
+        : Array.isArray(data?.graph_uris)
+          ? data.graph_uris.map((graph_uri: string) => ({ graph_uri }))
+          : [];
 
   return items.map((item: unknown, index: number) => {
     const raw = (item ?? {}) as Record<string, unknown>;
@@ -407,10 +391,7 @@ export async function listRules(): Promise<RuleListItem[]> {
 
     return {
       rule_id,
-      label:
-        (raw.label as string | undefined) ??
-        (raw.name as string | undefined) ??
-        rule_id,
+      label: (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? rule_id,
       graph_uri,
       source: 'api',
       entry: (raw.entry as string | undefined) ?? null,
@@ -418,11 +399,9 @@ export async function listRules(): Promise<RuleListItem[]> {
         typeof raw.rule_element_count === 'number'
           ? raw.rule_element_count
           : typeof raw.element_count === 'number'
-          ? raw.element_count
-          : null,
-      target_classes: Array.isArray(raw.target_classes)
-        ? (raw.target_classes as string[])
-        : [],
+            ? raw.element_count
+            : null,
+      target_classes: Array.isArray(raw.target_classes) ? (raw.target_classes as string[]) : [],
       description: (raw.description as string | undefined) ?? null,
     };
   });
@@ -442,9 +421,7 @@ export async function getRule(rule_id: string): Promise<RuleDefinition> {
   return normalized;
 }
 
-export async function getRuleOrNull(
-  rule_id: string
-): Promise<RuleDefinition | null> {
+export async function getRuleOrNull(rule_id: string): Promise<RuleDefinition | null> {
   const cached = ruleDefinitionCache.get(rule_id);
   if (cached) {
     return cached;
@@ -469,7 +446,7 @@ export async function getRuleOrNull(
 }
 
 export async function deleteRule(
-  input: DeleteRuleInput
+  input: DeleteRuleInput,
 ): Promise<{ deleted: boolean; rule_id?: string; graph_uri?: string | null }> {
   const rule_id = input.rule_id ?? getRuleIdFromGraphUri(input.graph_uri);
 
@@ -497,15 +474,12 @@ export async function deleteRule(
   return {
     deleted: Boolean(data.deleted ?? data.success ?? true),
     rule_id: (data.rule_id as string | undefined) ?? rule_id,
-    graph_uri:
-      (data.graph_uri as string | null | undefined) ?? input.graph_uri ?? null,
+    graph_uri: (data.graph_uri as string | null | undefined) ?? input.graph_uri ?? null,
   };
 }
 
 export async function getGraphsHealth(): Promise<GraphHealthResponse> {
-  return requestJsonWithFallback<GraphHealthResponse>([
-    { url: `${env.apiBaseUrl}/graphs/health` },
-  ]);
+  return requestJsonWithFallback<GraphHealthResponse>([{ url: `${env.apiBaseUrl}/graphs/health` }]);
 }
 
 export async function listStoredBuildingGraphs(): Promise<GraphListApiItem[]> {
@@ -518,7 +492,7 @@ export async function listStoredBuildingGraphs(): Promise<GraphListApiItem[]> {
 }
 
 export async function fetchStoredBuildingGraphRaw(
-  graph_id: string
+  graph_id: string,
 ): Promise<GraphFetchApiResponse> {
   return requestJsonWithFallback<GraphFetchApiResponse>([
     { url: `${env.apiBaseUrl}/graphs/${graph_id}` },

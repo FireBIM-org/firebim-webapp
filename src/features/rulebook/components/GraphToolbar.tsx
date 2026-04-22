@@ -1,9 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import {
-  ArrowPathIcon,
-  ArrowUpTrayIcon,
-  CubeTransparentIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpTrayIcon, CubeTransparentIcon } from '@heroicons/react/24/outline';
 import {
   fetchStoredBuildingGraphRaw,
   listStoredBuildingGraphs,
@@ -14,39 +10,25 @@ import { useRuleBookStore, type RuleBookStore } from '../store';
 import type { BuildingGraphData } from '../types';
 
 export function GraphToolbar() {
-  const available_graphs = useRuleBookStore(
-    (state: RuleBookStore) => state.available_graphs
-  );
+  const available_graphs = useRuleBookStore((state: RuleBookStore) => state.available_graphs);
   const selected_graph_source = useRuleBookStore(
-    (state: RuleBookStore) => state.selected_graph_source
+    (state: RuleBookStore) => state.selected_graph_source,
   );
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const graph_loading = useRuleBookStore((state: RuleBookStore) => state.graph_loading);
   const graph_error = useRuleBookStore((state: RuleBookStore) => state.graph_error);
 
-  const setAvailableGraphs = useRuleBookStore(
-    (state: RuleBookStore) => state.setAvailableGraphs
-  );
+  const setAvailableGraphs = useRuleBookStore((state: RuleBookStore) => state.setAvailableGraphs);
   const setSelectedGraphSource = useRuleBookStore(
-    (state: RuleBookStore) => state.setSelectedGraphSource
+    (state: RuleBookStore) => state.setSelectedGraphSource,
   );
-  const setActiveGraphData = useRuleBookStore(
-    (state: RuleBookStore) => state.setActiveGraphData
-  );
-  const setActiveGraphUri = useRuleBookStore(
-    (state: RuleBookStore) => state.setActiveGraphUri
-  );
+  const setActiveGraphData = useRuleBookStore((state: RuleBookStore) => state.setActiveGraphData);
+  const setActiveGraphUri = useRuleBookStore((state: RuleBookStore) => state.setActiveGraphUri);
   const setGraphLoaded = useRuleBookStore((state: RuleBookStore) => state.setGraphLoaded);
-  const setGraphLoading = useRuleBookStore(
-    (state: RuleBookStore) => state.setGraphLoading
-  );
+  const setGraphLoading = useRuleBookStore((state: RuleBookStore) => state.setGraphLoading);
   const setGraphError = useRuleBookStore((state: RuleBookStore) => state.setGraphError);
-  const setExecutionStatus = useRuleBookStore(
-    (state: RuleBookStore) => state.setExecutionStatus
-  );
+  const setExecutionStatus = useRuleBookStore((state: RuleBookStore) => state.setExecutionStatus);
   const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
 
   const loadStoredGraphs = useCallback(async () => {
@@ -55,17 +37,19 @@ export function GraphToolbar() {
     try {
       setGraphError(null);
       const graphs = await listStoredBuildingGraphs();
-      const nextGraphs = graphs.map((graph): BuildingGraphData => ({
-        id: graph.graph_id,
-        label: graph.label ?? graph.graph_id,
-        graph_uri: graph.graph_uri ?? null,
-        source: graph.source ?? 'api',
-        triple_count: graph.triple_count ?? null,
-        ttl: null,
-        nodes: [],
-        edges: [],
-        ontology_catalog: cloneDefaultOntologyCatalog(),
-      }));
+      const nextGraphs = graphs.map(
+        (graph): BuildingGraphData => ({
+          id: graph.graph_id,
+          label: graph.label ?? graph.graph_id,
+          graph_uri: graph.graph_uri ?? null,
+          source: graph.source ?? 'api',
+          triple_count: graph.triple_count ?? null,
+          ttl: null,
+          nodes: [],
+          edges: [],
+          ontology_catalog: cloneDefaultOntologyCatalog(),
+        }),
+      );
 
       setAvailableGraphs(nextGraphs);
 
@@ -75,7 +59,7 @@ export function GraphToolbar() {
       }
 
       const hasSelectedGraph = nextGraphs.some(
-        (graph: BuildingGraphData) => graph.id === selected_graph_source
+        (graph: BuildingGraphData) => graph.id === selected_graph_source,
       );
 
       if (!selected_graph_source || !hasSelectedGraph) {
@@ -83,9 +67,7 @@ export function GraphToolbar() {
       }
     } catch (error) {
       setGraphError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to load stored building graphs'
+        error instanceof Error ? error.message : 'Failed to load stored building graphs',
       );
     } finally {
       setGraphLoading(false);
@@ -125,9 +107,7 @@ export function GraphToolbar() {
       setActiveGraphData(null);
       setActiveGraphUri(null);
       setExecutionStatus('idle');
-      setGraphError(
-        error instanceof Error ? error.message : 'Failed to load building graph'
-      );
+      setGraphError(error instanceof Error ? error.message : 'Failed to load building graph');
     } finally {
       setGraphLoading(false);
     }
@@ -197,9 +177,7 @@ export function GraphToolbar() {
         ) : null}
 
         {graph_error ? (
-          <div className="rounded-full bg-red-50 px-3 py-1 text-red-700">
-            {graph_error}
-          </div>
+          <div className="rounded-full bg-red-50 px-3 py-1 text-red-700">{graph_error}</div>
         ) : null}
       </div>
     </div>

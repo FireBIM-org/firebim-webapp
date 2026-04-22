@@ -71,12 +71,7 @@ export type BuildingGraphTargetClass =
   | 'Room'
   | 'Room-Furniture';
 
-export type BuildingGraphPropertyType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'integer'
-  | 'iri';
+export type BuildingGraphPropertyType = 'string' | 'number' | 'boolean' | 'integer' | 'iri';
 
 export type BuildingGraphPropertyDefinition = {
   property_path: string;
@@ -108,10 +103,7 @@ export type BuildingGraphData = {
   ttl?: string | null;
   nodes: BuildingGraphNode[];
   edges: BuildingGraphEdge[];
-  ontology_catalog: Record<
-    BuildingGraphTargetClass,
-    BuildingGraphPropertyDefinition[]
-  >;
+  ontology_catalog: Record<BuildingGraphTargetClass, BuildingGraphPropertyDefinition[]>;
 };
 
 export type GraphHealthResponse = {
@@ -234,11 +226,7 @@ export type CheckCompatibilityResponse = {
   warnings: CompatibilityWarning[];
 };
 
-export type NodeEvaluationResult =
-  | 'True'
-  | 'False'
-  | 'Unknown'
-  | 'Untouched';
+export type NodeEvaluationResult = 'True' | 'False' | 'Unknown' | 'Untouched';
 
 export type ExecutionStep = {
   step_index: number;

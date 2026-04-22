@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 
-import Analytics from "@/components/Analytics";
+import Analytics from '@/components/Analytics';
 
 interface LayoutProps {
   children: ReactNode;
@@ -46,7 +46,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navigation.map((item) => {
                   if (!user && item.requiresAuth) return null;
-                  
+
                   return (
                     <Link
                       key={item.name}
@@ -66,22 +66,14 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">
-                    {user.username}
-                  </span>
-                  <button
-                    onClick={logout}
-                    className="text-sm text-gray-700 hover:text-gray-900"
-                  >
+                  <span className="text-sm text-gray-700">{user.username}</span>
+                  <button onClick={logout} className="text-sm text-gray-700 hover:text-gray-900">
                     Logout
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <Link
-                    href="/login"
-                    className="text-sm text-gray-700 hover:text-gray-900"
-                  >
+                  <Link href="/login" className="text-sm text-gray-700 hover:text-gray-900">
                     Login
                   </Link>
                   <Link
@@ -98,17 +90,18 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="py-6 flex-grow bg-gray-50">
-        <div className={containerClassName}>
-          {children}
-        </div>
+        <div className={containerClassName}>{children}</div>
       </main>
-      
+
       <footer className="bg-white border-t border-gray-200 pt-8 pb-3 mt-auto">
         <div className={containerClassName}>
           <p className="text-center text-gray-500 text-sm">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />
-            <Link href="/build-info" className="text-xs text-gray-300 hover:underline mt-1 inline-block">
+            <Link
+              href="/build-info"
+              className="text-xs text-gray-300 hover:underline mt-1 inline-block"
+            >
               Build Info
             </Link>
           </p>

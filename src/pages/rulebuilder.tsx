@@ -105,7 +105,7 @@ function dedupeCategoryId(baseId: string, existingIds: string[]) {
 
 function normalizeLocalLibraryItems(): LibraryItem[] {
   const localCategory = RULE_LIBRARY.find(
-    (category: RuleLibraryCategory) => category.id === 'under-development'
+    (category: RuleLibraryCategory) => category.id === 'under-development',
   );
   const items = localCategory?.items || [];
 
@@ -160,19 +160,13 @@ function loadLibraryState(localItems: LibraryItem[]): LibraryState {
 
     const parsed = JSON.parse(raw) as Partial<LibraryState>;
 
-    const categories = Array.isArray(parsed.categories)
-      ? parsed.categories
-      : DEFAULT_CATEGORY_META;
+    const categories = Array.isArray(parsed.categories) ? parsed.categories : DEFAULT_CATEGORY_META;
 
     const itemCategory =
-      parsed.itemCategory && typeof parsed.itemCategory === 'object'
-        ? parsed.itemCategory
-        : {};
+      parsed.itemCategory && typeof parsed.itemCategory === 'object' ? parsed.itemCategory : {};
 
     const itemLabels =
-      parsed.itemLabels && typeof parsed.itemLabels === 'object'
-        ? parsed.itemLabels
-        : {};
+      parsed.itemLabels && typeof parsed.itemLabels === 'object' ? parsed.itemLabels : {};
 
     const mergedItemCategory: Record<string, string> = { ...itemCategory };
     const mergedItemLabels: Record<string, string> = { ...itemLabels };
@@ -219,13 +213,8 @@ function sanitizeRuleLabel(value: string) {
   return value.replace(/"/g, "'").trim() || 'rule';
 }
 
-function buildNumberedRuleLabel(
-  baseLabel: string,
-  existingLabels: string[]
-) {
-  const normalizedExisting = new Set(
-    existingLabels.map((label) => normalizeDuplicateKey(label))
-  );
+function buildNumberedRuleLabel(baseLabel: string, existingLabels: string[]) {
+  const normalizedExisting = new Set(existingLabels.map((label) => normalizeDuplicateKey(label)));
 
   let index = 2;
   let candidate = `${baseLabel} ${index}`;
@@ -247,13 +236,12 @@ export default function RuleBuilderPage() {
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [builtTreeCollapsed, setBuiltTreeCollapsed] = useState(false);
 
-  const [builtRuleEdgePhase, setBuiltRuleEdgePhase] =
-    useState<BuiltRuleEdgePhase>('idle');
+  const [builtRuleEdgePhase, setBuiltRuleEdgePhase] = useState<BuiltRuleEdgePhase>('idle');
 
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [storedElements, setStoredElements] = useState<LibraryItem[]>([]);
   const [libraryState, setLibraryState] = useState<LibraryState>(() =>
-    createDefaultLibraryState(localLibraryItems)
+    createDefaultLibraryState(localLibraryItems),
   );
   const [libraryHydrated, setLibraryHydrated] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -293,7 +281,7 @@ export default function RuleBuilderPage() {
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
-    [localLibraryItems, storedElements]
+    [localLibraryItems, storedElements],
   );
 
   const loadStoredRuleElements = useCallback(async () => {
@@ -353,9 +341,7 @@ export default function RuleBuilderPage() {
 
         if (!active) return;
 
-        const exampleIds = new Set(
-          EXAMPLE_RULE_ELEMENTS.map((item: RuleData) => item.id)
-        );
+        const exampleIds = new Set(EXAMPLE_RULE_ELEMENTS.map((item: RuleData) => item.id));
 
         setLibraryState((current: LibraryState) => {
           const nextItemCategory = { ...current.itemCategory };
@@ -365,16 +351,14 @@ export default function RuleBuilderPage() {
             const itemId = `api:${exampleId}`;
             nextItemCategory[itemId] = 'examples';
 
-            const example = EXAMPLE_RULE_ELEMENTS.find(
-              (item: RuleData) => item.id === exampleId
-            );
+            const example = EXAMPLE_RULE_ELEMENTS.find((item: RuleData) => item.id === exampleId);
             if (example?.label) {
               nextItemLabels[itemId] = example.label;
             }
           }
 
           const hasExamplesCategory = current.categories.some(
-            (category) => category.id === 'examples'
+            (category) => category.id === 'examples',
           );
 
           return {
@@ -500,9 +484,7 @@ export default function RuleBuilderPage() {
       const nextItemLabels = { ...current.itemLabels };
 
       for (const itemId of selectedItemIds) {
-        const item = allLibraryItems.find(
-          (candidate: LibraryItem) => candidate.id === itemId
-        );
+        const item = allLibraryItems.find((candidate: LibraryItem) => candidate.id === itemId);
         if (!item) continue;
 
         nextItemCategory[itemId] = categoryId;
@@ -520,9 +502,7 @@ export default function RuleBuilderPage() {
   };
 
   const handleMoveSelectedToTrash = () => {
-    const apiOnlyIds = selectedItemIds.filter((itemId: string) =>
-      itemId.startsWith('api:')
-    );
+    const apiOnlyIds = selectedItemIds.filter((itemId: string) => itemId.startsWith('api:'));
     if (apiOnlyIds.length === 0) return;
 
     setLibraryState((current: LibraryState) => {
@@ -530,9 +510,7 @@ export default function RuleBuilderPage() {
       const nextItemLabels = { ...current.itemLabels };
 
       for (const itemId of apiOnlyIds) {
-        const item = allLibraryItems.find(
-          (candidate: LibraryItem) => candidate.id === itemId
-        );
+        const item = allLibraryItems.find((candidate: LibraryItem) => candidate.id === itemId);
         if (!item) continue;
 
         nextItemCategory[itemId] = 'trash';
@@ -557,7 +535,7 @@ export default function RuleBuilderPage() {
 
       const apiItems = storedElements.filter(
         (item: LibraryItem) =>
-          (libraryState.itemCategory[item.id] || 'under-development') !== 'trash'
+          (libraryState.itemCategory[item.id] || 'under-development') !== 'trash',
       );
       const duplicatesToTrash: string[] = [];
       const latestByLabel = new Map<string, string>();
@@ -583,7 +561,7 @@ export default function RuleBuilderPage() {
       }
 
       const ok = window.confirm(
-        `Move ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin?`
+        `Move ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin?`,
       );
 
       if (!ok) {
@@ -597,9 +575,7 @@ export default function RuleBuilderPage() {
         const nextItemLabels = { ...current.itemLabels };
 
         for (const itemId of duplicatesToTrash) {
-          const item = storedElements.find(
-            (candidate: LibraryItem) => candidate.id === itemId
-          );
+          const item = storedElements.find((candidate: LibraryItem) => candidate.id === itemId);
           if (!item) continue;
           nextItemCategory[itemId] = 'trash';
           nextItemLabels[itemId] = current.itemLabels[itemId] || item.label;
@@ -613,15 +589,15 @@ export default function RuleBuilderPage() {
       });
 
       setSelectedItemIds((current: string[]) =>
-        current.filter((itemId: string) => !duplicateSet.has(itemId))
+        current.filter((itemId: string) => !duplicateSet.has(itemId)),
       );
       setPublishState('success');
       setPublishMessage(
-        `Moved ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin`
+        `Moved ${duplicatesToTrash.length} older duplicate rule element(s) to the waste bin`,
       );
       return true;
     },
-    [libraryState.itemCategory, libraryState.itemLabels, storedElements]
+    [libraryState.itemCategory, libraryState.itemLabels, storedElements],
   );
 
   const handleEmptyTrash = async () => {
@@ -629,7 +605,7 @@ export default function RuleBuilderPage() {
       (item: LibraryItem) =>
         item.source === 'api' &&
         (libraryState.itemCategory[item.id] || 'under-development') === 'trash' &&
-        item.element_id
+        item.element_id,
     );
 
     if (trashedApiItems.length === 0) {
@@ -646,8 +622,8 @@ export default function RuleBuilderPage() {
         trashedApiItems.map((item: LibraryItem) =>
           deleteRuleElement({
             element_id: item.element_id as string,
-          })
-        )
+          }),
+        ),
       );
 
       setLibraryState((current: LibraryState) => {
@@ -668,9 +644,8 @@ export default function RuleBuilderPage() {
 
       setSelectedItemIds((current: string[]) =>
         current.filter(
-          (itemId: string) =>
-            !trashedApiItems.some((item: LibraryItem) => item.id === itemId)
-        )
+          (itemId: string) => !trashedApiItems.some((item: LibraryItem) => item.id === itemId),
+        ),
       );
 
       setPublishState('success');
@@ -690,14 +665,11 @@ export default function RuleBuilderPage() {
     if (!trimmed) return;
 
     setLibraryState((current: LibraryState) => {
-      const existingIds = current.categories.map(
-        (category: CategoryMeta) => category.id
-      );
+      const existingIds = current.categories.map((category: CategoryMeta) => category.id);
       const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
       const maxOrder = current.categories.reduce(
-        (max, category) =>
-          category.id === 'trash' ? max : Math.max(max, category.order),
-        0
+        (max, category) => (category.id === 'trash' ? max : Math.max(max, category.order)),
+        0,
       );
 
       return {
@@ -718,7 +690,7 @@ export default function RuleBuilderPage() {
   const handleRenameCategory = (categoryId: string) => {
     setLibraryState((current: LibraryState) => {
       const target = current.categories.find(
-        (category: CategoryMeta) => category.id === categoryId
+        (category: CategoryMeta) => category.id === categoryId,
       );
       if (!target || target.system) return current;
 
@@ -736,7 +708,7 @@ export default function RuleBuilderPage() {
                 ...category,
                 label: trimmed,
               }
-            : category
+            : category,
         ),
       };
     });
@@ -745,13 +717,10 @@ export default function RuleBuilderPage() {
   const buildCurrentRulesetDraft = () => {
     if (!builtTreeResult) return null;
     const entryNode = builtTreeResult.nodes.find(
-      (node: BuiltTreeResult['nodes'][number]) => node.id === builtTreeResult.entry
+      (node: BuiltTreeResult['nodes'][number]) => node.id === builtTreeResult.entry,
     );
     const ruleLabel = sanitizeRuleLabel(
-      entryNode?.label?.trim() ||
-        selectedRule?.label?.trim() ||
-        selectedRule?.id ||
-        'rule'
+      entryNode?.label?.trim() || selectedRule?.label?.trim() || selectedRule?.id || 'rule',
     );
     const baseId = slugifyRuleId(ruleLabel);
 
@@ -773,7 +742,7 @@ export default function RuleBuilderPage() {
       const issue = validationIssues[0];
       setRulePublishState('error');
       setRulePublishMessage(
-        `Cannot connect rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+        `Cannot connect rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
       );
       return;
     }
@@ -794,9 +763,7 @@ export default function RuleBuilderPage() {
       setBuiltRuleEdgePhase('connected');
 
       setRulePublishState('success');
-      setRulePublishMessage(
-        `Connected ${builtTreeResult.connections.length} branch connection(s)`
-      );
+      setRulePublishMessage(`Connected ${builtTreeResult.connections.length} branch connection(s)`);
     } catch (error) {
       console.error('connectRuleElementBranch failed:', error);
       setRulePublishState('error');
@@ -813,7 +780,7 @@ export default function RuleBuilderPage() {
       const issue = validationIssues[0];
       setRulePublishState('error');
       setRulePublishMessage(
-        `Cannot check completeness: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+        `Cannot check completeness: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
       );
       return;
     }
@@ -838,9 +805,7 @@ export default function RuleBuilderPage() {
     } catch (error) {
       console.error('checkRuleCompleteness failed:', error);
       setRulePublishState('error');
-      setRulePublishMessage(
-        error instanceof Error ? error.message : 'Completeness check failed'
-      );
+      setRulePublishMessage(error instanceof Error ? error.message : 'Completeness check failed');
     }
   };
 
@@ -865,7 +830,7 @@ export default function RuleBuilderPage() {
       const issue = validationIssues[0];
       setRulePublishState('error');
       setRulePublishMessage(
-        `Cannot publish rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`
+        `Cannot publish rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
       );
       return;
     }
@@ -882,15 +847,14 @@ export default function RuleBuilderPage() {
         .filter(
           (label): label is string =>
             Boolean(label) &&
-            normalizeDuplicateKey(label) ===
-              normalizeDuplicateKey(sanitizedBaseRuleLabel)
+            normalizeDuplicateKey(label) === normalizeDuplicateKey(sanitizedBaseRuleLabel),
         );
 
       let resolvedRuleLabel = sanitizedBaseRuleLabel;
 
       if (matchingLabels.length > 0) {
         const shouldOverride = window.confirm(
-          `A rule named "${sanitizedBaseRuleLabel}" already exists in the RuleBook. Do you want to keep that same label?`
+          `A rule named "${sanitizedBaseRuleLabel}" already exists in the RuleBook. Do you want to keep that same label?`,
         );
 
         if (!shouldOverride) {
@@ -898,7 +862,7 @@ export default function RuleBuilderPage() {
             sanitizedBaseRuleLabel,
             existingRules
               .map((rule: { label?: string | null }) => rule.label)
-              .filter((label): label is string => Boolean(label))
+              .filter((label): label is string => Boolean(label)),
           );
         }
       }
@@ -916,7 +880,7 @@ export default function RuleBuilderPage() {
       setRulePublishState('success');
       const publishedRuleId = result.rule_id || publishDraft.id;
       setRulePublishMessage(
-        `The rule "${publishedRuleId}" is saved and can now be found in the rulebook`
+        `The rule "${publishedRuleId}" is saved and can now be found in the rulebook`,
       );
     } catch (error) {
       console.error('publishRule failed:', error);
@@ -1003,22 +967,20 @@ export default function RuleBuilderPage() {
     if (result.missingBranches.length > 0) {
       setPublishState('error');
       setPublishMessage(
-        `Rule built, but ${result.missingBranches.length} missing target(s) were found`
+        `Rule built, but ${result.missingBranches.length} missing target(s) were found`,
       );
       return;
     }
 
     if (result.cycles.length > 0) {
       setPublishState('error');
-      setPublishMessage(
-        `Tree built, but ${result.cycles.length} cycle(s) were detected`
-      );
+      setPublishMessage(`Tree built, but ${result.cycles.length} cycle(s) were detected`);
       return;
     }
 
     setPublishState('success');
     setPublishMessage(
-      `Built Rule with ${result.reachableNodeIds.length} rule elements and ${result.connections.length} connection(s)`
+      `Built Rule with ${result.reachableNodeIds.length} rule elements and ${result.connections.length} connection(s)`,
     );
   };
 
@@ -1127,11 +1089,7 @@ export default function RuleBuilderPage() {
                 className="rule-workspace-api-link"
                 title="Open Swagger docs"
               >
-                <span
-                  className={
-                    apiStatus === 'online' ? 'text-green-600' : 'text-red-600'
-                  }
-                >
+                <span className={apiStatus === 'online' ? 'text-green-600' : 'text-red-600'}>
                   {apiStatus === 'online' ? 'API online' : 'API offline'}
                 </span>
                 <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 text-gray-500" />
@@ -1201,135 +1159,134 @@ export default function RuleBuilderPage() {
             ) : (
               <aside className="flex h-full w-80 flex-col border-l border-gray-200 bg-white p-4 text-sm">
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                <div className="mb-4 flex items-start justify-between">
-                  <div>
-                    <h3 className="rule-workspace-header">Rule details</h3>
-                    <p className="text-xs text-gray-500">Built tree summary</p>
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="rule-workspace-header">Rule details</h3>
+                      <p className="text-xs text-gray-500">Built tree summary</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setBuiltTreeCollapsed(true)}
+                      className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                      title="Collapse rule details"
+                    >
+                      <Bars3Icon className="h-5 w-5" />
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setBuiltTreeCollapsed(true)}
-                    className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                    title="Collapse rule details"
-                  >
-                    <Bars3Icon className="h-5 w-5" />
-                  </button>
-                </div>
+                  <p className="mb-2 text-gray-600">
+                    Entry: <span className="font-mono">{builtTreeResult.entry}</span>
+                  </p>
 
-                <p className="mb-2 text-gray-600">
-                  Entry: <span className="font-mono">{builtTreeResult.entry}</span>
-                </p>
+                  <p className="mb-3 text-gray-600">
+                    Nodes: {builtTreeResult.reachableNodeIds.length}
+                  </p>
 
-                <p className="mb-3 text-gray-600">
-                  Nodes: {builtTreeResult.reachableNodeIds.length}
-                </p>
+                  <div className="mb-3">
+                    <div className="mb-1 font-medium text-gray-800">Connections</div>
+                    <div className="max-h-24 overflow-y-auto whitespace-nowrap rounded border bg-gray-50 p-2 text-xs font-mono">
+                      {builtTreeResult.connections.length > 0 ? (
+                        builtTreeResult.connections.map((c, i) => (
+                          <div key={i}>
+                            {c.source_id}.{c.branch} → {c.target_id}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400">No connections</div>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="mb-3">
-                  <div className="mb-1 font-medium text-gray-800">Connections</div>
-                  <div className="max-h-24 overflow-y-auto whitespace-nowrap rounded border bg-gray-50 p-2 text-xs font-mono">
-                    {builtTreeResult.connections.length > 0 ? (
-                      builtTreeResult.connections.map((c, i) => (
-                        <div key={i}>
-                          {c.source_id}.{c.branch} → {c.target_id}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-gray-400">No connections</div>
+                  {builtTreeResult.missingBranches.length > 0 && (
+                    <div className="mb-3">
+                      <div className="mb-1 font-medium text-red-700">Missing branches</div>
+                      <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
+                        {builtTreeResult.missingBranches.map((m, i) => (
+                          <div key={i}>
+                            {m.source_id}.{m.branch} → {m.missing_target_id} ❌
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {builtTreeResult.cycles.length > 0 && (
+                    <div className="mb-3">
+                      <div className="mb-1 font-medium text-red-700">Cycles</div>
+                      <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
+                        {builtTreeResult.cycles.map((cycle, i) => (
+                          <div key={i} className="font-mono">
+                            {cycle.join(' → ')}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearBuiltTreeResult();
+                        setBuiltRuleEdgePhase('idle');
+                        setRulePublishState('idle');
+                        setRulePublishMessage(null);
+                      }}
+                      className="w-full rounded border px-3 py-1 text-sm"
+                    >
+                      Clear
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleConnectBuiltTree}
+                      disabled={
+                        !builtTreeResult ||
+                        builtTreeResult.connections.length === 0 ||
+                        builtTreeResult.missingBranches.length > 0
+                      }
+                      className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
+                    >
+                      Connect rule branches
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleCheckBuiltRuleCompleteness}
+                      disabled={!builtTreeResult}
+                      className="w-full rounded border border-amber-300 px-3 py-1 text-sm text-amber-700 disabled:opacity-50"
+                    >
+                      Check completeness
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handlePublishBuiltRule}
+                      disabled={
+                        !builtTreeResult ||
+                        builtTreeResult.missingBranches.length > 0 ||
+                        builtTreeResult.cycles.length > 0
+                      }
+                      className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
+                    >
+                      Save rule
+                    </button>
+
+                    {rulePublishMessage && (
+                      <p
+                        className={`text-xs ${
+                          rulePublishState === 'error'
+                            ? 'text-red-600'
+                            : rulePublishState === 'success'
+                              ? 'text-green-600'
+                              : 'text-gray-500'
+                        }`}
+                      >
+                        {rulePublishMessage}
+                      </p>
                     )}
                   </div>
-                </div>
-
-                {builtTreeResult.missingBranches.length > 0 && (
-                  <div className="mb-3">
-                    <div className="mb-1 font-medium text-red-700">Missing branches</div>
-                    <div className="rounded border border-red-200 bg-red-50 p-2 text-xs font-mono space-y-1">
-                      {builtTreeResult.missingBranches.map((m, i) => (
-                        <div key={i}>
-                          {m.source_id}.{m.branch} → {m.missing_target_id} ❌
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {builtTreeResult.cycles.length > 0 && (
-                  <div className="mb-3">
-                    <div className="mb-1 font-medium text-red-700">Cycles</div>
-                    <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
-                      {builtTreeResult.cycles.map((cycle, i) => (
-                        <div key={i} className="font-mono">
-                          {cycle.join(' → ')}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearBuiltTreeResult();
-                      setBuiltRuleEdgePhase('idle');
-                      setRulePublishState('idle');
-                      setRulePublishMessage(null);
-                    }}
-                    className="w-full rounded border px-3 py-1 text-sm"
-                  >
-                    Clear
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleConnectBuiltTree}
-                    disabled={
-                      !builtTreeResult ||
-                      builtTreeResult.connections.length === 0 ||
-                      builtTreeResult.missingBranches.length > 0
-                    }
-                    className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
-                  >
-                    Connect rule branches
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCheckBuiltRuleCompleteness}
-                    disabled={!builtTreeResult}
-                    className="w-full rounded border border-amber-300 px-3 py-1 text-sm text-amber-700 disabled:opacity-50"
-                  >
-                    Check completeness
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handlePublishBuiltRule}
-                    disabled={
-                      !builtTreeResult ||
-                      builtTreeResult.missingBranches.length > 0 ||
-                      builtTreeResult.cycles.length > 0
-                    }
-                    className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
-                  >
-                    Save rule
-                  </button>
-
-                  {rulePublishMessage && (
-                    <p
-                      className={`text-xs ${
-                        rulePublishState === 'error'
-                          ? 'text-red-600'
-                          : rulePublishState === 'success'
-                          ? 'text-green-600'
-                          : 'text-gray-500'
-                      }`}
-                    >
-                      {rulePublishMessage}
-                    </p>
-                  )}
-                </div>
-
                 </div>
 
                 <div className="flex justify-end pt-3">

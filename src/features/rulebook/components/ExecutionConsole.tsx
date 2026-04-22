@@ -35,12 +35,8 @@ function dedupeByRaw<T extends { raw: string }>(items: T[]) {
 }
 
 export function ExecutionConsole() {
-  const execution_timeline = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_timeline
-  );
-  const current_step_index = useRuleBookStore(
-    (state: RuleBookStore) => state.current_step_index
-  );
+  const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
+  const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
   const [collapsed, setCollapsed] = useState(false);
 
   const current_step = useMemo(() => {
@@ -59,24 +55,22 @@ export function ExecutionConsole() {
   }, [current_step]);
 
   const compatibilitySummary = useMemo(() => {
-    const raw = (current_step?.raw_json ?? null) as
-      | {
-          compatibility?: {
-            missing_target_classes?: string[];
-            target_classes_required?: string[];
-            target_classes_found?: Array<{ value: string; count?: number | null }>;
-            missing_properties?: string[];
-          } | null;
-          diagnostic_run?: {
-            compatibility?: {
-              missing_target_classes?: string[];
-              target_classes_required?: string[];
-              target_classes_found?: Array<{ value: string; count?: number | null }>;
-              missing_properties?: string[];
-            } | null;
-          };
-        }
-      | null;
+    const raw = (current_step?.raw_json ?? null) as {
+      compatibility?: {
+        missing_target_classes?: string[];
+        target_classes_required?: string[];
+        target_classes_found?: Array<{ value: string; count?: number | null }>;
+        missing_properties?: string[];
+      } | null;
+      diagnostic_run?: {
+        compatibility?: {
+          missing_target_classes?: string[];
+          target_classes_required?: string[];
+          target_classes_found?: Array<{ value: string; count?: number | null }>;
+          missing_properties?: string[];
+        } | null;
+      };
+    } | null;
 
     const compatibility = raw?.compatibility ?? raw?.diagnostic_run?.compatibility ?? null;
     if (!compatibility) {
@@ -84,11 +78,10 @@ export function ExecutionConsole() {
     }
 
     const foundCounts = new Map(
-      (compatibility.target_classes_found ?? []).map(
-        (item: CompatibilityFoundItem) => [
+      (compatibility.target_classes_found ?? []).map((item: CompatibilityFoundItem) => [
         item.value,
         item.count ?? 0,
-      ])
+      ]),
     );
 
     return {
@@ -96,20 +89,20 @@ export function ExecutionConsole() {
         (compatibility.missing_target_classes ?? []).map((value: string) => ({
           raw: value,
           label: localNameFromToken(value) ?? value,
-        }))
+        })),
       ),
       target_classes_required: dedupeByRaw(
         (compatibility.target_classes_required ?? []).map((value: string) => ({
           raw: value,
           label: localNameFromToken(value) ?? value,
           found_count: foundCounts.get(value) ?? 0,
-        }))
+        })),
       ),
       missing_properties: dedupeByRaw(
         (compatibility.missing_properties ?? []).map((value: string) => ({
           raw: value,
           label: localNameFromToken(value) ?? value,
-        }))
+        })),
       ),
     };
   }, [current_step]);
@@ -205,18 +198,17 @@ export function ExecutionConsole() {
                 <div className="space-y-2 text-xs text-amber-100">
                   {compatibilitySummary.missing_target_classes.map(
                     (item: CompatibilitySummaryItem) => (
-                    <div
-                      key={item.raw}
-                      className="rounded-lg border border-amber-900/60 bg-slate-950/40 px-3 py-2"
-                    >
-                      The rule expects the target class{' '}
-                      <span className="font-semibold text-white">{item.label}</span>, but the
-                      compatibility check found no instances of it in the selected graph.
-                      <div className="mt-1 font-mono text-[11px] text-amber-300">
-                        {item.raw}
+                      <div
+                        key={item.raw}
+                        className="rounded-lg border border-amber-900/60 bg-slate-950/40 px-3 py-2"
+                      >
+                        The rule expects the target class{' '}
+                        <span className="font-semibold text-white">{item.label}</span>, but the
+                        compatibility check found no instances of it in the selected graph.
+                        <div className="mt-1 font-mono text-[11px] text-amber-300">{item.raw}</div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               ) : null}
 
@@ -228,15 +220,16 @@ export function ExecutionConsole() {
                   <div className="space-y-1 text-xs text-slate-200">
                     {compatibilitySummary.target_classes_required.map(
                       (item: CompatibilitySummaryRequiredItem) => (
-                      <div key={item.raw}>
-                        <span className="font-semibold text-white">{item.label}</span>
-                        <span className="text-slate-400"> ({item.raw})</span>
-                        {': '}
-                        {item.found_count > 0
-                          ? `${item.found_count} found in the graph`
-                          : 'not found in the graph'}
-                      </div>
-                    ))}
+                        <div key={item.raw}>
+                          <span className="font-semibold text-white">{item.label}</span>
+                          <span className="text-slate-400"> ({item.raw})</span>
+                          {': '}
+                          {item.found_count > 0
+                            ? `${item.found_count} found in the graph`
+                            : 'not found in the graph'}
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               ) : null}
@@ -249,13 +242,16 @@ export function ExecutionConsole() {
                   <div className="space-y-1 text-xs text-slate-200">
                     {compatibilitySummary.missing_properties.map(
                       (item: CompatibilitySummaryItem) => (
-                      <div key={item.raw}>
-                        The property <span className="font-semibold text-white">{item.label}</span>{' '}
-                        is missing in the graph for at least one of the target classes required by
-                        the rule.
-                        <div className="mt-1 font-mono text-[11px] text-slate-400">{item.raw}</div>
-                      </div>
-                    ))}
+                        <div key={item.raw}>
+                          The property{' '}
+                          <span className="font-semibold text-white">{item.label}</span> is missing
+                          in the graph for at least one of the target classes required by the rule.
+                          <div className="mt-1 font-mono text-[11px] text-slate-400">
+                            {item.raw}
+                          </div>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               ) : null}

@@ -20,38 +20,41 @@ export default function UploadIdsFile() {
     }
   }, [authLoading, user, router]);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) {
-      return;
-    }
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        return;
+      }
 
-    const file = acceptedFiles[0];
-    
-    // Check if the file is an IDS file
-    if (!file.name.toLowerCase().endsWith('.ids') && !file.name.toLowerCase().endsWith('.xml')) {
-      toast.error('Please upload an IDS file (.ids or .xml extension)');
-      return;
-    }
+      const file = acceptedFiles[0];
 
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    try {
-      await apiClient.uploadIds(file);
-      toast.success('IDS file uploaded successfully!');
-      router.push('/ids-files');
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload IDS file. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [router]);
+      // Check if the file is an IDS file
+      if (!file.name.toLowerCase().endsWith('.ids') && !file.name.toLowerCase().endsWith('.xml')) {
+        toast.error('Please upload an IDS file (.ids or .xml extension)');
+        return;
+      }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      try {
+        await apiClient.uploadIds(file);
+        toast.success('IDS file uploaded successfully!');
+        router.push('/ids-files');
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload IDS file. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [router],
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
-    disabled: isUploading
+    disabled: isUploading,
   });
 
   if (authLoading || !user) {
@@ -98,8 +101,8 @@ export default function UploadIdsFile() {
                       {isDragActive
                         ? 'Drop the file here'
                         : isUploading
-                        ? 'Uploading...'
-                        : 'Drag and drop an IDS file, or click to select'}
+                          ? 'Uploading...'
+                          : 'Drag and drop an IDS file, or click to select'}
                     </p>
                   </div>
                   <p className="text-xs text-gray-500">IDS files (.ids or .xml)</p>

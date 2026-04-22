@@ -124,9 +124,12 @@ function getNodeStroke(result: NodeEvaluationResult | undefined, emphasis: Visua
 
 function getResultHalo(result: NodeEvaluationResult | undefined, emphasis: VisualNodeState) {
   if (emphasis === 1) return 'rgba(148, 163, 184, 0.04)';
-  if (result === 'True') return emphasis === 2 ? 'rgba(22, 101, 52, 0.22)' : 'rgba(22, 101, 52, 0.12)';
-  if (result === 'False') return emphasis === 2 ? 'rgba(153, 27, 27, 0.22)' : 'rgba(153, 27, 27, 0.12)';
-  if (result === 'Unknown') return emphasis === 2 ? 'rgba(146, 64, 14, 0.22)' : 'rgba(146, 64, 14, 0.12)';
+  if (result === 'True')
+    return emphasis === 2 ? 'rgba(22, 101, 52, 0.22)' : 'rgba(22, 101, 52, 0.12)';
+  if (result === 'False')
+    return emphasis === 2 ? 'rgba(153, 27, 27, 0.22)' : 'rgba(153, 27, 27, 0.12)';
+  if (result === 'Unknown')
+    return emphasis === 2 ? 'rgba(146, 64, 14, 0.22)' : 'rgba(146, 64, 14, 0.12)';
   return emphasis === 2 ? 'rgba(148, 163, 184, 0.16)' : 'rgba(148, 163, 184, 0.08)';
 }
 
@@ -140,7 +143,7 @@ function shortenValue(value: unknown) {
 }
 
 function formatPropertyKey(key: string) {
-  return key.includes('/') ? key.split('/').filter(Boolean).pop() ?? key : key;
+  return key.includes('/') ? (key.split('/').filter(Boolean).pop() ?? key) : key;
 }
 
 function buildPropertyBubbles(node: PositionedNode | null): PropertyBubble[] {
@@ -197,8 +200,8 @@ function buildGraphLayout(graph: BuildingGraphData | null) {
 
   for (const [ring, nodes] of Array.from(groupedByRing.entries()).sort((a, b) => a[0] - b[0])) {
     const ordered = [...nodes].sort((a, b) => {
-      const aParent = a.parent_id ? nodesById.get(a.parent_id)?.label ?? a.parent_id : '';
-      const bParent = b.parent_id ? nodesById.get(b.parent_id)?.label ?? b.parent_id : '';
+      const aParent = a.parent_id ? (nodesById.get(a.parent_id)?.label ?? a.parent_id) : '';
+      const bParent = b.parent_id ? (nodesById.get(b.parent_id)?.label ?? b.parent_id) : '';
       return aParent.localeCompare(bParent) || a.label.localeCompare(b.label);
     });
 
@@ -347,12 +350,17 @@ function describeStepIssue(step: ExecutionStep, stepIndex: number): StepIssue | 
   const missingTargetClasses = compatibility?.missing_target_classes ?? [];
   const missingProperties = compatibility?.missing_properties ?? [];
 
-  if (step.summary.false_count > 0 || classifyTerminalSentiment(display?.terminal_output) === 'failure' || classifyTerminalSentiment(display?.outcome_label) === 'failure') {
-    const nodeLabel = display?.sample_target_label ?? step.active_node_ids?.[0] ?? 'the current node';
+  if (
+    step.summary.false_count > 0 ||
+    classifyTerminalSentiment(display?.terminal_output) === 'failure' ||
+    classifyTerminalSentiment(display?.outcome_label) === 'failure'
+  ) {
+    const nodeLabel =
+      display?.sample_target_label ?? step.active_node_ids?.[0] ?? 'the current node';
     const conditionText =
       display?.property_label && display?.operator
         ? `${display.property_label} ${operatorToSentence(display.operator)} ${display.expected_value ?? 'the expected value'}`
-        : display?.outcome_label ?? display?.terminal_output ?? 'a required condition';
+        : (display?.outcome_label ?? display?.terminal_output ?? 'a required condition');
 
     return {
       sentiment: 'failure',
@@ -362,7 +370,13 @@ function describeStepIssue(step: ExecutionStep, stepIndex: number): StepIssue | 
     };
   }
 
-  if (missingTargetClasses.length > 0 || missingProperties.length > 0 || step.summary.unknown_count > 0 || classifyTerminalSentiment(display?.terminal_output) === 'warning' || classifyTerminalSentiment(display?.outcome_label) === 'warning') {
+  if (
+    missingTargetClasses.length > 0 ||
+    missingProperties.length > 0 ||
+    step.summary.unknown_count > 0 ||
+    classifyTerminalSentiment(display?.terminal_output) === 'warning' ||
+    classifyTerminalSentiment(display?.outcome_label) === 'warning'
+  ) {
     const missingBits = [
       ...missingTargetClasses.map((value) => `missing target ${value}`),
       ...missingProperties.map((value) => `missing property ${value}`),
@@ -381,7 +395,11 @@ function describeStepIssue(step: ExecutionStep, stepIndex: number): StepIssue | 
     };
   }
 
-  if (classifyTerminalSentiment(display?.terminal_output) === 'success' || classifyTerminalSentiment(display?.outcome_label) === 'success' || step.summary.true_count > 0) {
+  if (
+    classifyTerminalSentiment(display?.terminal_output) === 'success' ||
+    classifyTerminalSentiment(display?.outcome_label) === 'success' ||
+    step.summary.true_count > 0
+  ) {
     return {
       sentiment: 'success',
       message: 'All rules passed.',
@@ -400,21 +418,11 @@ export function BuildingGraphView({
   onToggleCollapsed,
   onRun,
 }: Props) {
-  const active_graph_data = useRuleBookStore(
-    (state: RuleBookStore) => state.active_graph_data
-  );
-  const graph_loaded = useRuleBookStore(
-    (state: RuleBookStore) => state.graph_loaded
-  );
-  const execution_timeline = useRuleBookStore(
-    (state: RuleBookStore) => state.execution_timeline
-  );
-  const current_step_index = useRuleBookStore(
-    (state: RuleBookStore) => state.current_step_index
-  );
-  const setCurrentStepIndex = useRuleBookStore(
-    (state: RuleBookStore) => state.setCurrentStepIndex
-  );
+  const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
+  const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
+  const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
+  const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
+  const setCurrentStepIndex = useRuleBookStore((state: RuleBookStore) => state.setCurrentStepIndex);
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -536,10 +544,8 @@ export function BuildingGraphView({
     }
 
     const visited = new Set<string>();
-    execution_timeline.steps
-      .slice(0, current_step_index)
-      .forEach((step: ExecutionStep) => {
-        step.active_node_ids?.forEach((nodeId: string) => visited.add(nodeId));
+    execution_timeline.steps.slice(0, current_step_index).forEach((step: ExecutionStep) => {
+      step.active_node_ids?.forEach((nodeId: string) => visited.add(nodeId));
     });
     return visited;
   }, [current_step_index, execution_timeline]);
@@ -553,30 +559,30 @@ export function BuildingGraphView({
         : selectedNodeId
           ? [selectedNodeId]
           : executionFocusNodeIds,
-    [executionFocusNodeIds, selectedNodeId, successOverviewVisible]
+    [executionFocusNodeIds, selectedNodeId, successOverviewVisible],
   );
   const primaryFocusNodeId = focusNodeIds[0] ?? null;
 
   const layout = useMemo(() => buildGraphLayout(active_graph_data), [active_graph_data]);
   const positionedById = useMemo(
     () => new Map(layout.nodes.map((node: PositionedNode) => [node.id, node])),
-    [layout.nodes]
+    [layout.nodes],
   );
   const hoveredNode = useMemo(
     () => layout.nodes.find((node: PositionedNode) => node.id === hoveredNodeId) ?? null,
-    [hoveredNodeId, layout.nodes]
+    [hoveredNodeId, layout.nodes],
   );
   const selectedNode = useMemo(
     () => layout.nodes.find((node: PositionedNode) => node.id === primaryFocusNodeId) ?? null,
-    [layout.nodes, primaryFocusNodeId]
+    [layout.nodes, primaryFocusNodeId],
   );
   const propertyBubbles = useMemo(() => buildPropertyBubbles(selectedNode), [selectedNode]);
   const graphNodesById = useMemo(
     () =>
       new Map<string, GraphNode>(
-        (active_graph_data?.nodes ?? []).map((node: GraphNode) => [node.id, node])
+        (active_graph_data?.nodes ?? []).map((node: GraphNode) => [node.id, node]),
       ),
-    [active_graph_data]
+    [active_graph_data],
   );
 
   const getGraphNodeById = (nodeId?: string | null): GraphNode | null => {
@@ -612,9 +618,9 @@ export function BuildingGraphView({
       active_graph_data.edges
         .filter(
           (edge: GraphEdge) =>
-            focusNodeIds.includes(edge.source) || focusNodeIds.includes(edge.target)
+            focusNodeIds.includes(edge.source) || focusNodeIds.includes(edge.target),
         )
-        .map((edge: GraphEdge) => edge.id)
+        .map((edge: GraphEdge) => edge.id),
     );
   }, [active_graph_data, focusNodeIds]);
 
@@ -825,7 +831,7 @@ export function BuildingGraphView({
                   <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
                     {Array.from(
                       { length: layout.bounds.maxRing },
-                      (_: unknown, index: number) => index + 1
+                      (_: unknown, index: number) => index + 1,
                     ).map((ring: number) => (
                       <circle
                         key={`ring-${ring}`}
@@ -890,8 +896,19 @@ export function BuildingGraphView({
 
                     {propertyBubbles.map((property: PropertyBubble) => (
                       <g key={property.key} transform={`translate(${property.x} ${property.y})`}>
-                        <circle r={22} fill="rgba(255,255,255,0.97)" stroke="#334155" strokeWidth={1.5} />
-                        <text y={-2} textAnchor="middle" fontSize="8" fontWeight="700" fill="#0f172a">
+                        <circle
+                          r={22}
+                          fill="rgba(255,255,255,0.97)"
+                          stroke="#334155"
+                          strokeWidth={1.5}
+                        />
+                        <text
+                          y={-2}
+                          textAnchor="middle"
+                          fontSize="8"
+                          fontWeight="700"
+                          fill="#0f172a"
+                        >
                           {property.label}
                         </text>
                         <text y={9} textAnchor="middle" fontSize="7" fill="#475569">
@@ -905,15 +922,13 @@ export function BuildingGraphView({
                       const visualState = getVisualState(node.id);
                       const radius = visualState === 2 ? 26 : visualState === 3 ? 23 : 20;
                       const revealOpacity =
-                        successOverviewVisible &&
-                        successRevealRing !== null
+                        successOverviewVisible && successRevealRing !== null
                           ? node.ring <= successRevealRing
                             ? 1
                             : 0.2
                           : null;
                       const opacity =
-                        revealOpacity ??
-                        (visualState === 1 ? 0.2 : visualState === 2 ? 1 : 0.72);
+                        revealOpacity ?? (visualState === 1 ? 0.2 : visualState === 2 ? 1 : 0.72);
                       return (
                         <g
                           key={node.id}
@@ -922,14 +937,14 @@ export function BuildingGraphView({
                           onMouseEnter={() => setHoveredNodeId(node.id)}
                           onMouseLeave={() =>
                             setHoveredNodeId((value: string | null) =>
-                              value === node.id ? null : value
+                              value === node.id ? null : value,
                             )
                           }
                           onClick={(event) => {
                             event.stopPropagation();
                             setSuccessOverviewActive(false);
                             setSelectedNodeId((value: string | null) =>
-                              value === node.id ? null : node.id
+                              value === node.id ? null : node.id,
                             );
                           }}
                           className="cursor-pointer"
@@ -943,7 +958,10 @@ export function BuildingGraphView({
                           >
                             {node.kind}
                           </text>
-                          <circle r={radius + (visualState === 2 ? 8 : 6)} fill={getResultHalo(result, visualState)} />
+                          <circle
+                            r={radius + (visualState === 2 ? 8 : 6)}
+                            fill={getResultHalo(result, visualState)}
+                          />
                           <circle
                             r={radius + 2}
                             fill={getNodeFill(node.kind)}
@@ -1101,114 +1119,115 @@ export function BuildingGraphView({
               >
                 <div className="space-y-3">
                   {visible_log_steps.map((step: ExecutionStep, index: number) => {
-                  const display = getStepDisplay(step);
-                  const isTerminal = display?.event_type === 'chain_complete';
-                  const isDecision = display?.event_type === 'node_visit';
-                  const targetLabel =
-                    display?.sample_target_label ??
-                    step.active_node_ids?.join(', ') ??
-                    'n/a';
-                  const targetClass = display?.target_class_label ?? 'n/a';
-                  const propertyLabel = display?.property_label ?? 'n/a';
-                  const outcomeLabel = display?.outcome_label ?? 'check OK';
-                  const stepKey = `${step.rule_id}-${step.step_index}-${index}`;
-                  const isExpanded = expandedLogStepKey === stepKey;
-                  const graphNode = getGraphNodeById(display?.sample_target_label);
-                  const graphPropertyValue =
-                    display?.property_path && graphNode?.metadata
-                      ? graphNode.metadata[display.property_path]
-                      : undefined;
-                  const branchLabel = display?.branch_taken ?? null;
+                    const display = getStepDisplay(step);
+                    const isTerminal = display?.event_type === 'chain_complete';
+                    const isDecision = display?.event_type === 'node_visit';
+                    const targetLabel =
+                      display?.sample_target_label ?? step.active_node_ids?.join(', ') ?? 'n/a';
+                    const targetClass = display?.target_class_label ?? 'n/a';
+                    const propertyLabel = display?.property_label ?? 'n/a';
+                    const outcomeLabel = display?.outcome_label ?? 'check OK';
+                    const stepKey = `${step.rule_id}-${step.step_index}-${index}`;
+                    const isExpanded = expandedLogStepKey === stepKey;
+                    const graphNode = getGraphNodeById(display?.sample_target_label);
+                    const graphPropertyValue =
+                      display?.property_path && graphNode?.metadata
+                        ? graphNode.metadata[display.property_path]
+                        : undefined;
+                    const branchLabel = display?.branch_taken ?? null;
 
                     return (
                       <button
-                      type="button"
-                      key={`${step.rule_id}-${step.step_index}-${index}`}
-                      ref={(node) => {
-                        stepCardRefs.current[stepKey] = node;
-                      }}
-                      onClick={() =>
-                        {
+                        type="button"
+                        key={`${step.rule_id}-${step.step_index}-${index}`}
+                        ref={(node) => {
+                          stepCardRefs.current[stepKey] = node;
+                        }}
+                        onClick={() => {
                           setSuccessOverviewActive(false);
                           setLogCollapsed(false);
                           setExpandedLogStepKey((value: string | null) =>
-                            value === stepKey ? null : stepKey
+                            value === stepKey ? null : stepKey,
                           );
-                        }
-                      }
-                      className={[
-                        'w-full rounded-xl border px-3 py-3 text-left transition',
-                        isTerminal
-                          ? 'border-emerald-200 bg-emerald-50/80'
-                          : isExpanded
-                            ? 'border-sky-300 bg-sky-50/70'
-                            : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50/80',
-                      ].join(' ')}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-xs font-semibold text-slate-900">
-                          Step {index + 1}
-                        </div>
-                        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500">
-                          {isTerminal ? 'End node fired' : isDecision ? 'Decision' : 'Event'}
-                        </div>
-                      </div>
-
-                      <div className="mt-2 grid grid-cols-[72px_1fr] gap-x-2 gap-y-1 text-[12px] leading-5">
-                        <div className="font-semibold text-slate-500">Target</div>
-                        <div className="font-medium text-slate-800">
-                          {targetClass}: {targetLabel}
-                        </div>
-
-                        <div className="font-semibold text-slate-500">Property</div>
-                        <div className="font-medium text-slate-800">
-                          {propertyLabel}
-                        </div>
-
-                        <div className="font-semibold text-slate-500">Result</div>
-                        <div className={isTerminal ? 'font-semibold text-emerald-800' : 'font-medium text-slate-800'}>
-                          {outcomeLabel}
-                        </div>
-                      </div>
-
-                      {isTerminal ? (
-                        <div className="mt-2 rounded-lg border border-emerald-200 bg-white/80 px-2 py-2 text-[12px] text-emerald-900">
-                          Stops at step {index + 1}
-                          {display?.terminal_output ? `: ${display.terminal_output}` : ''}
-                        </div>
-                      ) : null}
-
-                      {isExpanded && isDecision ? (
-                        <div
-                          className="mt-3 rounded-lg border border-sky-200 bg-white/90 px-3 py-3 text-[12px] text-slate-800"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          <div className="text-slate-900 leading-6">
-                            {display?.sample_target_label ? (
-                              <>
-                                The <strong>{targetClass}:</strong> {display.sample_target_label}{' '}
-                                <strong>with the {propertyLabel}</strong> value of{' '}
-                                {humanizeValue(graphPropertyValue)}{' '}
-                                <strong>
-                                  {operatorToSentence(display?.operator)}{' '}
-                                  {display?.expected_value ?? 'n/a'}
-                                </strong>
-                                .{' '}
-                                {branchLabel ? (
-                                  <>
-                                    This check continues through the{' '}
-                                    <strong>{branchLabel}</strong> path to the next part of the rule.
-                                  </>
-                                ) : (
-                                  branchToSentence(null)
-                                )}
-                              </>
-                            ) : (
-                              'No readable graph evidence available for this step.'
-                            )}
+                        }}
+                        className={[
+                          'w-full rounded-xl border px-3 py-3 text-left transition',
+                          isTerminal
+                            ? 'border-emerald-200 bg-emerald-50/80'
+                            : isExpanded
+                              ? 'border-sky-300 bg-sky-50/70'
+                              : 'border-slate-200 bg-white/80 hover:border-slate-300 hover:bg-slate-50/80',
+                        ].join(' ')}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-xs font-semibold text-slate-900">
+                            Step {index + 1}
+                          </div>
+                          <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500">
+                            {isTerminal ? 'End node fired' : isDecision ? 'Decision' : 'Event'}
                           </div>
                         </div>
-                      ) : null}
+
+                        <div className="mt-2 grid grid-cols-[72px_1fr] gap-x-2 gap-y-1 text-[12px] leading-5">
+                          <div className="font-semibold text-slate-500">Target</div>
+                          <div className="font-medium text-slate-800">
+                            {targetClass}: {targetLabel}
+                          </div>
+
+                          <div className="font-semibold text-slate-500">Property</div>
+                          <div className="font-medium text-slate-800">{propertyLabel}</div>
+
+                          <div className="font-semibold text-slate-500">Result</div>
+                          <div
+                            className={
+                              isTerminal
+                                ? 'font-semibold text-emerald-800'
+                                : 'font-medium text-slate-800'
+                            }
+                          >
+                            {outcomeLabel}
+                          </div>
+                        </div>
+
+                        {isTerminal ? (
+                          <div className="mt-2 rounded-lg border border-emerald-200 bg-white/80 px-2 py-2 text-[12px] text-emerald-900">
+                            Stops at step {index + 1}
+                            {display?.terminal_output ? `: ${display.terminal_output}` : ''}
+                          </div>
+                        ) : null}
+
+                        {isExpanded && isDecision ? (
+                          <div
+                            className="mt-3 rounded-lg border border-sky-200 bg-white/90 px-3 py-3 text-[12px] text-slate-800"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <div className="text-slate-900 leading-6">
+                              {display?.sample_target_label ? (
+                                <>
+                                  The <strong>{targetClass}:</strong> {display.sample_target_label}{' '}
+                                  <strong>with the {propertyLabel}</strong> value of{' '}
+                                  {humanizeValue(graphPropertyValue)}{' '}
+                                  <strong>
+                                    {operatorToSentence(display?.operator)}{' '}
+                                    {display?.expected_value ?? 'n/a'}
+                                  </strong>
+                                  .{' '}
+                                  {branchLabel ? (
+                                    <>
+                                      This check continues through the{' '}
+                                      <strong>{branchLabel}</strong> path to the next part of the
+                                      rule.
+                                    </>
+                                  ) : (
+                                    branchToSentence(null)
+                                  )}
+                                </>
+                              ) : (
+                                'No readable graph evidence available for this step.'
+                              )}
+                            </div>
+                          </div>
+                        ) : null}
                       </button>
                     );
                   })}
@@ -1227,4 +1246,3 @@ export function BuildingGraphView({
     </div>
   );
 }
-
