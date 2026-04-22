@@ -1,1 +1,4 @@
 src/types/api.ts
+**/*.md
+**/*.yml
+**/*.yaml
