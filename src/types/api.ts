@@ -6,192 +6,192 @@
 export interface paths {
   '/token': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Login For Access Token */
-    post: operations['login_for_access_token_token_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    post: operations['login_for_access_token_token_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/register': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /** Register User */
-    post: operations['register_user_register_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    post: operations['register_user_register_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/users/me': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /** Read Users Me */
-    get: operations['read_users_me_users_me_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['read_users_me_users_me_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ifc-models': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get Models
      * @description Get all IFC models belonging to the current user.
      */
-    get: operations['get_models_ifc_models_get']
-    put?: never
+    get: operations['get_models_ifc_models_get'];
+    put?: never;
     /**
      * Upload Model
      * @description Upload an IFC-STEP file, save to S3, and queue it for processing.
      */
-    post: operations['upload_model_ifc_models_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    post: operations['upload_model_ifc_models_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ifc-models/{id}': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get Model
      * @description Get metadata for an IFC model by its ID.
      */
-    get: operations['get_model_ifc_models__id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['get_model_ifc_models__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ifc-models/{id}/download': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Download Model
      * @description Download an IFC-STEP file by its ID.
      */
-    get: operations['download_model_ifc_models__id__download_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['download_model_ifc_models__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ids-files': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get Ids Files
      * @description Get all IDS files belonging to the current user.
      */
-    get: operations['get_ids_files_ids_files_get']
-    put?: never
+    get: operations['get_ids_files_ids_files_get'];
+    put?: never;
     /**
      * Upload Ids
      * @description Upload an IDS file (XML-based) and save to S3.
      */
-    post: operations['upload_ids_ids_files_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    post: operations['upload_ids_ids_files_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ids-files/{id}': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get Ids
      * @description Get metadata for an IDS file by its ID.
      */
-    get: operations['get_ids_ids_files__id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['get_ids_ids_files__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ids-files/{id}/download': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Download Ids
      * @description Download an IDS file by its ID.
      */
-    get: operations['download_ids_ids_files__id__download_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['download_ids_ids_files__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/async/check-model-with-ids': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     /**
      * Async Check Model With Ids
      * @description Asynchronously check a model against an IDS file.
@@ -200,41 +200,41 @@ export interface paths {
      *     This endpoint demonstrates the first requested pattern:
      *     "Call that returns immediately with id for polling if result is ready. Task is sent to worker."
      */
-    post: operations['async_check_model_with_ids_async_check_model_with_ids_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    post: operations['async_check_model_with_ids_async_check_model_with_ids_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/async/check-result/{check_id}': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Get Async Check Result
      * @description Get the result of an asynchronous check operation by its ID.
      *     This is the polling endpoint to check if a result is ready.
      */
-    get: operations['get_async_check_result_async_check_result__check_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['get_async_check_result_async_check_result__check_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ifc-models/{model_id}/check': {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     /**
      * Sync Check Model With Ids
      * @description Synchronously check a model against an IDS file.
@@ -243,521 +243,521 @@ export interface paths {
      *     This endpoint demonstrates the second requested pattern:
      *     "Call that waits for the worker to return with the result."
      */
-    get: operations['sync_check_model_with_ids_ifc_models__model_id__check_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    get: operations['sync_check_model_with_ids_ifc_models__model_id__check_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /** Body_login_for_access_token_token_post */
     Body_login_for_access_token_token_post: {
       /** Grant Type */
-      grant_type?: string | null
+      grant_type?: string | null;
       /** Username */
-      username: string
+      username: string;
       /** Password */
-      password: string
+      password: string;
       /**
        * Scope
        * @default
        */
-      scope: string
+      scope: string;
       /** Client Id */
-      client_id?: string | null
+      client_id?: string | null;
       /** Client Secret */
-      client_secret?: string | null
-    }
+      client_secret?: string | null;
+    };
     /** Body_upload_ids_ids_files_post */
     Body_upload_ids_ids_files_post: {
       /**
        * File
        * Format: binary
        */
-      file: string
-    }
+      file: string;
+    };
     /** Body_upload_model_ifc_models_post */
     Body_upload_model_ifc_models_post: {
       /**
        * File
        * Format: binary
        */
-      file: string
-    }
+      file: string;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
-      detail?: components['schemas']['ValidationError'][]
-    }
+      detail?: components['schemas']['ValidationError'][];
+    };
     /** Token */
     Token: {
       /** Access Token */
-      access_token: string
+      access_token: string;
       /** Token Type */
-      token_type: string
-    }
+      token_type: string;
+    };
     /** User */
     User: {
       /** Username */
-      username: string
+      username: string;
       /**
        * Email
        * Format: email
        */
-      email: string
+      email: string;
       /** Id */
-      id: string
+      id: string;
       /** Is Active */
-      is_active: boolean
-    }
+      is_active: boolean;
+    };
     /** UserCreate */
     UserCreate: {
       /** Username */
-      username: string
+      username: string;
       /**
        * Email
        * Format: email
        */
-      email: string
+      email: string;
       /** Password */
-      password: string
-    }
+      password: string;
+    };
     /** ValidationError */
     ValidationError: {
       /** Location */
-      loc: (string | number)[]
+      loc: (string | number)[];
       /** Message */
-      msg: string
+      msg: string;
       /** Error Type */
-      type: string
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+      type: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
   login_for_access_token_token_post: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/x-www-form-urlencoded': components['schemas']['Body_login_for_access_token_token_post']
-      }
-    }
+        'application/x-www-form-urlencoded': components['schemas']['Body_login_for_access_token_token_post'];
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['Token']
-        }
-      }
+          'application/json': components['schemas']['Token'];
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   register_user_register_post: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'application/json': components['schemas']['UserCreate']
-      }
-    }
+        'application/json': components['schemas']['UserCreate'];
+      };
+    };
     responses: {
       /** @description Successful Response */
       201: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
+          'application/json': components['schemas']['User'];
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   read_users_me_users_me_get: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['User']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['User'];
+        };
+      };
+    };
+  };
   get_models_ifc_models_get: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
-    }
-  }
+          'application/json': unknown;
+        };
+      };
+    };
+  };
   upload_model_ifc_models_post: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': components['schemas']['Body_upload_model_ifc_models_post']
-      }
-    }
+        'multipart/form-data': components['schemas']['Body_upload_model_ifc_models_post'];
+      };
+    };
     responses: {
       /** @description Successful Response */
       201: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_model_ifc_models__id__get: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   download_model_ifc_models__id__download_get: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_ids_files_ids_files_get: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
-    }
-  }
+          'application/json': unknown;
+        };
+      };
+    };
+  };
   upload_ids_ids_files_post: {
     parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        'multipart/form-data': components['schemas']['Body_upload_ids_ids_files_post']
-      }
-    }
+        'multipart/form-data': components['schemas']['Body_upload_ids_ids_files_post'];
+      };
+    };
     responses: {
       /** @description Successful Response */
       201: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_ids_ids_files__id__get: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   download_ids_ids_files__id__download_get: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   async_check_model_with_ids_async_check_model_with_ids_post: {
     parameters: {
       query: {
-        model_id: string
-        ids_id: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
+        model_id: string;
+        ids_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       202: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_async_check_result_async_check_result__check_id__get: {
     parameters: {
-      query?: never
-      header?: never
+      query?: never;
+      header?: never;
       path: {
-        check_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        check_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   sync_check_model_with_ids_ifc_models__model_id__check_get: {
     parameters: {
       query: {
-        ids_id: string
+        ids_id: string;
         /** @description Timeout in seconds */
-        timeout?: number
-      }
-      header?: never
+        timeout?: number;
+      };
+      header?: never;
       path: {
-        model_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
+        model_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': unknown
-        }
-      }
+          'application/json': unknown;
+        };
+      };
       /** @description Validation Error */
       422: {
         headers: {
-          [name: string]: unknown
-        }
+          [name: string]: unknown;
+        };
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
 }

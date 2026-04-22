@@ -1,18 +1,18 @@
-import type { NextAuthOptions } from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
+import type { NextAuthOptions } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
-import NextAuth from 'next-auth'
+import NextAuth from 'next-auth';
 
 if (!process.env.AUTHENTIK_ISSUER_URL) {
-  throw new Error('AUTHENTIK_ISSUER_URL environment variable is required')
+  throw new Error('AUTHENTIK_ISSUER_URL environment variable is required');
 }
 
-const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, '')
+const issuerUrl = process.env.AUTHENTIK_ISSUER_URL.replace(/\/+$/, '');
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const discovery = await fetch(`${issuerUrl}/.well-known/openid-configuration`)
-    const { token_endpoint } = await discovery.json()
+    const discovery = await fetch(`${issuerUrl}/.well-known/openid-configuration`);
+    const { token_endpoint } = await discovery.json();
 
     const response = await fetch(token_endpoint, {
       method: 'POST',
@@ -23,13 +23,13 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
         grant_type: 'refresh_token',
         refresh_token: token.refreshToken as string,
       }),
-    })
+    });
 
-    const refreshed = await response.json()
+    const refreshed = await response.json();
 
     if (!response.ok) {
-      console.error('Token refresh failed:', refreshed)
-      return { ...token, error: 'RefreshAccessTokenError' }
+      console.error('Token refresh failed:', refreshed);
+      return { ...token, error: 'RefreshAccessTokenError' };
     }
 
     return {
@@ -37,10 +37,10 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
       accessToken: refreshed.access_token,
       refreshToken: refreshed.refresh_token ?? token.refreshToken,
       expiresAt: Math.floor(Date.now() / 1000) + (refreshed.expires_in ?? 300),
-    }
+    };
   } catch (error) {
-    console.error('Error refreshing access token:', error)
-    return { ...token, error: 'RefreshAccessTokenError' }
+    console.error('Error refreshing access token:', error);
+    return { ...token, error: 'RefreshAccessTokenError' };
   }
 }
 
@@ -64,7 +64,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name || profile.preferred_username,
           email: profile.email,
           username: profile.preferred_username,
-        }
+        };
       },
     },
   ],
@@ -72,39 +72,39 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, profile }) {
       // On initial sign-in, persist tokens from the OIDC provider
       if (account) {
-        token.accessToken = account.access_token
-        token.refreshToken = account.refresh_token
-        token.expiresAt = account.expires_at
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt = account.expires_at;
       }
       if (profile) {
-        token.username = (profile as Record<string, unknown>).preferred_username as string
+        token.username = (profile as Record<string, unknown>).preferred_username as string;
       }
 
       // If access token hasn't expired, return as-is
       if (typeof token.expiresAt === 'number' && Date.now() / 1000 < token.expiresAt - 30) {
-        return token
+        return token;
       }
 
       // Access token expired, attempt refresh
       if (token.refreshToken) {
-        return refreshAccessToken(token)
+        return refreshAccessToken(token);
       }
 
-      return token
+      return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken as string | undefined
-      session.error = token.error as string | undefined
+      session.accessToken = token.accessToken as string | undefined;
+      session.error = token.error as string | undefined;
       if (session.user) {
-        session.user.id = token.sub ?? ''
-        session.user.username = token.username
+        session.user.id = token.sub ?? '';
+        session.user.username = token.username;
       }
-      return session
+      return session;
     },
   },
   pages: {
     signIn: '/login',
   },
-}
+};
 
-export default NextAuth(authOptions)
+export default NextAuth(authOptions);
