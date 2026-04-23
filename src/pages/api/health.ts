@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const API_BACKEND = process.env.API_BACKEND_URL || 'http://localhost:8000';
-const AUTHENTIK_ISSUER_URL = process.env.AUTHENTIK_ISSUER_URL ?? '';
+const AUTHENTIK_ISSUER_URL = (
+  process.env.AUTHENTIK_INTERNAL_ISSUER_URL?.trim() ||
+  process.env.AUTHENTIK_ISSUER_URL ||
+  ''
+).replace(/\/+$/, '');
 
 type HealthResponse = {
   status: 'ok' | 'degraded';
@@ -14,12 +18,12 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
 
   // Run upstream checks concurrently to avoid additive timeouts
   const apiPromise = fetch(`${API_BACKEND}/health`, {
-    signal: AbortSignal.timeout(3000),
+    signal: AbortSignal.timeout(10000),
   });
 
   const authentikPromise =
     AUTHENTIK_ISSUER_URL && AUTHENTIK_ISSUER_URL.trim() !== ''
-      ? fetch(`${AUTHENTIK_ISSUER_URL.replace(/\/+$/, '')}/.well-known/openid-configuration`, {
+      ? fetch(`${AUTHENTIK_ISSUER_URL}/.well-known/openid-configuration`, {
           signal: AbortSignal.timeout(3000),
         })
       : null;

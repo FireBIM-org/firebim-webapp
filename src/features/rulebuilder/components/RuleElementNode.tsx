@@ -18,6 +18,8 @@ type RuleData = {
   element_id?: string | null;
 };
 
+type VisualState = 'normal' | 'dimmed' | 'completeness-issue';
+
 function getEndOutputText(rule: RuleData) {
   const outputText = typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
 
@@ -108,6 +110,7 @@ function typeBadge(nodeType: RuleData['element_type']) {
 
 export default function RuleElementNode({ data, selected }: NodeProps) {
   const rule = (data?.rule || null) as RuleData | null;
+  const visualState = ((data?.visualState as VisualState | undefined) || 'normal') as VisualState;
 
   if (!rule) {
     return (
@@ -125,12 +128,18 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
   const showTrueOutput = rule.element_type === 'start' || rule.element_type === 'decision';
   const showFalseOutput = rule.element_type === 'decision';
   const showUnknownOutput = rule.element_type === 'decision';
+  const isDimmed = visualState === 'dimmed';
+  const isCompletenessIssue = visualState === 'completeness-issue';
 
   return (
     <div
       className={[
-        'relative min-w-[240px] rounded-xl border-2 shadow-xl',
-        palette.body,
+        'relative min-w-[240px] rounded-xl border-2',
+        isCompletenessIssue
+          ? 'border-slate-600 bg-slate-200 shadow-[0_0_48px_rgba(51,65,85,0.9)]'
+          : '',
+        isDimmed ? 'border-slate-300 bg-slate-100 opacity-65 shadow-lg grayscale-[0.25]' : '',
+        !isCompletenessIssue && !isDimmed ? `shadow-xl ${palette.body}` : '',
         selected ? `${palette.border} ring-3 ${palette.ring}` : palette.border,
       ].join(' ')}
     >
@@ -143,15 +152,33 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
         />
       )}
 
-      <div className={`rounded-xl border-1 px-3 py-2 ${palette.header}`}>
-        <div className={`text-[11px] font-semibold tracking-wide uppercase ${palette.badge}`}>
+      <div
+        className={`rounded-xl border-1 px-3 py-2 ${
+          isCompletenessIssue
+            ? 'border-slate-500 bg-slate-300'
+            : isDimmed
+              ? 'border-slate-300 bg-slate-200'
+              : palette.header
+        }`}
+      >
+        <div
+          className={`text-[11px] font-semibold tracking-wide uppercase ${
+            isCompletenessIssue || isDimmed ? 'text-slate-700' : palette.badge
+          }`}
+        >
           {typeBadge(rule.element_type)}
         </div>
-        <div className="mt-1 text-sm font-semibold text-slate-900">{label}</div>
+        <div
+          className={`mt-1 text-sm font-semibold ${isCompletenessIssue ? 'text-slate-950' : 'text-slate-900'}`}
+        >
+          {label}
+        </div>
       </div>
 
       {rule.element_type === 'decision' && (
-        <div className="px-3 py-2 text-xs text-slate-600">
+        <div
+          className={`px-3 py-2 text-xs ${isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
+        >
           <div>
             <span className="font-medium">Target:</span> {rule.target_class || '—'}
           </div>
@@ -171,11 +198,17 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
       )}
 
       {rule.element_type === 'end' && (
-        <div className="px-3 py-2 text-xs text-slate-600">
+        <div
+          className={`px-3 py-2 text-xs ${isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
+        >
           <div>
             <span className="font-medium">Output:</span>
           </div>
-          <div className={`mt-3 rounded-xl px-2 py-2 ${palette.output}`}>
+          <div
+            className={`mt-3 rounded-xl px-2 py-2 ${
+              isCompletenessIssue ? 'bg-slate-400 text-slate-950' : palette.output
+            }`}
+          >
             {getEndOutputText(rule)}
           </div>
         </div>

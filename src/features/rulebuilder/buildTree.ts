@@ -16,6 +16,49 @@ function toBranchKey(branch: Branch): 'true_path' | 'false_path' | 'unknown_path
   return 'unknown_path';
 }
 
+function collectRuleCycles(rules: RuleData[]): string[][] {
+  const byId = new Map<string, RuleData>(rules.map((rule: RuleData) => [rule.id, rule] as const));
+  const visited = new Set<string>();
+  const activePath = new Set<string>();
+  const cycles: string[][] = [];
+
+  function dfs(nodeId: string, stack: string[]) {
+    if (activePath.has(nodeId)) {
+      const cycleStartIndex = stack.indexOf(nodeId);
+      if (cycleStartIndex >= 0) {
+        cycles.push(stack.slice(cycleStartIndex));
+      }
+      return;
+    }
+
+    if (visited.has(nodeId)) return;
+
+    const node = byId.get(nodeId);
+    if (!node) return;
+
+    visited.add(nodeId);
+    activePath.add(nodeId);
+
+    const branches: Branch[] = ['true', 'false', 'unknown'];
+    for (const branch of branches) {
+      const key = toBranchKey(branch);
+      const targetId = node[key];
+      if (!targetId || !byId.has(targetId)) continue;
+      dfs(targetId, [...stack, targetId]);
+    }
+
+    activePath.delete(nodeId);
+  }
+
+  for (const rule of rules) {
+    if (!visited.has(rule.id)) {
+      dfs(rule.id, [rule.id]);
+    }
+  }
+
+  return cycles;
+}
+
 export function buildRuleTreeFromStart(startNodeId: string, rules: RuleData[]): BuiltTreeResult {
   const byId = new Map<string, RuleData>(rules.map((rule: RuleData) => [rule.id, rule] as const));
 
@@ -103,6 +146,10 @@ export function buildRuleTreeFromStart(startNodeId: string, rules: RuleData[]): 
     missingBranches,
     cycles,
   };
+}
+
+export function detectCyclesInRules(rules: RuleData[]): string[][] {
+  return collectRuleCycles(rules);
 }
 
 export function extractRulesFromCanvasNodes(nodes: CanvasRuleNode[]): RuleData[] {

@@ -35,7 +35,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </Head>
 
       <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
           <div className="flex h-16 justify-between">
             <div className="flex">
               <div className="flex flex-shrink-0 items-center">
@@ -90,11 +90,13 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="flex-grow bg-gray-50 py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
+          {children}
+        </div>
       </main>
 
       <footer className="mt-auto border-t border-gray-200 bg-white pt-8 pb-3">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
           <p className="text-center text-sm text-gray-500">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />

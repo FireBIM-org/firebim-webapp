@@ -65,6 +65,13 @@ function NodeItem({
   };
 
   const palette = getNodePalette(item.type);
+  const targetClass = item.template.target_class?.trim();
+  const propertyPath = item.template.property_path?.trim();
+  const operator = item.template.operator?.trim();
+  const value =
+    item.template.value === null || item.template.value === undefined
+      ? null
+      : String(item.template.value);
 
   return (
     <div
@@ -85,8 +92,27 @@ function NodeItem({
       </div>
 
       <div className={`px-3 py-2 ${palette.body}`}>
-        {item.description && (
-          <div className="line-clamp-2 text-xs text-gray-500">{item.description}</div>
+        {item.type === 'decision' && (
+          <div className="space-y-1 text-xs text-gray-600">
+            <div>
+              <span className="font-medium text-gray-800">Target class:</span>{' '}
+              {targetClass || 'Not set'}
+            </div>
+            <div>
+              <span className="font-medium text-gray-800">Property path:</span>{' '}
+              {propertyPath || 'Not set'}
+            </div>
+            <div>
+              <span className="font-medium text-gray-800">Operator / Value:</span>{' '}
+              {[operator || 'Not set', value || 'Not set'].join('  ')}
+            </div>
+          </div>
+        )}
+
+        {item.type === 'end' && (
+          <div className="text-xs text-gray-600">
+            <span className="font-medium text-gray-800">Output:</span> {value || 'Not set'}
+          </div>
         )}
 
         {item.source === 'api' && (

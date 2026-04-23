@@ -1,12 +1,17 @@
 import {
+  ArchiveBoxArrowDownIcon,
   BookOpenIcon,
   ArrowTopRightOnSquareIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
   Bars3Icon,
+  DocumentDuplicateIcon,
+  FolderArrowDownIcon,
+  PlayIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -14,18 +19,32 @@ import { env } from '@/config/env';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
+  RuleBuilderWorkspace,
+  RuleBuilderWorkspacePayload,
+  RuleBuilderWorkspaceSummary,
   ensureExampleRuleElements,
   deleteRuleElement,
-  deriveRuleElement,
+  deleteRuleBuilderWorkspacesBatch,
+  exportRuleBuilderWorkspaceRuleElements,
+  getRuleElement,
+  getRuleBuilderWorkspace,
   getRulesHealth,
+  listRuleBuilderWorkspaces,
   listRules,
   listRuleElementsDetailed,
   publishRuleElement,
   connectRuleElementBranch,
   checkRuleCompleteness,
   publishRule,
+  createRuleBuilderWorkspace,
+  updateRuleBuilderWorkspace,
 } from '@/features/rulebuilder/api';
-import { buildRuleDraftFromTree, validateRuleDraft } from '@/features/rulebuilder/buildTree';
+import {
+  buildRuleDraftFromTree,
+  buildRuleTreeFromStart,
+  detectCyclesInRules,
+  validateRuleDraft,
+} from '@/features/rulebuilder/buildTree';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
 import RuleLibraryPanel from '@/features/rulebuilder/components/RuleLibraryPanel';
@@ -41,6 +60,7 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
 type BuiltRuleEdgePhase = 'idle' | 'connected' | 'complete';
+type WorkspaceActionState = 'idle' | 'saving' | 'success' | 'error';
 
 type LibraryItem = RuleLibraryCategory['items'][number] & {
   id: string;
@@ -213,6 +233,49 @@ function sanitizeRuleLabel(value: string) {
   return value.replace(/"/g, "'").trim() || 'rule';
 }
 
+function formatWorkspaceTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+}
+
+function ensureCategoryMeta(
+  categories: CategoryMeta[],
+  label: string,
+): { categories: CategoryMeta[]; categoryId: string } {
+  const trimmed = label.trim();
+  const existing = categories.find(
+    (category: CategoryMeta) => category.label.trim().toLowerCase() === trimmed.toLowerCase(),
+  );
+
+  if (existing) {
+    return {
+      categories,
+      categoryId: existing.id,
+    };
+  }
+
+  const existingIds = categories.map((category: CategoryMeta) => category.id);
+  const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
+  const maxOrder = categories.reduce(
+    (max, category) => (category.id === 'trash' ? max : Math.max(max, category.order)),
+    0,
+  );
+
+  return {
+    categories: [
+      ...categories,
+      {
+        id: newId,
+        label: trimmed,
+        system: false,
+        order: maxOrder + 1,
+      },
+    ],
+    categoryId: newId,
+  };
+}
+
 function buildNumberedRuleLabel(baseLabel: string, existingLabels: string[]) {
   const normalizedExisting = new Set(existingLabels.map((label) => normalizeDuplicateKey(label)));
 
@@ -225,6 +288,13 @@ function buildNumberedRuleLabel(baseLabel: string, existingLabels: string[]) {
   }
 
   return candidate;
+}
+
+function getDisconnectedRuleIds(allRules: RuleData[], reachableNodeIds: string[]) {
+  const reachable = new Set(reachableNodeIds);
+  return allRules
+    .map((rule: RuleData) => rule.id)
+    .filter((ruleId: string) => !reachable.has(ruleId));
 }
 
 export default function RuleBuilderPage() {
@@ -259,7 +329,6 @@ export default function RuleBuilderPage() {
     updateSelectedRule,
     requestDuplicate,
     requestDelete,
-    requestDerive,
     requestBuildTree,
     setBuiltTreeResult,
     clearBuiltTreeResult,
@@ -271,6 +340,19 @@ export default function RuleBuilderPage() {
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
   const [rulePublishState, setRulePublishState] = useState<PublishState>('idle');
   const [rulePublishMessage, setRulePublishMessage] = useState<string | null>(null);
+  const [buildAndSaveState, setBuildAndSaveState] = useState<PublishState>('idle');
+  const [buildAndSaveMessage, setBuildAndSaveMessage] = useState<string | null>(null);
+  const [completenessIssueNodeIds, setCompletenessIssueNodeIds] = useState<string[]>([]);
+  const [workspaceState, setWorkspaceState] = useState<RuleBuilderWorkspacePayload | null>(null);
+  const [activeWorkspace, setActiveWorkspace] = useState<RuleBuilderWorkspaceSummary | null>(null);
+  const [workspaceToLoad, setWorkspaceToLoad] = useState<RuleBuilderWorkspace | null>(null);
+  const [workspaceList, setWorkspaceList] = useState<RuleBuilderWorkspaceSummary[]>([]);
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedWorkspaceIds, setSelectedWorkspaceIds] = useState<string[]>([]);
+  const [workspaceActionState, setWorkspaceActionState] = useState<WorkspaceActionState>('idle');
+  const [workspaceMessage, setWorkspaceMessage] = useState<string | null>(null);
+  const buildAndSaveStateRef = useRef<PublishState>('idle');
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
@@ -280,27 +362,58 @@ export default function RuleBuilderPage() {
   const loadStoredRuleElements = useCallback(async () => {
     const items = await listRuleElementsDetailed();
 
-    const mapped: LibraryItem[] = items.map((item: DetailedRuleElementListItem) => {
-      const itemId = item.item_id || `api:${item.element_id}`;
-      const effectiveLabel = item.label || item.element_id || itemId;
+    const mapped: LibraryItem[] = await Promise.all(
+      items.map(async (item: DetailedRuleElementListItem) => {
+        const itemId = item.item_id || `api:${item.element_id}`;
+        const fallbackLabel = item.label || item.element_id || itemId;
 
-      return {
-        id: itemId,
-        type: item.element_type,
-        label: effectiveLabel,
-        description: item.graph_uri || 'Stored rule element',
-        source: 'api',
-        element_id: item.element_id,
-        template: {
-          element_type: item.element_type,
-          label: effectiveLabel,
-          graph_uri: item.graph_uri || null,
-          config: {},
-        },
-      };
-    });
+        try {
+          const detail = await getRuleElement(item.element_id);
+          const ruleElement = detail.rule_element;
+          const effectiveLabel = ruleElement.label || fallbackLabel;
+
+          return {
+            id: itemId,
+            type: ruleElement.element_type,
+            label: effectiveLabel,
+            description: item.graph_uri || ruleElement.graph_uri || 'Stored rule element',
+            source: 'api' as const,
+            element_id: item.element_id,
+            template: {
+              ...ruleElement,
+              label: effectiveLabel,
+              graph_uri: item.graph_uri || ruleElement.graph_uri || null,
+              config: ruleElement.config || {},
+            },
+          };
+        } catch (error) {
+          console.error(`Failed to fetch rule element details for ${item.element_id}:`, error);
+
+          return {
+            id: itemId,
+            type: item.element_type,
+            label: fallbackLabel,
+            description: item.graph_uri || 'Stored rule element',
+            source: 'api' as const,
+            element_id: item.element_id,
+            template: {
+              element_type: item.element_type,
+              label: fallbackLabel,
+              graph_uri: item.graph_uri || null,
+              config: {},
+            },
+          };
+        }
+      }),
+    );
 
     setStoredElements(mapped);
+  }, []);
+
+  const loadWorkspaceList = useCallback(async () => {
+    const response = await listRuleBuilderWorkspaces();
+    setWorkspaceList(response.workspaces);
+    return response.workspaces;
   }, []);
 
   useEffect(() => {
@@ -331,6 +444,7 @@ export default function RuleBuilderPage() {
         if (!active) return;
 
         await loadStoredRuleElements();
+        await loadWorkspaceList();
 
         if (!active) return;
 
@@ -373,6 +487,7 @@ export default function RuleBuilderPage() {
 
         try {
           await loadStoredRuleElements();
+          await loadWorkspaceList();
         } catch (loadError) {
           console.error('listRuleElementsDetailed failed:', loadError);
           if (!active) return;
@@ -386,7 +501,7 @@ export default function RuleBuilderPage() {
     return () => {
       active = false;
     };
-  }, [loadStoredRuleElements]);
+  }, [loadStoredRuleElements, loadWorkspaceList]);
 
   useEffect(() => {
     setLibraryState((current: LibraryState) => {
@@ -456,6 +571,90 @@ export default function RuleBuilderPage() {
       };
     });
   }, [allLibraryItems, libraryState]);
+
+  const workspaceCycles = useMemo(() => {
+    if (!workspaceState) {
+      return [];
+    }
+
+    return detectCyclesInRules(
+      workspaceState.nodes.map((node) => ({
+        ...node.rule,
+      })),
+    );
+  }, [workspaceState]);
+
+  const canvasNodeCounts = useMemo(() => {
+    if (!workspaceState) {
+      return {
+        start: 0,
+        decision: 0,
+        end: 0,
+      };
+    }
+
+    return workspaceState.nodes.reduce(
+      (counts, node) => {
+        if (node.rule.element_type === 'start') {
+          counts.start += 1;
+        } else if (node.rule.element_type === 'decision') {
+          counts.decision += 1;
+        } else if (node.rule.element_type === 'end') {
+          counts.end += 1;
+        }
+
+        return counts;
+      },
+      {
+        start: 0,
+        decision: 0,
+        end: 0,
+      },
+    );
+  }, [workspaceState]);
+
+  const canBuildAndSaveRule =
+    canvasNodeCounts.start > 0 && canvasNodeCounts.decision > 0 && canvasNodeCounts.end > 0;
+
+  const buildAndSaveButtonClass = useMemo(() => {
+    const baseClass =
+      'inline-flex items-center gap-2 rounded-md border px-4 py-2 text-xs font-semibold transition-all duration-200';
+
+    if (!canBuildAndSaveRule) {
+      return `${baseClass} border-gray-200 bg-gray-100 text-gray-400`;
+    }
+
+    if (buildAndSaveState === 'saving') {
+      return `${baseClass} border-green-300 bg-green-100 text-green-800 shadow-[0_0_22px_rgba(34,197,94,0.45)] animate-pulse`;
+    }
+
+    if (buildAndSaveState === 'error') {
+      return `${baseClass} border-red-300 bg-red-50 text-red-700 shadow-[0_0_22px_rgba(239,68,68,0.45)] animate-pulse`;
+    }
+
+    if (buildAndSaveState === 'success') {
+      return `${baseClass} border-green-400 bg-green-200 text-green-900 shadow-[0_0_18px_rgba(34,197,94,0.35)]`;
+    }
+
+    return `${baseClass} border-green-300 bg-green-100 text-green-800 shadow-[0_0_18px_rgba(34,197,94,0.3)] hover:bg-green-200 hover:shadow-[0_0_24px_rgba(34,197,94,0.45)]`;
+  }, [buildAndSaveState, canBuildAndSaveRule]);
+
+  useEffect(() => {
+    buildAndSaveStateRef.current = buildAndSaveState;
+  }, [buildAndSaveState]);
+
+  useEffect(() => {
+    if (buildAndSaveStateRef.current === 'saving') {
+      return;
+    }
+
+    setBuildAndSaveState('idle');
+    setBuildAndSaveMessage(null);
+  }, [workspaceState]);
+
+  useEffect(() => {
+    setCompletenessIssueNodeIds([]);
+  }, [workspaceState]);
 
   const handleToggleItemSelected = (itemId: string, multi = false) => {
     setSelectedItemIds((current: string[]) => {
@@ -658,24 +857,10 @@ export default function RuleBuilderPage() {
     if (!trimmed) return;
 
     setLibraryState((current: LibraryState) => {
-      const existingIds = current.categories.map((category: CategoryMeta) => category.id);
-      const newId = dedupeCategoryId(createCategoryId(trimmed), existingIds);
-      const maxOrder = current.categories.reduce(
-        (max, category) => (category.id === 'trash' ? max : Math.max(max, category.order)),
-        0,
-      );
-
+      const { categories } = ensureCategoryMeta(current.categories, trimmed);
       return {
         ...current,
-        categories: [
-          ...current.categories,
-          {
-            id: newId,
-            label: trimmed,
-            system: false,
-            order: maxOrder + 1,
-          },
-        ],
+        categories,
       };
     });
   };
@@ -731,6 +916,12 @@ export default function RuleBuilderPage() {
       return;
     }
 
+    if (workspaceCycles.length > 0) {
+      setRulePublishState('error');
+      setRulePublishMessage('Cannot connect rule: loop(s) were detected in the current workspace');
+      return;
+    }
+
     if (validationIssues.length > 0) {
       const issue = validationIssues[0];
       setRulePublishState('error');
@@ -768,6 +959,7 @@ export default function RuleBuilderPage() {
     const draft = buildCurrentRulesetDraft();
     if (!draft) return;
     const validationIssues = validateRuleDraft(draft);
+    setCompletenessIssueNodeIds([]);
 
     if (validationIssues.length > 0) {
       const issue = validationIssues[0];
@@ -785,6 +977,26 @@ export default function RuleBuilderPage() {
       const result = await checkRuleCompleteness({
         rule: draft,
       });
+
+      const completenessIds = new Set<string>();
+
+      for (const nodeId of result.missing_nodes || []) {
+        if (draft.elements.some((element) => element.id === nodeId)) {
+          completenessIds.add(nodeId);
+        }
+      }
+
+      for (const branch of result.open_branches || []) {
+        if (typeof branch.node_id === 'string' && branch.node_id.trim()) {
+          completenessIds.add(branch.node_id);
+        }
+      }
+
+      if (result.entry_ok === false && builtTreeResult?.entry) {
+        completenessIds.add(builtTreeResult.entry);
+      }
+
+      setCompletenessIssueNodeIds([...completenessIds]);
 
       if (result?.complete === true) {
         setBuiltRuleEdgePhase('complete');
@@ -816,6 +1028,12 @@ export default function RuleBuilderPage() {
     if (builtTreeResult?.cycles.length) {
       setRulePublishState('error');
       setRulePublishMessage('Cannot publish rule: cycle(s) were detected');
+      return;
+    }
+
+    if (workspaceCycles.length > 0) {
+      setRulePublishState('error');
+      setRulePublishMessage('Cannot publish rule: loop(s) were detected in the current workspace');
       return;
     }
 
@@ -882,10 +1100,428 @@ export default function RuleBuilderPage() {
     }
   };
 
+  const handleBuildAndSaveRule = async () => {
+    clearBuiltTreeResult();
+    setBuiltTreeCollapsed(false);
+    setBuiltRuleEdgePhase('idle');
+    setRulePublishState('idle');
+    setRulePublishMessage(null);
+
+    if (!workspaceState) {
+      const message =
+        'No workspace is ready to build. Add start, decision and end nodes to the canvas.';
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    const startNodes = workspaceState.nodes.filter((node) => node.rule.element_type === 'start');
+
+    if (startNodes.length !== 1) {
+      const message =
+        startNodes.length > 1
+          ? 'can only build with one start node on canvas'
+          : 'Cannot build rule: add one start node to the canvas first';
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    const startNode = startNodes[0];
+    const rules = workspaceState.nodes.map((node) => ({
+      ...node.rule,
+    }));
+
+    setBuildAndSaveState('saving');
+    setBuildAndSaveMessage('Building and saving rule...');
+    setRulePublishState('saving');
+    setRulePublishMessage('Selecting start node...');
+    selectNode(startNode.canvas_node_id, startNode.rule);
+
+    const builtTree = buildRuleTreeFromStart(startNode.rule.id, rules);
+    setBuiltTreeResult(builtTree);
+    const disconnectedRuleIds = getDisconnectedRuleIds(rules, builtTree.reachableNodeIds);
+
+    if (builtTree.missingBranches.length > 0) {
+      const message = `Cannot build rule: ${builtTree.missingBranches.length} missing branch target(s) were found`;
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    if (disconnectedRuleIds.length > 0) {
+      const message =
+        disconnectedRuleIds.length === 1
+          ? `Cannot build rule: 1 rule element is not connected to the selected start node (${disconnectedRuleIds[0]})`
+          : `Cannot build rule: ${disconnectedRuleIds.length} rule elements are not connected to the selected start node`;
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    if (builtTree.cycles.length > 0 || workspaceCycles.length > 0) {
+      const message = 'Cannot build rule: loop(s) were detected in the current workspace';
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    const entryNode = builtTree.nodes.find(
+      (node: BuiltTreeResult['nodes'][number]) => node.id === builtTree.entry,
+    );
+    const ruleLabel = sanitizeRuleLabel(
+      entryNode?.label?.trim() || startNode.rule.label?.trim() || startNode.rule.id || 'rule',
+    );
+    const draft = buildRuleDraftFromTree(slugifyRuleId(ruleLabel), builtTree, ruleLabel);
+    const validationIssues = validateRuleDraft(draft);
+
+    if (validationIssues.length > 0) {
+      const issue = validationIssues[0];
+      const message = `Cannot build rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`;
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+      return;
+    }
+
+    try {
+      setRulePublishMessage('Connecting rule element branches...');
+
+      for (const connection of builtTree.connections) {
+        await connectRuleElementBranch({
+          rule: draft,
+          source_id: connection.source_id,
+          branch: connection.branch,
+          target_id: connection.target_id,
+        });
+      }
+
+      setBuiltRuleEdgePhase('connected');
+      setRulePublishMessage('Checking rule completeness...');
+
+      const completeness = await checkRuleCompleteness({
+        rule: draft,
+      });
+
+      if (completeness?.complete !== true) {
+        throw new Error(
+          completeness
+            ? `Completeness check failed: ${JSON.stringify(completeness)}`
+            : 'Completeness check failed',
+        );
+      }
+
+      setBuiltRuleEdgePhase('complete');
+      setRulePublishMessage('Saving rule...');
+
+      const baseRuleLabel = draft.label?.trim() || draft.id;
+      const sanitizedBaseRuleLabel = sanitizeRuleLabel(baseRuleLabel);
+      const existingRules = await listRules();
+      const matchingLabels = existingRules
+        .map((rule: { label?: string | null }) => rule.label?.trim())
+        .filter(
+          (label): label is string =>
+            Boolean(label) &&
+            normalizeDuplicateKey(label) === normalizeDuplicateKey(sanitizedBaseRuleLabel),
+        );
+
+      let resolvedRuleLabel = sanitizedBaseRuleLabel;
+
+      if (matchingLabels.length > 0) {
+        const shouldOverride = window.confirm(
+          `A rule named "${sanitizedBaseRuleLabel}" already exists in the RuleBook. Do you want to keep that same label?`,
+        );
+
+        if (!shouldOverride) {
+          resolvedRuleLabel = buildNumberedRuleLabel(
+            sanitizedBaseRuleLabel,
+            existingRules
+              .map((rule: { label?: string | null }) => rule.label?.trim())
+              .filter((label): label is string => Boolean(label)),
+          );
+        }
+      }
+
+      const publishDraft = {
+        ...draft,
+        id: slugifyRuleId(resolvedRuleLabel),
+        label: resolvedRuleLabel,
+      };
+
+      const result = await publishRule({
+        rule: publishDraft,
+      });
+
+      const publishedRuleId = result.rule_id || publishDraft.id;
+      const successMessage = `The rule "${publishedRuleId}" is saved and can now be found in the rulebook`;
+
+      setBuildAndSaveState('success');
+      setBuildAndSaveMessage(successMessage);
+      setRulePublishState('success');
+      setRulePublishMessage(successMessage);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Build and save failed';
+      console.error('handleBuildAndSaveRule failed:', error);
+      setBuildAndSaveState('error');
+      setBuildAndSaveMessage(message);
+      setRulePublishState('error');
+      setRulePublishMessage(message);
+    }
+  };
+
   const handleSelectedNodeChange = (nodeId: string | null, rule: RuleData | null) => {
     selectNode(nodeId, rule);
     setPublishState('idle');
     setPublishMessage(null);
+  };
+
+  const toggleWorkspaceSelected = (workspaceId: string) => {
+    setSelectedWorkspaceIds((current: string[]) =>
+      current.includes(workspaceId)
+        ? current.filter((id: string) => id !== workspaceId)
+        : [...current, workspaceId],
+    );
+  };
+
+  const ensureWorkspaceState = () => {
+    if (workspaceState) {
+      return workspaceState;
+    }
+
+    throw new Error(
+      'No workspace is ready to save. Add at least one start rule element to the canvas.',
+    );
+  };
+
+  const promptWorkspaceName = (fallbackName: string) => {
+    const enteredName = window.prompt('Workspace name', fallbackName);
+    if (enteredName === null) return null;
+    return enteredName.trim() || fallbackName;
+  };
+
+  const createWorkspaceSummary = (
+    workspace: RuleBuilderWorkspace,
+  ): RuleBuilderWorkspaceSummary => ({
+    id: workspace.id,
+    name: workspace.name,
+    entry_node_id: workspace.entry_node_id,
+    entry_node_label: workspace.entry_node_label,
+    created_at: workspace.created_at,
+    updated_at: workspace.updated_at,
+    node_count: workspace.nodes.length,
+    edge_count: workspace.edges.length,
+  });
+
+  const createWorkspaceWithPrompt = async () => {
+    const currentState = ensureWorkspaceState();
+    const requestedName = promptWorkspaceName(currentState.entry_node_label || currentState.name);
+    if (!requestedName) {
+      return null;
+    }
+
+    setWorkspaceActionState('saving');
+    setWorkspaceMessage(null);
+
+    const response = await createRuleBuilderWorkspace({
+      ...currentState,
+      name: requestedName,
+      entry_node_label: currentState.entry_node_label || requestedName,
+    });
+
+    setActiveWorkspace(createWorkspaceSummary(response.workspace));
+    setWorkspaceToLoad(response.workspace);
+    await loadWorkspaceList();
+    setWorkspaceActionState('success');
+    setWorkspaceMessage(`Workspace "${response.workspace.name}" saved`);
+    return response.workspace;
+  };
+
+  const handleSaveWorkspaceAs = async () => {
+    try {
+      await createWorkspaceWithPrompt();
+    } catch (error) {
+      console.error('createRuleBuilderWorkspace failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Save as failed');
+    }
+  };
+
+  const handleSaveWorkspace = async () => {
+    try {
+      if (!activeWorkspace?.id) {
+        await createWorkspaceWithPrompt();
+        return;
+      }
+
+      const currentState = ensureWorkspaceState();
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+
+      const response = await updateRuleBuilderWorkspace(activeWorkspace.id, {
+        ...currentState,
+        name: activeWorkspace.name,
+      });
+
+      setActiveWorkspace(createWorkspaceSummary(response.workspace));
+      await loadWorkspaceList();
+      setWorkspaceActionState('success');
+      setWorkspaceMessage(`Workspace "${response.workspace.name}" updated`);
+    } catch (error) {
+      console.error('updateRuleBuilderWorkspace failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Save failed');
+    }
+  };
+
+  const handleOpenLoadDialog = async () => {
+    try {
+      setShowDeleteDialog(false);
+      setSelectedWorkspaceIds([]);
+      await loadWorkspaceList();
+      setShowLoadDialog(true);
+    } catch (error) {
+      console.error('listRuleBuilderWorkspaces failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Load list failed');
+    }
+  };
+
+  const handleLoadWorkspace = async (workspaceId: string) => {
+    try {
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+      const response = await getRuleBuilderWorkspace(workspaceId);
+      setWorkspaceToLoad(response.workspace);
+      setActiveWorkspace(createWorkspaceSummary(response.workspace));
+      setShowLoadDialog(false);
+      setWorkspaceActionState('success');
+      setWorkspaceMessage(`Workspace "${response.workspace.name}" loaded`);
+    } catch (error) {
+      console.error('getRuleBuilderWorkspace failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Load failed');
+    }
+  };
+
+  const handleOpenDeleteDialog = async () => {
+    try {
+      setShowLoadDialog(false);
+      setSelectedWorkspaceIds([]);
+      await loadWorkspaceList();
+      setShowDeleteDialog(true);
+    } catch (error) {
+      console.error('listRuleBuilderWorkspaces failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Delete list failed');
+    }
+  };
+
+  const handleDeleteSelectedWorkspaces = async () => {
+    if (selectedWorkspaceIds.length === 0) {
+      setWorkspaceActionState('error');
+      setWorkspaceMessage('Select at least one workspace to delete');
+      return;
+    }
+
+    try {
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+      const response = await deleteRuleBuilderWorkspacesBatch(selectedWorkspaceIds);
+      if (activeWorkspace && response.deleted_ids.includes(activeWorkspace.id)) {
+        setActiveWorkspace(null);
+      }
+      setSelectedWorkspaceIds([]);
+      await loadWorkspaceList();
+      setShowDeleteDialog(false);
+      setWorkspaceActionState('success');
+      setWorkspaceMessage(
+        response.not_found_ids.length > 0
+          ? `Deleted ${response.deleted_ids.length} workspace(s); ${response.not_found_ids.length} were not found`
+          : `Deleted ${response.deleted_ids.length} workspace(s)`,
+      );
+    } catch (error) {
+      console.error('deleteRuleBuilderWorkspacesBatch failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Delete failed');
+    }
+  };
+
+  const handleExportWorkspaceRuleElements = async () => {
+    try {
+      let workspaceId = activeWorkspace?.id || null;
+
+      if (!workspaceId) {
+        const createdWorkspace = await createWorkspaceWithPrompt();
+        workspaceId = createdWorkspace?.id || null;
+      }
+
+      if (!workspaceId) {
+        return;
+      }
+
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+      const response = await exportRuleBuilderWorkspaceRuleElements(workspaceId);
+      await loadStoredRuleElements();
+      const categoryLabel = response.entry_node_label?.trim() || response.group_name?.trim();
+      const currentWorkspace = workspaceState;
+      const workspaceLabelsByRuleId = new Map<string, string>();
+
+      if (currentWorkspace) {
+        for (const node of currentWorkspace.nodes) {
+          const ruleId = node.rule.id;
+          const label = node.rule.label?.trim() || ruleId;
+          workspaceLabelsByRuleId.set(ruleId, label);
+        }
+      }
+
+      if (categoryLabel) {
+        setLibraryState((current: LibraryState) => {
+          const ensured = ensureCategoryMeta(current.categories, categoryLabel);
+          const nextItemCategory = { ...current.itemCategory };
+          const nextItemLabels = { ...current.itemLabels };
+
+          for (const element of response.elements) {
+            const itemId = `api:${element.element_id}`;
+            nextItemCategory[itemId] = ensured.categoryId;
+            nextItemLabels[itemId] =
+              workspaceLabelsByRuleId.get(element.source_id) ||
+              nextItemLabels[itemId] ||
+              element.source_id ||
+              itemId;
+          }
+
+          return {
+            ...current,
+            categories: ensured.categories,
+            itemCategory: nextItemCategory,
+            itemLabels: nextItemLabels,
+          };
+        });
+      }
+
+      setWorkspaceActionState('success');
+      setWorkspaceMessage(
+        `Saved ${response.created_count} rule element(s) to "${response.group_name}"`,
+      );
+    } catch (error) {
+      console.error('exportRuleBuilderWorkspaceRuleElements failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(
+        error instanceof Error ? error.message : 'Save all rule elements to library failed',
+      );
+    }
   };
 
   const handleInspectorChange = (patch: Partial<RuleData>) => {
@@ -912,35 +1548,6 @@ export default function RuleBuilderPage() {
     setPublishMessage(null);
   };
 
-  const handleDeriveSelectedNode = async () => {
-    if (!selectedRule) return;
-
-    const sourceId = selectedRule.element_id || selectedRule.id;
-    if (!sourceId) return;
-
-    try {
-      const newId = `${selectedRule.element_type}-${crypto.randomUUID()}`;
-
-      const res = await deriveRuleElement({
-        source_id: sourceId,
-        new_id: newId,
-        preserve_paths: false,
-        overrides: {
-          label: selectedRule.label || `${sourceId} copy`,
-        },
-      });
-
-      requestDerive(res.rule_element);
-
-      setPublishState('idle');
-      setPublishMessage('Derived new local variant from stored element');
-    } catch (error) {
-      console.error('deriveRuleElement failed:', error);
-      setPublishState('error');
-      setPublishMessage(error instanceof Error ? error.message : 'Derive failed');
-    }
-  };
-
   const handleBuildTreeFromSelectedStartNode = () => {
     if (!selectedRule || !selectedNodeId) return;
     if (selectedRule.element_type !== 'start') return;
@@ -957,6 +1564,12 @@ export default function RuleBuilderPage() {
     setBuiltTreeResult(result);
     setBuiltTreeCollapsed(false);
 
+    const currentRules =
+      workspaceState?.nodes.map((node) => ({
+        ...node.rule,
+      })) || [];
+    const disconnectedRuleIds = getDisconnectedRuleIds(currentRules, result.reachableNodeIds);
+
     if (result.missingBranches.length > 0) {
       setPublishState('error');
       setPublishMessage(
@@ -968,6 +1581,24 @@ export default function RuleBuilderPage() {
     if (result.cycles.length > 0) {
       setPublishState('error');
       setPublishMessage(`Tree built, but ${result.cycles.length} cycle(s) were detected`);
+      return;
+    }
+
+    if (disconnectedRuleIds.length > 0) {
+      setPublishState('error');
+      setPublishMessage(
+        disconnectedRuleIds.length === 1
+          ? `Tree built, but 1 rule element is not connected to the selected start node (${disconnectedRuleIds[0]})`
+          : `Tree built, but ${disconnectedRuleIds.length} rule elements are not connected to the selected start node`,
+      );
+      return;
+    }
+
+    if (workspaceCycles.length > 0) {
+      setPublishState('error');
+      setPublishMessage(
+        `Tree built, but ${workspaceCycles.length} loop(s) were detected in the current workspace`,
+      );
       return;
     }
 
@@ -1056,6 +1687,38 @@ export default function RuleBuilderPage() {
             <div className="rule-workspace-api-slot">
               <button
                 type="button"
+                onClick={handleDuplicateSelectedNode}
+                disabled={!selectedRule}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Duplicate selected rule element"
+                aria-label="Duplicate selected rule element"
+              >
+                <DocumentDuplicateIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSelectedNode}
+                disabled={!selectedRule}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Delete selected rule element"
+                aria-label="Delete selected rule element"
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handlePublishSelectedNode();
+                }}
+                disabled={!selectedRule || publishState === 'saving'}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Save selected ruleelement"
+                aria-label="Save selected ruleelement"
+              >
+                <ArchiveBoxArrowDownIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
                 onClick={undo}
                 disabled={!canUndo}
                 className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1073,6 +1736,71 @@ export default function RuleBuilderPage() {
                 aria-label="Redo"
               >
                 <ArrowUturnRightIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleSaveWorkspaceAs();
+                }}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Save as, all rule elements is in canvas"
+              >
+                Save as
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleSaveWorkspace();
+                }}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Save, all rule elements is in canvas"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleOpenLoadDialog();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Load, all rule elements is in canvas"
+              >
+                <FolderArrowDownIcon className="h-4 w-4" />
+                Load
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleOpenDeleteDialog();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Delete previous saves"
+              >
+                <TrashIcon className="h-4 w-4" />
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleExportWorkspaceRuleElements();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Save all rule elements to rule elements library"
+              >
+                <ArchiveBoxArrowDownIcon className="h-4 w-4" />
+                Save all
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleBuildAndSaveRule();
+                }}
+                disabled={!canBuildAndSaveRule || buildAndSaveState === 'saving'}
+                className={buildAndSaveButtonClass}
+                title="Build, connect, check completeness, and save the rule."
+              >
+                <PlayIcon className="h-4 w-4" />
+                {buildAndSaveState === 'saving' ? 'Building...' : 'Build and save rule'}
               </button>
 
               <a
@@ -1120,6 +1848,9 @@ export default function RuleBuilderPage() {
               buildTreeRequest={buildTreeRequest}
               onTreeBuilt={handleTreeBuilt}
               builtRuleEdgePhase={builtRuleEdgePhase}
+              workspaceToLoad={workspaceToLoad}
+              onWorkspaceStateChange={setWorkspaceState}
+              completenessIssueNodeIds={completenessIssueNodeIds}
             />
           </div>
 
@@ -1128,13 +1859,7 @@ export default function RuleBuilderPage() {
             onToggleCollapsed={() => setInspectorCollapsed((prev: boolean) => !prev)}
             selectedRule={selectedRule}
             onChange={handleInspectorChange}
-            onPublish={handlePublishSelectedNode}
-            onDuplicate={handleDuplicateSelectedNode}
-            onDelete={handleDeleteSelectedNode}
-            onDerive={handleDeriveSelectedNode}
             onBuildTree={handleBuildTreeFromSelectedStartNode}
-            publishState={publishState}
-            publishMessage={publishMessage}
           />
 
           {builtTreeResult ? (
@@ -1204,15 +1929,30 @@ export default function RuleBuilderPage() {
                     </div>
                   )}
 
-                  {builtTreeResult.cycles.length > 0 && (
+                  {(builtTreeResult.cycles.length > 0 || workspaceCycles.length > 0) && (
                     <div className="mb-3">
-                      <div className="mb-1 font-medium text-red-700">Cycles</div>
+                      <div className="mb-1 font-medium text-red-700">Loops</div>
                       <div className="rounded border border-red-200 bg-red-50 p-2 text-xs">
                         {builtTreeResult.cycles.map((cycle, i) => (
                           <div key={i} className="font-mono">
                             {cycle.join(' → ')}
                           </div>
                         ))}
+                        {workspaceCycles
+                          .filter(
+                            (cycle) =>
+                              !builtTreeResult.cycles.some(
+                                (builtCycle) => builtCycle.join('|') === cycle.join('|'),
+                              ),
+                          )
+                          .map((cycle, i) => (
+                            <div
+                              key={`workspace-${cycle.join('|')}-${i}`}
+                              className="font-mono text-red-700"
+                            >
+                              {cycle.join(' → ')}
+                            </div>
+                          ))}
                       </div>
                     </div>
                   )}
@@ -1237,7 +1977,8 @@ export default function RuleBuilderPage() {
                       disabled={
                         !builtTreeResult ||
                         builtTreeResult.connections.length === 0 ||
-                        builtTreeResult.missingBranches.length > 0
+                        builtTreeResult.missingBranches.length > 0 ||
+                        workspaceCycles.length > 0
                       }
                       className="w-full rounded border border-blue-300 px-3 py-1 text-sm text-blue-700 disabled:opacity-50"
                     >
@@ -1259,7 +2000,8 @@ export default function RuleBuilderPage() {
                       disabled={
                         !builtTreeResult ||
                         builtTreeResult.missingBranches.length > 0 ||
-                        builtTreeResult.cycles.length > 0
+                        builtTreeResult.cycles.length > 0 ||
+                        workspaceCycles.length > 0
                       }
                       className="w-full rounded border border-green-300 px-3 py-1 text-sm text-green-700 disabled:opacity-50"
                     >
@@ -1296,7 +2038,193 @@ export default function RuleBuilderPage() {
             )
           ) : null}
         </div>
+        {(activeWorkspace ||
+          workspaceMessage ||
+          publishMessage ||
+          rulePublishMessage ||
+          buildAndSaveMessage) && (
+          <div className="border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-600">
+            <div className="flex flex-wrap items-center gap-3">
+              {activeWorkspace && (
+                <span>
+                  Active workspace:{' '}
+                  <span className="font-medium text-gray-800">{activeWorkspace.name}</span>
+                </span>
+              )}
+              {workspaceMessage && (
+                <span
+                  className={
+                    workspaceActionState === 'error'
+                      ? 'text-red-600'
+                      : workspaceActionState === 'success'
+                        ? 'text-green-600'
+                        : 'text-gray-500'
+                  }
+                >
+                  {workspaceMessage}
+                </span>
+              )}
+              {publishMessage && (
+                <span
+                  className={
+                    publishState === 'error'
+                      ? 'text-red-600'
+                      : publishState === 'success'
+                        ? 'text-green-600'
+                        : 'text-gray-500'
+                  }
+                >
+                  {publishMessage}
+                </span>
+              )}
+              {rulePublishMessage && (
+                <span
+                  className={
+                    rulePublishState === 'error'
+                      ? 'text-red-600'
+                      : rulePublishState === 'success'
+                        ? 'text-green-600'
+                        : 'text-gray-500'
+                  }
+                >
+                  {rulePublishMessage}
+                </span>
+              )}
+              {buildAndSaveMessage && (
+                <span
+                  className={
+                    buildAndSaveState === 'error'
+                      ? 'text-red-600'
+                      : buildAndSaveState === 'success'
+                        ? 'text-green-600'
+                        : 'text-gray-500'
+                  }
+                >
+                  {buildAndSaveMessage}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+      {showLoadDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Load workspace</h2>
+                <p className="text-sm text-gray-500">Load a saved RuleBuilder workspace</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLoadDialog(false)}
+                className="rounded-md px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[28rem] overflow-y-auto px-5 py-4">
+              {workspaceList.length === 0 ? (
+                <p className="text-sm text-gray-500">No saved workspaces yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {workspaceList.map((workspace: RuleBuilderWorkspaceSummary) => (
+                    <button
+                      key={workspace.id}
+                      type="button"
+                      onClick={() => {
+                        void handleLoadWorkspace(workspace.id);
+                      }}
+                      className="flex w-full items-start justify-between rounded-lg border border-gray-200 px-4 py-3 text-left hover:border-orange-300 hover:bg-orange-50"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900">{workspace.name}</div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Entry: {workspace.entry_node_label || workspace.entry_node_id}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Updated: {formatWorkspaceTimestamp(workspace.updated_at)}
+                        </div>
+                      </div>
+                      <div className="ml-4 shrink-0 text-xs text-gray-400">
+                        {workspace.node_count} nodes / {workspace.edge_count} edges
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Delete workspaces</h2>
+                <p className="text-sm text-gray-500">Delete previous saves</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeleteDialog(false)}
+                className="rounded-md px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[28rem] overflow-y-auto px-5 py-4">
+              {workspaceList.length === 0 ? (
+                <p className="text-sm text-gray-500">No saved workspaces to delete.</p>
+              ) : (
+                <div className="space-y-3">
+                  {workspaceList.map((workspace: RuleBuilderWorkspaceSummary) => (
+                    <label
+                      key={workspace.id}
+                      className="flex items-start gap-3 rounded-lg border border-gray-200 px-4 py-3"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedWorkspaceIds.includes(workspace.id)}
+                        onChange={() => toggleWorkspaceSelected(workspace.id)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900">{workspace.name}</div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Entry: {workspace.entry_node_label || workspace.entry_node_id}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Updated: {formatWorkspaceTimestamp(workspace.updated_at)}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => setShowDeleteDialog(false)}
+                className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleDeleteSelectedWorkspaces();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                <TrashIcon className="h-4 w-4" />
+                Delete selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

@@ -47,13 +47,22 @@ Wait for Authentik to finish initialising at [http://localhost:9080](http://loca
 
 ### 2. Configure the webapp
 
-Copy the example env file and adjust if needed:
+For local `pnpm` development, copy the example env file and adjust if needed:
 
 ```bash
-cp .docker/.env.example .docker/.env   # edit NEXTAUTH_SECRET, client credentials, etc.
+cp .env.example .env.local
 ```
 
-The defaults in `docker-compose.yml` match the dev values provisioned by the firebim-api-server Authentik blueprint, so no changes are required for a standard local setup.
+For Docker development, `docker-compose.yml` already matches the standard local FireBIM stack:
+
+* `API_BACKEND_URL=http://api:8000`
+* `AUTHENTIK_ISSUER_URL=http://localhost:9080/application/o/firebim/`
+* `AUTHENTIK_INTERNAL_ISSUER_URL=http://authentik-server:9000/application/o/firebim/`
+* `AUTHENTIK_CLIENT_ID=firebim`
+* `AUTHENTIK_CLIENT_SECRET=local-dev-client-secret`
+* `FIREBIM_API_NETWORK=firebim_api_server_lexicon_default`
+
+That means the frontend container talks to your local API/Auth stack without any backend changes. Only update those values if your local ports, credentials, or Docker network name differ.
 
 ### 3a. Run with Docker (recommended)
 
@@ -109,4 +118,3 @@ The webapp also includes two authenticated rule-focused areas:
 * `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
 
 Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
-
