@@ -53,7 +53,22 @@ For local `pnpm` development, copy the example env file and adjust if needed:
 cp .env.example .env.local
 ```
 
-For Docker development, `docker-compose.yml` already matches the standard local FireBIM stack:
+For Docker development, `.docker/.env` is a build-time placeholder file for public Next.js variables. Runtime values are supplied by `docker-compose.yml`.
+
+By default, `docker-compose.yml` matches the standard local FireBIM stack and joins the backend network `firebim_api_server_lexicon_default`. If your backend project uses another network name, set `FIREBIM_API_NETWORK` before starting the webapp:
+
+```bash
+FIREBIM_API_NETWORK=firebim_api_server_lexicon_default make up-build
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:FIREBIM_API_NETWORK = 'firebim_api_server_lexicon_default'
+make up-build
+```
+
+The standard local runtime values are:
 
 * `API_BACKEND_URL=http://api:8000`
 * `AUTHENTIK_ISSUER_URL=http://localhost:9080/application/o/firebim/`
@@ -86,6 +101,20 @@ make dev      # starts Next.js with Turbopack at http://localhost:3000
 
 > **Note:** When running outside Docker you still need the backend stack running via Docker Compose.
 
+### Health checks
+
+The local health endpoint is available at [http://localhost:3000/api/health](http://localhost:3000/api/health). It checks the API and Authentik concurrently with a short timeout. A `degraded` response can happen when the backend `/health` endpoint is slow even though the backend is reachable; test the backend directly with:
+
+```bash
+curl http://localhost:8000/health
+```
+
+If the webapp container is attached to the backend Docker network, this should also work from inside the container:
+
+```bash
+docker exec <webapp-container> node -e "fetch('http://api:8000/health').then(async r => console.log(r.status, await r.text()))"
+```
+
 ## Common tasks
 
 | Command | Description |
@@ -108,7 +137,7 @@ Browser  ──►  Next.js (port 3000)
                 └─ /api/auth/…   ──►  NextAuth ──► Authentik (OIDC)
 ```
 
-Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network (or `localhost` via `extra_hosts` when running in a container).
+Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network. The browser-facing Authentik issuer stays on `localhost:9080`, with `extra_hosts` allowing the container to resolve that host binding when needed.
 
 ## Rule Features
 

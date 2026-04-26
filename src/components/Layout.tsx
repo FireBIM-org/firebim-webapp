@@ -23,6 +23,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
     { name: 'Analysis', href: '/analysis', requiresAuth: true },
     { name: 'RuleBuilder', href: '/rulebuilder', requiresAuth: true },
     { name: 'RuleBook', href: '/rulebook', requiresAuth: true },
+    { name: 'Lexicon', href: '/lexicon', requiresAuth: true },
   ];
 
   return (
@@ -35,7 +36,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </Head>
 
       <nav className="bg-white shadow-sm">
-        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           <div className="flex h-16 justify-between">
             <div className="flex">
               <div className="flex flex-shrink-0 items-center">
@@ -90,13 +91,13 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="flex-grow bg-gray-50 py-6">
-        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           {children}
         </div>
       </main>
 
       <footer className="mt-auto border-t border-gray-200 bg-white pt-8 pb-3">
-        <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           <p className="text-center text-sm text-gray-500">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />
