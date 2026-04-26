@@ -24,6 +24,14 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 type CoverageState = 'covered' | 'partial' | 'missing' | 'suggested';
 type InspectorTab = 'coverage' | 'suggestions' | 'readiness';
 type DrawerState = 'closed' | 'half' | 'full';
+type LexiconMode =
+  | 'start'
+  | 'rules'
+  | 'graph'
+  | 'profiles'
+  | 'standards'
+  | 'recommended'
+  | 'workspace';
 
 type RequirementNode = {
   id: string;
@@ -44,6 +52,14 @@ type ProfileSummary = {
   rules: number;
   graph: string;
   readiness: CoverageState;
+};
+
+type StartOption = {
+  id: LexiconMode;
+  title: string;
+  description: string;
+  helper: string;
+  icon: typeof BookOpenIcon;
 };
 
 const profiles: ProfileSummary[] = [
@@ -72,6 +88,57 @@ const profiles: ProfileSummary[] = [
     readiness: 'covered',
   },
 ];
+
+const startOptions: StartOption[] = [
+  {
+    id: 'rules',
+    title: 'Create from rules',
+    description: 'Build a profile from one or more machine-readable rules.',
+    helper:
+      'Choose rules first. Lexicon can recommend standards and definition choices after that.',
+    icon: BookOpenIcon,
+  },
+  {
+    id: 'graph',
+    title: 'Create from a BIM graph',
+    description: 'Let Lexicon find definitions in a BIM representation.',
+    helper: 'Useful when you want to learn what your BIM data can support before choosing rules.',
+    icon: CircleStackIcon,
+  },
+  {
+    id: 'profiles',
+    title: 'Use an existing profile',
+    description: 'Open, copy, combine, or continue saved definition choices.',
+    helper:
+      'Profiles save decisions so they can be reused across rules, standards, and BIM graphs.',
+    icon: RectangleGroupIcon,
+  },
+  {
+    id: 'standards',
+    title: 'Start with standards',
+    description: 'Browse FBO, IFC, or RIR versions and build from selected definitions.',
+    helper: 'Use this when you already know which standard or version matters.',
+    icon: FunnelIcon,
+  },
+  {
+    id: 'recommended',
+    title: 'Recommend setup',
+    description: 'Answer a few questions and let Lexicon suggest the starting point.',
+    helper:
+      'The fastest path if you want control but do not want to configure everything manually.',
+    icon: SparklesIcon,
+  },
+];
+
+const modeLabels: Record<LexiconMode, string> = {
+  start: 'Start',
+  rules: 'Rules',
+  graph: 'BIM graphs',
+  profiles: 'Profiles',
+  standards: 'Standards',
+  recommended: 'Recommended setup',
+  workspace: 'Profile',
+};
 
 const requirementTree: RequirementNode[] = [
   {
@@ -260,15 +327,18 @@ function RequirementCard({
 
 export default function LexiconPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
-  const [drawerState, setDrawerState] = useState<DrawerState>('half');
+  const [mode, setMode] = useState<LexiconMode>('start');
+  const [leftCollapsed, setLeftCollapsed] = useState(true);
+  const [rightCollapsed, setRightCollapsed] = useState(true);
+  const [drawerState, setDrawerState] = useState<DrawerState>('closed');
   const [activeProfileId, setActiveProfileId] = useState(profiles[0].id);
   const [activeTab, setActiveTab] = useState<InspectorTab>('coverage');
   const allNodes = useMemo(() => flattenNodes(requirementTree), []);
   const [selectedNodeId, setSelectedNodeId] = useState(allNodes[2].id);
   const selectedNode = allNodes.find((node) => node.id === selectedNodeId) || allNodes[0];
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId) || profiles[0];
+  const activeStartOption = startOptions.find((option) => option.id === mode);
+  const isWorkspace = mode === 'workspace';
 
   const coverageCounts = useMemo(
     () =>
@@ -295,6 +365,21 @@ export default function LexiconPage() {
 
   const drawerHeight = drawerState === 'closed' ? 'h-10' : drawerState === 'half' ? 'h-56' : 'h-96';
 
+  const openMode = (nextMode: LexiconMode) => {
+    setMode(nextMode);
+    setLeftCollapsed(false);
+    setRightCollapsed(false);
+    setDrawerState('closed');
+    setActiveTab(nextMode === 'recommended' ? 'suggestions' : 'coverage');
+  };
+
+  const openWorkspace = () => {
+    setMode('workspace');
+    setLeftCollapsed(false);
+    setRightCollapsed(false);
+    setDrawerState('half');
+  };
+
   return (
     <Layout title="Lexicon | FireBIM">
       <div className="rule-workspace-frame">
@@ -308,17 +393,39 @@ export default function LexiconPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
-              <div className="rounded-md border border-gray-200 bg-white px-3 py-2">
-                <span className="text-gray-500">Setup</span>
-                <span className="ml-2 font-semibold text-gray-900">{activeProfile.mode}</span>
-              </div>
-              <div className="rounded-md border border-gray-200 bg-white px-3 py-2">
-                <span className="text-gray-500">BIM graph</span>
-                <span className="ml-2 font-semibold text-gray-900">{activeProfile.graph}</span>
-              </div>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-3 py-2 font-semibold text-white hover:bg-orange-700"
+                onClick={() => {
+                  setMode('start');
+                  setLeftCollapsed(true);
+                  setRightCollapsed(true);
+                  setDrawerState('closed');
+                }}
+                className="rounded-md border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Start
+              </button>
+              {isWorkspace ? (
+                <>
+                  <div className="rounded-md border border-gray-200 bg-white px-3 py-2">
+                    <span className="text-gray-500">Setup</span>
+                    <span className="ml-2 font-semibold text-gray-900">{activeProfile.mode}</span>
+                  </div>
+                  <div className="rounded-md border border-gray-200 bg-white px-3 py-2">
+                    <span className="text-gray-500">BIM graph</span>
+                    <span className="ml-2 font-semibold text-gray-900">{activeProfile.graph}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-md border border-gray-200 bg-white px-3 py-2">
+                  <span className="text-gray-500">Step 1</span>
+                  <span className="ml-2 font-semibold text-gray-900">{modeLabels[mode]}</span>
+                </div>
+              )}
+              <button
+                type="button"
+                disabled={!isWorkspace}
+                className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-3 py-2 font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-300"
               >
                 <PlayIcon className="h-4 w-4" />
                 Run checks
@@ -336,8 +443,16 @@ export default function LexiconPage() {
             <div className="flex items-center justify-between border-b border-gray-200 p-3">
               {!leftCollapsed && (
                 <div>
-                  <div className="rule-workspace-header">Profiles</div>
-                  <p className="text-xs text-gray-500">Saved definition choices</p>
+                  <div className="rule-workspace-header">{modeLabels[mode]}</div>
+                  <p className="text-xs text-gray-500">
+                    {mode === 'rules'
+                      ? 'Choose rules'
+                      : mode === 'graph'
+                        ? 'Choose a BIM graph'
+                        : mode === 'standards'
+                          ? 'Choose standards'
+                          : 'Saved definition choices'}
+                  </p>
                 </div>
               )}
               <button
@@ -368,6 +483,12 @@ export default function LexiconPage() {
                   <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
                   <span className="text-xs text-gray-500">Search profiles, rules, BIM graphs</span>
                 </div>
+
+                {mode !== 'start' && mode !== 'workspace' && (
+                  <div className="mb-3 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
+                    {activeStartOption?.helper}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   {profiles.map((profile) => (
@@ -415,7 +536,78 @@ export default function LexiconPage() {
           </aside>
 
           <section className="flex min-w-0 flex-1 flex-col">
-            <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+            {!isWorkspace && (
+              <div className="min-h-0 flex-1 overflow-auto bg-slate-100 p-6">
+                <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center">
+                  <div className="mb-6 text-center">
+                    <div className="rule-workspace-header">Step 1</div>
+                    <h1 className="mt-2 text-2xl font-semibold text-gray-950">
+                      Create or open a Lexicon profile
+                    </h1>
+                    <p className="mx-auto mt-3 max-w-2xl text-sm text-gray-600">
+                      Profiles save definition choices so they can be reused across rules,
+                      standards, and BIM graphs.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {startOptions.map((option) => {
+                      const Icon = option.icon;
+                      const selected = mode === option.id;
+
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => openMode(option.id)}
+                          className={`min-h-36 rounded-lg border bg-white p-4 text-left shadow-sm transition hover:border-orange-300 hover:shadow ${
+                            selected
+                              ? 'border-orange-400 ring-2 ring-orange-100'
+                              : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="mb-3 flex items-center gap-3">
+                            <span className="rounded-md border border-gray-200 bg-gray-50 p-2 text-gray-700">
+                              <Icon className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-semibold text-gray-950">
+                              {option.title}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{option.description}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {activeStartOption && mode !== 'start' && (
+                    <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-orange-950">
+                            {activeStartOption.title}
+                          </div>
+                          <p className="mt-1 text-sm text-orange-900">{activeStartOption.helper}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={openWorkspace}
+                          className="rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-700"
+                        >
+                          Continue with draft
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div
+              className={`items-center justify-between border-b border-gray-200 bg-white px-4 py-3 ${
+                isWorkspace ? 'flex' : 'hidden'
+              }`}
+            >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="truncate text-base font-semibold text-gray-950">
@@ -441,7 +633,9 @@ export default function LexiconPage() {
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto bg-slate-100 p-6">
+            <div
+              className={`${isWorkspace ? 'block' : 'hidden'} min-h-0 flex-1 overflow-auto bg-slate-100 p-6`}
+            >
               <div className="mx-auto min-h-full w-full max-w-5xl rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
                   <div>
@@ -480,7 +674,9 @@ export default function LexiconPage() {
             </div>
 
             <div
-              className={`shrink-0 border-t border-gray-200 bg-white transition-all ${drawerHeight}`}
+              className={`shrink-0 border-t border-gray-200 bg-white transition-all ${
+                isWorkspace ? drawerHeight : 'hidden'
+              }`}
             >
               <div className="flex h-10 items-center justify-between px-4">
                 <div className="flex items-center gap-2">
@@ -582,88 +778,127 @@ export default function LexiconPage() {
               </div>
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-semibold text-gray-950">
-                        {selectedNode.label}
-                      </div>
-                      <div className="mt-1 flex gap-2">
-                        <OntologyBadge value={selectedNode.ontology} />
-                        <StatusBadge status={selectedNode.status} />
-                      </div>
-                    </div>
-                    <Bars3Icon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <p className="text-xs text-gray-600">{selectedNode.description}</p>
-                </div>
-
-                <div className="mb-4 grid grid-cols-3 rounded-md border border-gray-200 p-1 text-xs">
-                  {(['coverage', 'suggestions', 'readiness'] as InspectorTab[]).map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className={`rounded px-2 py-1.5 font-semibold capitalize ${
-                        activeTab === tab
-                          ? 'bg-gray-900 text-white'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {tabLabels[tab]}
-                    </button>
-                  ))}
-                </div>
-
-                {activeTab === 'coverage' && (
-                  <div className="space-y-3">
-                    <div className="rule-workspace-header">Found in BIM Graph</div>
-                    {selectedNode.evidence.map((item) => (
-                      <div key={item} className="rounded-md border border-gray-200 p-3 text-sm">
-                        <div className="font-medium text-gray-900">{item}</div>
-                        <div className="mt-1 text-xs text-gray-500">
-                          Found while comparing this profile with the selected BIM graph.
+                {!isWorkspace ? (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
+                      <div className="flex items-start gap-2">
+                        <SparklesIcon className="mt-0.5 h-4 w-4 shrink-0 text-orange-700" />
+                        <div>
+                          <div className="text-sm font-semibold text-orange-950">
+                            {activeStartOption?.title || 'Start with a profile'}
+                          </div>
+                          <p className="mt-1 text-xs text-orange-900">
+                            {activeStartOption?.helper ||
+                              'Choose how you want to start. Lexicon will open only the panels you need.'}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
 
-                {activeTab === 'suggestions' && (
-                  <div className="space-y-3">
-                    <div className="rule-workspace-header">Recommended Choices</div>
-                    {selectedNode.suggestions.map((item) => (
-                      <div key={item} className="rounded-md border border-gray-200 p-3">
-                        <div className="flex items-start gap-2">
-                          <SparklesIcon className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
-                          <div className="text-sm text-gray-800">{item}</div>
+                    <div className="rounded-lg border border-gray-200 p-3">
+                      <div className="rule-workspace-header mb-2">Recommended next step</div>
+                      <p className="text-sm text-gray-600">
+                        Pick one starting point in the center. You can stay lazy: Lexicon will
+                        suggest standards, matches, and profile choices as you go.
+                      </p>
+                    </div>
+
+                    {mode !== 'start' && (
+                      <button
+                        type="button"
+                        onClick={openWorkspace}
+                        className="w-full rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+                      >
+                        Continue with draft
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-gray-950">
+                            {selectedNode.label}
+                          </div>
+                          <div className="mt-1 flex gap-2">
+                            <OntologyBadge value={selectedNode.ontology} />
+                            <StatusBadge status={selectedNode.status} />
+                          </div>
+                        </div>
+                        <Bars3Icon className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <p className="text-xs text-gray-600">{selectedNode.description}</p>
+                    </div>
+
+                    <div className="mb-4 grid grid-cols-3 rounded-md border border-gray-200 p-1 text-xs">
+                      {(['coverage', 'suggestions', 'readiness'] as InspectorTab[]).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setActiveTab(tab)}
+                          className={`rounded px-2 py-1.5 font-semibold capitalize ${
+                            activeTab === tab
+                              ? 'bg-gray-900 text-white'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {tabLabels[tab]}
+                        </button>
+                      ))}
+                    </div>
+
+                    {activeTab === 'coverage' && (
+                      <div className="space-y-3">
+                        <div className="rule-workspace-header">Found in BIM Graph</div>
+                        {selectedNode.evidence.map((item) => (
+                          <div key={item} className="rounded-md border border-gray-200 p-3 text-sm">
+                            <div className="font-medium text-gray-900">{item}</div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              Found while comparing this profile with the selected BIM graph.
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeTab === 'suggestions' && (
+                      <div className="space-y-3">
+                        <div className="rule-workspace-header">Recommended Choices</div>
+                        {selectedNode.suggestions.map((item) => (
+                          <div key={item} className="rounded-md border border-gray-200 p-3">
+                            <div className="flex items-start gap-2">
+                              <SparklesIcon className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                              <div className="text-sm text-gray-800">{item}</div>
+                            </div>
+                            <button
+                              type="button"
+                              className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                              Use this choice
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeTab === 'readiness' && (
+                      <div className="space-y-3">
+                        <div className="rule-workspace-header">Ready Check</div>
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                          This profile can run partial checks, but missing targets should be
+                          resolved before publishing the final profile variant.
                         </div>
                         <button
                           type="button"
-                          className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
                         >
-                          Use this choice
+                          <BeakerIcon className="h-4 w-4" />
+                          Check if ready
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === 'readiness' && (
-                  <div className="space-y-3">
-                    <div className="rule-workspace-header">Ready Check</div>
-                    <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                      This profile can run partial checks, but missing targets should be resolved
-                      before publishing the final profile variant.
-                    </div>
-                    <button
-                      type="button"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
-                    >
-                      <BeakerIcon className="h-4 w-4" />
-                      Check if ready
-                    </button>
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
