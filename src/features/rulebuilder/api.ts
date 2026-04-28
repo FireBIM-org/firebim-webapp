@@ -628,6 +628,7 @@ export async function listRules(): Promise<RuleListItem[]> {
       rule_id,
       label: (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? rule_id,
       graph_uri,
+      source: raw.source === 'example' ? 'example' : 'api',
       entry: (raw.entry as string | undefined) ?? null,
       rule_element_count:
         typeof raw.rule_element_count === 'number'

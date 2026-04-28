@@ -13,18 +13,9 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type {
-  RuleDefinition,
-  RuleListItem as RuleBookRuleListItem,
-} from '@/features/rulebook/types';
-
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
-import {
-  ensureSeededExampleRules,
-  getSeededExampleRuleDefinition,
-} from '@/features/rulebook/examples';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
@@ -94,68 +85,6 @@ type LibraryState = {
   itemCategory: Record<string, string>;
   itemLabels: Record<string, string>;
 };
-
-function createWorkspaceFromRuleDefinition(
-  rule: RuleListItem,
-  definition: RuleDefinition,
-): RuleBuilderWorkspace {
-  const now = new Date().toISOString();
-  const nodeIds = new Set(definition.rule_elements.map((element) => element.id));
-  const entryElement = definition.rule_elements.find((element) => element.id === definition.entry);
-  const edges: RuleBuilderWorkspace['edges'] = [];
-
-  definition.rule_elements.forEach((element, index) => {
-    const branches = [
-      { handle: 'true', target: element.true_path },
-      { handle: 'false', target: element.false_path },
-      { handle: 'unknown', target: element.unknown_path },
-    ];
-
-    branches.forEach((branch) => {
-      if (!branch.target || !nodeIds.has(branch.target)) return;
-      edges.push({
-        id: `${element.id}-${branch.handle}-${branch.target}-${index}`,
-        source: element.id,
-        source_handle: branch.handle,
-        target: branch.target,
-        target_handle: null,
-      });
-    });
-  });
-
-  return {
-    id: `converted-${rule.rule_id}-${Date.now()}`,
-    name: rule.label || rule.rule_id,
-    entry_node_id: definition.entry,
-    entry_node_label: entryElement?.label || definition.entry,
-    viewport: { x: 0, y: 0, zoom: 0.85 },
-    nodes: definition.rule_elements.map((element, index) => ({
-      canvas_node_id: element.id,
-      position: {
-        x: (index % 3) * 340,
-        y: Math.floor(index / 3) * 180,
-      },
-      rule: {
-        id: element.id,
-        element_type: element.element_type,
-        target_class: element.target_class ?? null,
-        property_path: element.property_path ?? null,
-        operator: element.operator ?? null,
-        value: element.value,
-        true_path: element.true_path ?? null,
-        false_path: element.false_path ?? null,
-        unknown_path: element.unknown_path ?? null,
-        label: element.label ?? element.id,
-        config: element.config ?? {},
-        graph_uri: element.graph_uri ?? null,
-        element_id: null,
-      },
-    })),
-    edges,
-    created_at: now,
-    updated_at: now,
-  };
-}
 
 const LIBRARY_STORAGE_KEY = 'firebim-rule-library-v3';
 const DEFAULT_CATEGORY_META: CategoryMeta[] = [
@@ -1561,9 +1490,7 @@ export default function RuleBuilderPage() {
       setWorkspaceActionState('saving');
       setWorkspaceMessage(null);
       const rules = await listRules();
-      setConvertRuleList(
-        ensureSeededExampleRules(rules as RuleBookRuleListItem[]) as RuleListItem[],
-      );
+      setConvertRuleList(rules);
       setShowConvertDialog(true);
       setWorkspaceActionState('idle');
     } catch (error) {
@@ -1577,20 +1504,6 @@ export default function RuleBuilderPage() {
     try {
       setWorkspaceActionState('saving');
       setWorkspaceMessage(null);
-      const selectedRule = convertRuleList.find((rule) => rule.rule_id === ruleId);
-      const seededDefinition = getSeededExampleRuleDefinition(ruleId);
-
-      if (selectedRule?.source === 'example' && seededDefinition) {
-        const workspace = createWorkspaceFromRuleDefinition(selectedRule, seededDefinition);
-        skipNextAutosaveRef.current = true;
-        setWorkspaceToLoad(workspace);
-        setActiveWorkspace(null);
-        setShowConvertDialog(false);
-        setWorkspaceActionState('success');
-        setWorkspaceMessage(`Converted example rule "${workspace.name}" to draft workspace`);
-        return;
-      }
-
       const response = await convertRuleToRuleBuilderWorkspace(ruleId);
       skipNextAutosaveRef.current = true;
       setWorkspaceToLoad(response.workspace);

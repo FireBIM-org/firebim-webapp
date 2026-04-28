@@ -14,7 +14,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { RuleListItem } from '../types';
 
 import { deleteRule, getRule, getRulesHealth, listRules } from '../api';
-import { ensureSeededExampleRules, getSeededExampleRuleDefinition } from '../examples';
 import { getVisibleRuleLibraryGroups, useRuleBookStore, type RuleBookStore } from '../store';
 
 type Props = {
@@ -344,11 +343,11 @@ export default function RuleBookLibraryPanel({
       const [health, api_rules] = await Promise.all([getRulesHealth(), listRules()]);
 
       setRulesApiOnline(Boolean(health.ok || health.status === 'ok'));
-      setAvailableRules(ensureSeededExampleRules(api_rules));
+      setAvailableRules(api_rules);
     } catch (error) {
       setRulesApiOnline(false);
       setRulesError(error instanceof Error ? error.message : 'Failed to load rules');
-      setAvailableRules(ensureSeededExampleRules([]));
+      setAvailableRules([]);
     } finally {
       setRulesLoading(false);
     }
@@ -380,22 +379,9 @@ export default function RuleBookLibraryPanel({
 
     let cancelled = false;
     const selected_rule_id = selected_rule_ids[0];
-    const selected_rule = available_rules.find(
-      (rule: RuleListItem) => rule.rule_id === selected_rule_id,
-    );
 
     async function loadSelectedRule() {
       try {
-        if (selected_rule?.source === 'example') {
-          const example_definition = getSeededExampleRuleDefinition(selected_rule_id);
-
-          if (cancelled) return;
-
-          setSelectedRuleId(selected_rule_id);
-          setSelectedRuleDefinition(example_definition);
-          return;
-        }
-
         const definition = await getRule(selected_rule_id);
 
         if (cancelled) return;
@@ -415,7 +401,7 @@ export default function RuleBookLibraryPanel({
     return () => {
       cancelled = true;
     };
-  }, [available_rules, selected_rule_ids, setSelectedRuleDefinition, setSelectedRuleId]);
+  }, [selected_rule_ids, setSelectedRuleDefinition, setSelectedRuleId]);
 
   const handleToggleCollapsed = () => {
     if (onToggleCollapsed) {
