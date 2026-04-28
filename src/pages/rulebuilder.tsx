@@ -13,16 +13,27 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type {
+  RuleDefinition,
+  RuleListItem as RuleBookRuleListItem,
+} from '@/features/rulebook/types';
+
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
+import {
+  ensureSeededExampleRules,
+  getSeededExampleRuleDefinition,
+} from '@/features/rulebook/examples';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
   RuleBuilderWorkspace,
   RuleBuilderWorkspacePayload,
   RuleBuilderWorkspaceSummary,
+  RuleListItem,
   ensureExampleRuleElements,
+  convertRuleToRuleBuilderWorkspace,
   deleteRuleElement,
   deleteRuleBuilderWorkspacesBatch,
   exportRuleBuilderWorkspaceRuleElements,
@@ -83,6 +94,68 @@ type LibraryState = {
   itemCategory: Record<string, string>;
   itemLabels: Record<string, string>;
 };
+
+function createWorkspaceFromRuleDefinition(
+  rule: RuleListItem,
+  definition: RuleDefinition,
+): RuleBuilderWorkspace {
+  const now = new Date().toISOString();
+  const nodeIds = new Set(definition.rule_elements.map((element) => element.id));
+  const entryElement = definition.rule_elements.find((element) => element.id === definition.entry);
+  const edges: RuleBuilderWorkspace['edges'] = [];
+
+  definition.rule_elements.forEach((element, index) => {
+    const branches = [
+      { handle: 'true', target: element.true_path },
+      { handle: 'false', target: element.false_path },
+      { handle: 'unknown', target: element.unknown_path },
+    ];
+
+    branches.forEach((branch) => {
+      if (!branch.target || !nodeIds.has(branch.target)) return;
+      edges.push({
+        id: `${element.id}-${branch.handle}-${branch.target}-${index}`,
+        source: element.id,
+        source_handle: branch.handle,
+        target: branch.target,
+        target_handle: null,
+      });
+    });
+  });
+
+  return {
+    id: `converted-${rule.rule_id}-${Date.now()}`,
+    name: rule.label || rule.rule_id,
+    entry_node_id: definition.entry,
+    entry_node_label: entryElement?.label || definition.entry,
+    viewport: { x: 0, y: 0, zoom: 0.85 },
+    nodes: definition.rule_elements.map((element, index) => ({
+      canvas_node_id: element.id,
+      position: {
+        x: (index % 3) * 340,
+        y: Math.floor(index / 3) * 180,
+      },
+      rule: {
+        id: element.id,
+        element_type: element.element_type,
+        target_class: element.target_class ?? null,
+        property_path: element.property_path ?? null,
+        operator: element.operator ?? null,
+        value: element.value,
+        true_path: element.true_path ?? null,
+        false_path: element.false_path ?? null,
+        unknown_path: element.unknown_path ?? null,
+        label: element.label ?? element.id,
+        config: element.config ?? {},
+        graph_uri: element.graph_uri ?? null,
+        element_id: null,
+      },
+    })),
+    edges,
+    created_at: now,
+    updated_at: now,
+  };
+}
 
 const LIBRARY_STORAGE_KEY = 'firebim-rule-library-v3';
 const DEFAULT_CATEGORY_META: CategoryMeta[] = [
@@ -348,11 +421,17 @@ export default function RuleBuilderPage() {
   const [workspaceToLoad, setWorkspaceToLoad] = useState<RuleBuilderWorkspace | null>(null);
   const [workspaceList, setWorkspaceList] = useState<RuleBuilderWorkspaceSummary[]>([]);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedWorkspaceIds, setSelectedWorkspaceIds] = useState<string[]>([]);
+  const [convertRuleList, setConvertRuleList] = useState<RuleListItem[]>([]);
+  const [autosaveEnabled, setAutosaveEnabled] = useState(false);
   const [workspaceActionState, setWorkspaceActionState] = useState<WorkspaceActionState>('idle');
   const [workspaceMessage, setWorkspaceMessage] = useState<string | null>(null);
   const buildAndSaveStateRef = useRef<PublishState>('idle');
+  const autosaveInFlightRef = useRef(false);
+  const autosaveNodeSignatureRef = useRef<string | null>(null);
+  const skipNextAutosaveRef = useRef(false);
 
   const allLibraryItems = useMemo<LibraryItem[]>(
     () => [...localLibraryItems, ...storedElements],
@@ -1323,6 +1402,82 @@ export default function RuleBuilderPage() {
     edge_count: workspace.edges.length,
   });
 
+  const autosaveWorkspace = useCallback(
+    async (currentState: RuleBuilderWorkspacePayload) => {
+      if (autosaveInFlightRef.current) {
+        return;
+      }
+
+      try {
+        autosaveInFlightRef.current = true;
+        setWorkspaceActionState('saving');
+        setWorkspaceMessage('Autosaving workspace...');
+
+        if (activeWorkspace?.id) {
+          const response = await updateRuleBuilderWorkspace(activeWorkspace.id, {
+            ...currentState,
+            name: activeWorkspace.name,
+          });
+          setActiveWorkspace(createWorkspaceSummary(response.workspace));
+          setWorkspaceActionState('success');
+          setWorkspaceMessage(`Autosaved "${response.workspace.name}"`);
+          return;
+        }
+
+        const autosaveName =
+          currentState.entry_node_label?.trim() ||
+          currentState.name?.trim() ||
+          'Autosaved workspace';
+        const response = await createRuleBuilderWorkspace({
+          ...currentState,
+          name: autosaveName,
+          entry_node_label: currentState.entry_node_label || autosaveName,
+        });
+        setActiveWorkspace(createWorkspaceSummary(response.workspace));
+        setWorkspaceActionState('success');
+        setWorkspaceMessage(`Autosaved "${response.workspace.name}"`);
+      } catch (error) {
+        console.error('autosave workspace failed:', error);
+        setWorkspaceActionState('error');
+        setWorkspaceMessage(error instanceof Error ? error.message : 'Autosave failed');
+      } finally {
+        autosaveInFlightRef.current = false;
+        void loadWorkspaceList();
+      }
+    },
+    [activeWorkspace, loadWorkspaceList],
+  );
+
+  useEffect(() => {
+    if (!workspaceState) {
+      autosaveNodeSignatureRef.current = null;
+      return;
+    }
+
+    const nodeIds = workspaceState.nodes.map((node) => node.canvas_node_id).sort();
+    const nextSignature = nodeIds.join('|');
+    const previousSignature = autosaveNodeSignatureRef.current;
+
+    if (skipNextAutosaveRef.current) {
+      skipNextAutosaveRef.current = false;
+      autosaveNodeSignatureRef.current = nextSignature;
+      return;
+    }
+
+    const previousCount = previousSignature
+      ? previousSignature.split('|').filter(Boolean).length
+      : 0;
+    const shouldAutosave = autosaveEnabled && nodeIds.length > previousCount && nodeIds.length > 0;
+
+    autosaveNodeSignatureRef.current = nextSignature;
+
+    if (!shouldAutosave) {
+      return;
+    }
+
+    void autosaveWorkspace(workspaceState);
+  }, [autosaveEnabled, autosaveWorkspace, workspaceState]);
+
   const createWorkspaceWithPrompt = async () => {
     const currentState = ensureWorkspaceState();
     const requestedName = promptWorkspaceName(currentState.entry_node_label || currentState.name);
@@ -1340,6 +1495,7 @@ export default function RuleBuilderPage() {
     });
 
     setActiveWorkspace(createWorkspaceSummary(response.workspace));
+    skipNextAutosaveRef.current = true;
     setWorkspaceToLoad(response.workspace);
     await loadWorkspaceList();
     setWorkspaceActionState('success');
@@ -1387,6 +1543,7 @@ export default function RuleBuilderPage() {
   const handleOpenLoadDialog = async () => {
     try {
       setShowDeleteDialog(false);
+      setShowConvertDialog(false);
       setSelectedWorkspaceIds([]);
       await loadWorkspaceList();
       setShowLoadDialog(true);
@@ -1397,11 +1554,63 @@ export default function RuleBuilderPage() {
     }
   };
 
+  const handleOpenConvertDialog = async () => {
+    try {
+      setShowLoadDialog(false);
+      setShowDeleteDialog(false);
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+      const rules = await listRules();
+      setConvertRuleList(
+        ensureSeededExampleRules(rules as RuleBookRuleListItem[]) as RuleListItem[],
+      );
+      setShowConvertDialog(true);
+      setWorkspaceActionState('idle');
+    } catch (error) {
+      console.error('listRules failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Rule list failed');
+    }
+  };
+
+  const handleConvertRuleToWorkspace = async (ruleId: string) => {
+    try {
+      setWorkspaceActionState('saving');
+      setWorkspaceMessage(null);
+      const selectedRule = convertRuleList.find((rule) => rule.rule_id === ruleId);
+      const seededDefinition = getSeededExampleRuleDefinition(ruleId);
+
+      if (selectedRule?.source === 'example' && seededDefinition) {
+        const workspace = createWorkspaceFromRuleDefinition(selectedRule, seededDefinition);
+        skipNextAutosaveRef.current = true;
+        setWorkspaceToLoad(workspace);
+        setActiveWorkspace(null);
+        setShowConvertDialog(false);
+        setWorkspaceActionState('success');
+        setWorkspaceMessage(`Converted example rule "${workspace.name}" to draft workspace`);
+        return;
+      }
+
+      const response = await convertRuleToRuleBuilderWorkspace(ruleId);
+      skipNextAutosaveRef.current = true;
+      setWorkspaceToLoad(response.workspace);
+      setActiveWorkspace(createWorkspaceSummary(response.workspace));
+      setShowConvertDialog(false);
+      setWorkspaceActionState('success');
+      setWorkspaceMessage(`Converted rule "${response.workspace.name}" to workspace`);
+    } catch (error) {
+      console.error('convertRuleToRuleBuilderWorkspace failed:', error);
+      setWorkspaceActionState('error');
+      setWorkspaceMessage(error instanceof Error ? error.message : 'Convert failed');
+    }
+  };
+
   const handleLoadWorkspace = async (workspaceId: string) => {
     try {
       setWorkspaceActionState('saving');
       setWorkspaceMessage(null);
       const response = await getRuleBuilderWorkspace(workspaceId);
+      skipNextAutosaveRef.current = true;
       setWorkspaceToLoad(response.workspace);
       setActiveWorkspace(createWorkspaceSummary(response.workspace));
       setShowLoadDialog(false);
@@ -1417,6 +1626,7 @@ export default function RuleBuilderPage() {
   const handleOpenDeleteDialog = async () => {
     try {
       setShowLoadDialog(false);
+      setShowConvertDialog(false);
       setSelectedWorkspaceIds([]);
       await loadWorkspaceList();
       setShowDeleteDialog(true);
@@ -1687,55 +1897,30 @@ export default function RuleBuilderPage() {
             <div className="rule-workspace-api-slot">
               <button
                 type="button"
-                onClick={handleDuplicateSelectedNode}
-                disabled={!selectedRule}
-                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Duplicate selected rule element"
-                aria-label="Duplicate selected rule element"
+                onClick={() => setAutosaveEnabled((value) => !value)}
+                className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium ${
+                  autosaveEnabled
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                    : 'border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                title="Autosave workspace when a rule element is added or duplicated"
+                role="switch"
+                aria-pressed={autosaveEnabled}
+                aria-checked={autosaveEnabled}
               >
-                <DocumentDuplicateIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteSelectedNode}
-                disabled={!selectedRule}
-                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Delete selected rule element"
-                aria-label="Delete selected rule element"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void handlePublishSelectedNode();
-                }}
-                disabled={!selectedRule || publishState === 'saving'}
-                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Save selected ruleelement"
-                aria-label="Save selected ruleelement"
-              >
-                <ArchiveBoxArrowDownIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={undo}
-                disabled={!canUndo}
-                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Undo"
-                aria-label="Undo"
-              >
-                <ArrowUturnLeftIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={redo}
-                disabled={!canRedo}
-                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
-                title="Redo"
-                aria-label="Redo"
-              >
-                <ArrowUturnRightIcon className="h-4 w-4" />
+                <span>Autosave</span>
+                <span
+                  className={`relative h-4 w-7 rounded-full transition-colors ${
+                    autosaveEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+                  }`}
+                  aria-hidden="true"
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${
+                      autosaveEnabled ? 'translate-x-3' : 'translate-x-0'
+                    }`}
+                  />
+                </span>
               </button>
               <button
                 type="button"
@@ -1767,6 +1952,17 @@ export default function RuleBuilderPage() {
               >
                 <FolderArrowDownIcon className="h-4 w-4" />
                 Load
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleOpenConvertDialog();
+                }}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                title="Convert a published rule from the rule library into a RuleBuilder workspace"
+              >
+                <BookOpenIcon className="h-4 w-4" />
+                Convert
               </button>
               <button
                 type="button"
@@ -1837,7 +2033,61 @@ export default function RuleBuilderPage() {
             onHiddenSearchCommand={handleHiddenLibraryCommand}
           />
 
-          <div className="min-w-0 flex-1 bg-gray-50">
+          <div className="relative min-w-0 flex-1 bg-gray-50">
+            <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 shadow-sm backdrop-blur">
+              <button
+                type="button"
+                onClick={handleDuplicateSelectedNode}
+                disabled={!selectedRule}
+                className="rounded-md border border-transparent p-2 text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Duplicate selected rule element"
+                aria-label="Duplicate selected rule element"
+              >
+                <DocumentDuplicateIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSelectedNode}
+                disabled={!selectedRule}
+                className="rounded-md border border-transparent p-2 text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Delete selected rule element"
+                aria-label="Delete selected rule element"
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handlePublishSelectedNode();
+                }}
+                disabled={!selectedRule || publishState === 'saving'}
+                className="rounded-md border border-transparent p-2 text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Save selected rule element"
+                aria-label="Save selected rule element"
+              >
+                <ArchiveBoxArrowDownIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={undo}
+                disabled={!canUndo}
+                className="rounded-md border border-transparent p-2 text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Undo"
+                aria-label="Undo"
+              >
+                <ArrowUturnLeftIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={redo}
+                disabled={!canRedo}
+                className="rounded-md border border-transparent p-2 text-gray-600 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                title="Redo"
+                aria-label="Redo"
+              >
+                <ArrowUturnRightIcon className="h-4 w-4" />
+              </button>
+            </div>
             <RuleCanvas
               selectedNodeId={selectedNodeId}
               onSelectedNodeChange={handleSelectedNodeChange}
@@ -2148,6 +2398,65 @@ export default function RuleBuilderPage() {
                       </div>
                       <div className="ml-4 shrink-0 text-xs text-gray-400">
                         {workspace.node_count} nodes / {workspace.edge_count} edges
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {showConvertDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Convert rule</h2>
+                <p className="text-sm text-gray-500">
+                  Convert a published rule from the rule library into a RuleBuilder workspace
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConvertDialog(false)}
+                className="rounded-md px-2 py-1 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[28rem] overflow-y-auto px-5 py-4">
+              {convertRuleList.length === 0 ? (
+                <p className="text-sm text-gray-500">No published rules found.</p>
+              ) : (
+                <div className="space-y-3">
+                  {convertRuleList.map((rule: RuleListItem) => (
+                    <button
+                      key={rule.rule_id}
+                      type="button"
+                      onClick={() => {
+                        void handleConvertRuleToWorkspace(rule.rule_id);
+                      }}
+                      className="flex w-full items-start justify-between rounded-lg border border-gray-200 px-4 py-3 text-left hover:border-orange-300 hover:bg-orange-50"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900">
+                          {rule.label || rule.rule_id}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">Rule ID: {rule.rule_id}</div>
+                        {rule.entry && (
+                          <div className="mt-1 text-xs text-gray-500">Entry: {rule.entry}</div>
+                        )}
+                        {rule.source === 'example' && (
+                          <div className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                            Example
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4 shrink-0 text-xs text-gray-400">
+                        {typeof rule.rule_element_count === 'number'
+                          ? `${rule.rule_element_count} elements`
+                          : 'Convert'}
                       </div>
                     </button>
                   ))}

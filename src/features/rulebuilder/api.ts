@@ -295,8 +295,15 @@ export type RuleListItem = {
   rule_id: string;
   label: string;
   graph_uri?: string | null;
+  source?: 'api' | 'example';
   entry?: string | null;
   rule_element_count?: number | null;
+  target_classes?: string[];
+  description?: string | null;
+};
+
+export type ConvertRuleToWorkspaceResponse = {
+  workspace: RuleBuilderWorkspace;
 };
 
 export type EnsureRuleElementsResult = {
@@ -542,6 +549,16 @@ export async function getRuleBuilderWorkspace(
 ): Promise<GetRuleBuilderWorkspaceResponse> {
   const response = await proxyAxios.get<GetRuleBuilderWorkspaceResponse>(
     `${env.apiBaseUrl}/rulebuilder/workspaces/${workspaceId}`,
+  );
+  return response.data;
+}
+
+export async function convertRuleToRuleBuilderWorkspace(
+  ruleId: string,
+): Promise<ConvertRuleToWorkspaceResponse> {
+  const response = await proxyAxios.post<ConvertRuleToWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/rules/${encodeURIComponent(ruleId)}/workspace`,
+    {},
   );
   return response.data;
 }
