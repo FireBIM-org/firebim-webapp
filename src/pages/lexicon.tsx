@@ -144,6 +144,29 @@ type RuleTermsAggregateResponse = {
 };
 
 type ProfileAutosaveState = 'idle' | 'saving' | 'saved' | 'error';
+type ProfileDeriveState = 'idle' | 'deriving' | 'derived' | 'error';
+
+type ProfileAutosaveMetrics = {
+  durationMs: number;
+  payloadBytes: number;
+  status: number | null;
+  method: 'POST' | 'PUT';
+  endpoint: string;
+  savedAt: Date;
+};
+
+type DerivedProfileData = {
+  ontology_family?: string;
+  country?: string;
+  version?: string;
+  canonical_family_uri?: string;
+  canonical_country_uri?: string;
+  selected_ontologies?: Array<Record<string, unknown>>;
+  canonical_target_ontology?: Record<string, unknown> | null;
+  rule_ids?: string[];
+  profile?: Record<string, unknown>;
+  rule_profiles?: Array<Record<string, unknown>>;
+};
 
 type RuleCoverageProperty = {
   target_class: string;
@@ -254,9 +277,18 @@ type LexiconWorkflowSnapshot = {
   candidateLimit: number;
   similarityThreshold: number;
   runnerRuleItems: RuleRunnerItem[];
+  derivedProfile: DerivedProfileData | null;
+};
+
+type RecentAutosaveProfile = {
+  id: string;
+  name: string;
+  saved_at: string;
 };
 
 const LEXICON_WORKFLOW_STORAGE_KEY = 'firebim-lexicon-workflow-v1';
+const LEXICON_RECENT_AUTOSAVES_STORAGE_KEY = 'firebim-lexicon-recent-autosaves-v1';
+const LEXICON_RECENT_AUTOSAVE_LIMIT = 5;
 const lexiconModes: LexiconMode[] = [
   'start',
   'rules',
@@ -475,6 +507,10 @@ function coerceLexiconWorkflowSnapshot(input: unknown): LexiconWorkflowSnapshot 
     candidateLimit: typeof raw.candidateLimit === 'number' ? raw.candidateLimit : 3,
     similarityThreshold: typeof raw.similarityThreshold === 'number' ? raw.similarityThreshold : 0,
     runnerRuleItems,
+    derivedProfile:
+      raw.derivedProfile && typeof raw.derivedProfile === 'object'
+        ? (raw.derivedProfile as DerivedProfileData)
+        : null,
   };
 }
 
@@ -497,6 +533,62 @@ function writeLexiconWorkflowSnapshot(snapshot: LexiconWorkflowSnapshot) {
     window.localStorage.setItem(LEXICON_WORKFLOW_STORAGE_KEY, JSON.stringify(snapshot));
   } catch {
     // The workflow checkpoint is best-effort; backend autosave still owns profile persistence.
+  }
+}
+
+function readRecentAutosaveProfiles(): RecentAutosaveProfile[] {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem(LEXICON_RECENT_AUTOSAVES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Partial<RecentAutosaveProfile>[];
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((item): item is RecentAutosaveProfile =>
+        Boolean(
+          item &&
+          typeof item.id === 'string' &&
+          typeof item.name === 'string' &&
+          typeof item.saved_at === 'string',
+        ),
+      )
+      .sort((a, b) => Date.parse(b.saved_at) - Date.parse(a.saved_at));
+  } catch {
+    return [];
+  }
+}
+
+function rememberRecentAutosaveProfile(profile: RecentAutosaveProfile) {
+  if (typeof window === 'undefined') return [];
+
+  const next = [
+    profile,
+    ...readRecentAutosaveProfiles().filter((item) => item.id !== profile.id),
+  ].sort((a, b) => Date.parse(b.saved_at) - Date.parse(a.saved_at));
+  const retained = next.slice(0, LEXICON_RECENT_AUTOSAVE_LIMIT);
+  const pruned = next.slice(LEXICON_RECENT_AUTOSAVE_LIMIT);
+
+  try {
+    window.localStorage.setItem(LEXICON_RECENT_AUTOSAVES_STORAGE_KEY, JSON.stringify(retained));
+  } catch {
+    // Best-effort cleanup metadata only.
+  }
+
+  return pruned;
+}
+
+async function deleteAutosaveProfiles(profileIds: string[]) {
+  for (const profileId of profileIds) {
+    try {
+      await fetch(`${env.apiBaseUrl}/lexicon/profiles/${encodeURIComponent(profileId)}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // Cleanup is opportunistic; failed deletes should not block the user.
+    }
   }
 }
 
@@ -2390,10 +2482,17 @@ export default function LexiconPage() {
   const [candidateLimit, setCandidateLimit] = useState(3);
   const [similarityThreshold, setSimilarityThreshold] = useState(0);
   const [autosaveState, setAutosaveState] = useState<ProfileAutosaveState>('idle');
+  const [deriveState, setDeriveState] = useState<ProfileDeriveState>('idle');
+  const [deriveError, setDeriveError] = useState<string | null>(null);
+  const [derivedProfile, setDerivedProfile] = useState<DerivedProfileData | null>(null);
   const [lastAutosavedAt, setLastAutosavedAt] = useState<Date | null>(null);
   const [autosaveError, setAutosaveError] = useState<string | null>(null);
+  const [autosaveMetrics, setAutosaveMetrics] = useState<ProfileAutosaveMetrics | null>(null);
   const workflowRestoredRef = useRef(false);
   const skipInitialWorkflowPersistRef = useRef(true);
+  const draftProfileIdRef = useRef<string | null>(null);
+  const autosaveInFlightRef = useRef(false);
+  const autosaveQueuedRef = useRef(false);
   const allNodes = useMemo(() => flattenNodes(requirementTree), []);
   const [selectedNodeId] = useState(allNodes[2].id);
   const selectedNode = allNodes.find((node) => node.id === selectedNodeId) || allNodes[0];
@@ -2410,6 +2509,9 @@ export default function LexiconPage() {
     selectedStandards.find((standard) => standard.id === canonicalStandardId) ??
     selectedStandards[0] ??
     null;
+  const ifcSelected = selectedStandards.some(
+    (standard) => standard.ontology_family.toLowerCase() === 'ifc',
+  );
   const activeInspectAction =
     createFromRulesInspectActions.find((action) => action.id === activeInspectView) ??
     createFromRulesInspectActions[0];
@@ -2462,6 +2564,99 @@ export default function LexiconPage() {
   }, [loadRulesLibrary, loadStandardsLibrary]);
 
   useEffect(() => {
+    draftProfileIdRef.current = draftProfileId;
+  }, [draftProfileId]);
+
+  const buildProfileRequestPayload = useCallback(
+    (profileData: DerivedProfileData | null) => {
+      const selectedOntologies = selectedStandards.map((standard) => ({
+        ontology_family: standard.ontology_family,
+        country: standard.country,
+        version: standard.version,
+      }));
+      const canonicalOntology = canonicalStandard
+        ? {
+            ontology_family: canonicalStandard.ontology_family,
+            country: canonicalStandard.country,
+            version: canonicalStandard.version,
+          }
+        : selectedOntologies[0];
+
+      return {
+        name: displayedProfileName.trim() || generatedProfileName,
+        description: profileDescription.trim() || null,
+        keywords: profileKeywords
+          .split(',')
+          .map((keyword) => keyword.trim())
+          .filter(Boolean),
+        ontology_family:
+          profileData?.ontology_family ?? canonicalOntology?.ontology_family ?? 'fbo',
+        country: profileData?.country ?? canonicalOntology?.country ?? 'dk',
+        version: profileData?.version ?? canonicalOntology?.version ?? 'latest',
+        selected_ontologies: profileData?.selected_ontologies ?? selectedOntologies,
+        canonical_target_ontology:
+          profileData?.canonical_target_ontology ?? canonicalOntology ?? null,
+        rule_ids: profileData?.rule_ids ?? runnerRuleItems.map((rule) => rule.rule_id),
+        ...(profileData?.canonical_family_uri
+          ? { canonical_family_uri: profileData.canonical_family_uri }
+          : {}),
+        ...(profileData?.canonical_country_uri
+          ? { canonical_country_uri: profileData.canonical_country_uri }
+          : {}),
+        ...(profileData?.profile ? { profile: profileData.profile } : {}),
+        ...(profileData?.rule_profiles ? { rule_profiles: profileData.rule_profiles } : {}),
+      };
+    },
+    [
+      canonicalStandard,
+      displayedProfileName,
+      generatedProfileName,
+      profileDescription,
+      profileKeywords,
+      runnerRuleItems,
+      selectedStandards,
+    ],
+  );
+
+  const buildProfileCreatePayload = useCallback(() => {
+    const selectedOntologies = selectedStandards.map((standard) => ({
+      ontology_family: standard.ontology_family,
+      country: standard.country,
+      version: standard.version,
+    }));
+    const canonicalOntology = canonicalStandard
+      ? {
+          ontology_family: canonicalStandard.ontology_family,
+          country: canonicalStandard.country,
+          version: canonicalStandard.version,
+        }
+      : selectedOntologies[0];
+
+    return {
+      name: displayedProfileName.trim() || generatedProfileName,
+      description: profileDescription.trim() || null,
+      keywords: profileKeywords
+        .split(',')
+        .map((keyword) => keyword.trim())
+        .filter(Boolean),
+      ontology_family: canonicalOntology?.ontology_family ?? 'fbo',
+      country: canonicalOntology?.country ?? 'dk',
+      version: canonicalOntology?.version ?? 'latest',
+      selected_ontologies: selectedOntologies,
+      canonical_target_ontology: canonicalOntology ?? null,
+      rule_ids: runnerRuleItems.map((rule) => rule.rule_id),
+    };
+  }, [
+    canonicalStandard,
+    displayedProfileName,
+    generatedProfileName,
+    profileDescription,
+    profileKeywords,
+    runnerRuleItems,
+    selectedStandards,
+  ]);
+
+  useEffect(() => {
     if (workflowRestoredRef.current) return;
 
     const snapshot = readLexiconWorkflowSnapshot();
@@ -2484,6 +2679,8 @@ export default function LexiconPage() {
       setProfileKeywords(snapshot.profileKeywords);
       setCandidateLimit(snapshot.candidateLimit);
       setSimilarityThreshold(snapshot.similarityThreshold);
+      setDerivedProfile(snapshot.derivedProfile);
+      setDeriveState(snapshot.derivedProfile || snapshot.draftProfileId ? 'derived' : 'idle');
       setRunnerRuleItems(snapshot.runnerRuleItems);
 
       if (snapshot.mode === 'rules' || snapshot.mode === 'inspect') {
@@ -2526,6 +2723,7 @@ export default function LexiconPage() {
       candidateLimit,
       similarityThreshold,
       runnerRuleItems,
+      derivedProfile,
     });
   }, [
     activeInspectView,
@@ -2533,6 +2731,7 @@ export default function LexiconPage() {
     canonicalStandardId,
     draftProfileId,
     drawerState,
+    derivedProfile,
     leftCollapsed,
     mode,
     profileDescription,
@@ -2610,60 +2809,55 @@ export default function LexiconPage() {
     );
   }, [selectedStandards]);
 
-  useEffect(() => {
-    if (
-      !user ||
-      mode !== 'inspect' ||
-      runnerRuleItems.length === 0 ||
-      selectedStandards.length === 0
-    ) {
-      return;
-    }
+  const saveProfileDraft = useCallback(
+    async (signal?: AbortSignal) => {
+      if (
+        !user ||
+        mode !== 'inspect' ||
+        !draftProfileIdRef.current ||
+        !derivedProfile ||
+        runnerRuleItems.length === 0 ||
+        selectedStandards.length === 0
+      ) {
+        return;
+      }
 
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      const selectedOntologies = selectedStandards.map((standard) => ({
-        ontology_family: standard.ontology_family,
-        country: standard.country,
-        version: standard.version,
-      }));
-      const canonicalOntology = canonicalStandard
-        ? {
-            ontology_family: canonicalStandard.ontology_family,
-            country: canonicalStandard.country,
-            version: canonicalStandard.version,
-          }
-        : selectedOntologies[0];
-      const payload = {
-        name: displayedProfileName.trim() || generatedProfileName,
-        description: profileDescription.trim() || null,
-        keywords: profileKeywords
-          .split(',')
-          .map((keyword) => keyword.trim())
-          .filter(Boolean),
-        ontology_family: canonicalOntology?.ontology_family ?? 'fbo',
-        country: canonicalOntology?.country ?? 'dk',
-        version: canonicalOntology?.version ?? 'latest',
-        selected_ontologies: selectedOntologies,
-        canonical_target_ontology: canonicalOntology ?? null,
-        rule_ids: runnerRuleItems.map((rule) => rule.rule_id),
-      };
+      if (autosaveInFlightRef.current) {
+        autosaveQueuedRef.current = true;
+        return;
+      }
+
+      autosaveInFlightRef.current = true;
+      const activeDraftProfileId = draftProfileIdRef.current;
+      const payload = buildProfileRequestPayload(derivedProfile);
+      const requestBody = JSON.stringify(payload);
+      const method = 'PUT';
+      const endpoint = `/lexicon/profiles/${activeDraftProfileId}`;
+      const requestStartedAt = performance.now();
 
       setAutosaveState('saving');
       setAutosaveError(null);
 
       try {
         const response = await fetch(
-          draftProfileId
-            ? `${env.apiBaseUrl}/lexicon/profiles/${encodeURIComponent(draftProfileId)}`
-            : `${env.apiBaseUrl}/lexicon/profiles`,
+          `${env.apiBaseUrl}/lexicon/profiles/${encodeURIComponent(activeDraftProfileId)}`,
           {
-            method: draftProfileId ? 'PUT' : 'POST',
+            method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            signal: controller.signal,
+            body: requestBody,
+            signal,
           },
         );
+        const durationMs = Math.round(performance.now() - requestStartedAt);
+
+        setAutosaveMetrics({
+          durationMs,
+          payloadBytes: new Blob([requestBody]).size,
+          status: response.status,
+          method,
+          endpoint,
+          savedAt: new Date(),
+        });
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -2677,26 +2871,80 @@ export default function LexiconPage() {
         }
 
         const data = (await response.json()) as {
-          profile?: { id?: string };
-          id?: string;
+          profile_record?: { id?: string };
         };
-        const nextProfileId = data.profile?.id ?? data.id ?? null;
+        const nextProfileId = data.profile_record?.id ?? activeDraftProfileId;
 
-        if (nextProfileId) {
-          setDraftProfileId(nextProfileId);
+        const prunedProfiles = rememberRecentAutosaveProfile({
+          id: nextProfileId,
+          name: payload.name,
+          saved_at: new Date().toISOString(),
+        });
+
+        if (prunedProfiles.length > 0) {
+          void deleteAutosaveProfiles(prunedProfiles.map((profile) => profile.id));
+        }
+
+        if (data.profile_record?.id && data.profile_record.id !== activeDraftProfileId) {
+          draftProfileIdRef.current = data.profile_record.id;
+          setDraftProfileId(data.profile_record.id);
+          rememberRecentAutosaveProfile({
+            id: data.profile_record.id,
+            name: payload.name,
+            saved_at: new Date().toISOString(),
+          });
         }
 
         setLastAutosavedAt(new Date());
         setAutosaveState('saved');
       } catch (error) {
+        const durationMs = Math.round(performance.now() - requestStartedAt);
+
+        if ((error as { name?: string }).name !== 'AbortError') {
+          setAutosaveMetrics({
+            durationMs,
+            payloadBytes: new Blob([requestBody]).size,
+            status: null,
+            method,
+            endpoint,
+            savedAt: new Date(),
+          });
+        }
+
         if ((error as { name?: string }).name === 'AbortError') {
           return;
         }
 
         setAutosaveState('error');
         setAutosaveError(error instanceof Error ? error.message : 'Autosave failed');
+      } finally {
+        autosaveInFlightRef.current = false;
+
+        if (autosaveQueuedRef.current) {
+          autosaveQueuedRef.current = false;
+          void saveProfileDraft();
+        }
       }
-    }, 700);
+    },
+    [buildProfileRequestPayload, derivedProfile, mode, runnerRuleItems, selectedStandards, user],
+  );
+
+  useEffect(() => {
+    if (
+      !user ||
+      mode !== 'inspect' ||
+      !draftProfileId ||
+      !derivedProfile ||
+      runnerRuleItems.length === 0 ||
+      selectedStandards.length === 0
+    ) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      void saveProfileDraft(controller.signal);
+    }, 1200);
 
     return () => {
       window.clearTimeout(timer);
@@ -2705,15 +2953,133 @@ export default function LexiconPage() {
   }, [
     canonicalStandard,
     displayedProfileName,
+    derivedProfile,
     draftProfileId,
     generatedProfileName,
     mode,
-    profileDescription,
-    profileKeywords,
     runnerRuleItems,
+    saveProfileDraft,
     selectedStandards,
     user,
   ]);
+
+  const deriveAndCreateProfile = async () => {
+    if (!canContinueWithDraft || deriveState === 'deriving') return;
+
+    setDeriveState('deriving');
+    setDeriveError(null);
+    setAutosaveError(null);
+    setAutosaveState('idle');
+
+    try {
+      const createPayload = buildProfileCreatePayload();
+      const createBody = JSON.stringify(createPayload);
+      const createStartedAt = performance.now();
+      const createResponse = await fetch(`${env.apiBaseUrl}/lexicon/profiles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: createBody,
+      });
+
+      setAutosaveMetrics({
+        durationMs: Math.round(performance.now() - createStartedAt),
+        payloadBytes: new Blob([createBody]).size,
+        status: createResponse.status,
+        method: 'POST',
+        endpoint: '/lexicon/profiles',
+        savedAt: new Date(),
+      });
+
+      if (!createResponse.ok) {
+        let detail = '';
+
+        try {
+          const errorBody = (await createResponse.json()) as { detail?: unknown };
+          detail =
+            typeof errorBody.detail === 'string'
+              ? `: ${errorBody.detail}`
+              : errorBody.detail
+                ? `: ${JSON.stringify(errorBody.detail)}`
+                : '';
+        } catch {
+          detail = '';
+        }
+
+        if (createResponse.status === 401) {
+          void signIn('authentik', {
+            callbackUrl: window.location.pathname + window.location.search,
+          });
+          throw new Error('Sign in required to create this profile.');
+        }
+
+        throw new Error(`Profile create failed: ${createResponse.status}${detail}`);
+      }
+
+      const created = (await createResponse.json()) as {
+        profile_record?: {
+          id?: string;
+          ontology_family?: string;
+          country?: string;
+          version?: string;
+          selected_ontologies?: Array<Record<string, unknown>>;
+          canonical_target_ontology?: Record<string, unknown> | null;
+          rule_ids?: string[];
+          profile?: Record<string, unknown>;
+          rule_profiles?: Array<Record<string, unknown>>;
+        };
+        profile?: { id?: string } & Record<string, unknown>;
+        id?: string;
+      };
+      const nextProfileId = created.profile_record?.id ?? created.profile?.id ?? created.id ?? null;
+
+      if (!nextProfileId) {
+        throw new Error('Profile was derived but no profile id was returned.');
+      }
+
+      const nextDerivedProfile: DerivedProfileData = {
+        ontology_family: created.profile_record?.ontology_family ?? createPayload.ontology_family,
+        country: created.profile_record?.country ?? createPayload.country,
+        version: created.profile_record?.version ?? createPayload.version,
+        selected_ontologies:
+          created.profile_record?.selected_ontologies ?? createPayload.selected_ontologies,
+        canonical_target_ontology:
+          created.profile_record?.canonical_target_ontology ??
+          createPayload.canonical_target_ontology,
+        rule_ids: created.profile_record?.rule_ids ?? createPayload.rule_ids,
+        profile: created.profile_record?.profile,
+        rule_profiles: created.profile_record?.rule_profiles,
+      };
+
+      setDerivedProfile(nextDerivedProfile);
+      draftProfileIdRef.current = nextProfileId;
+      setDraftProfileId(nextProfileId);
+      setLastAutosavedAt(new Date());
+      setAutosaveState('saved');
+      setDeriveState('derived');
+
+      const prunedProfiles = rememberRecentAutosaveProfile({
+        id: nextProfileId,
+        name: createPayload.name,
+        saved_at: new Date().toISOString(),
+      });
+
+      if (prunedProfiles.length > 0) {
+        void deleteAutosaveProfiles(prunedProfiles.map((profile) => profile.id));
+      }
+
+      setMode('inspect');
+      setLeftCollapsed(true);
+      setRightCollapsed(true);
+      setDrawerState('closed');
+      setActiveInspectView('summary');
+      setTouchedInspectActions(new Set(['summary']));
+    } catch (error) {
+      setDeriveState('error');
+      setDeriveError(error instanceof Error ? error.message : 'Profile derivation failed');
+      setAutosaveState('error');
+      setAutosaveError(error instanceof Error ? error.message : 'Profile derivation failed');
+    }
+  };
 
   if (authLoading || !user) {
     return (
@@ -2740,12 +3106,7 @@ export default function LexiconPage() {
 
   const openWorkspace = () => {
     if (!canContinueWithDraft) return;
-    setMode('inspect');
-    setLeftCollapsed(true);
-    setRightCollapsed(true);
-    setDrawerState('closed');
-    setActiveInspectView('summary');
-    setTouchedInspectActions(new Set(['summary']));
+    void deriveAndCreateProfile();
   };
 
   const touchInspectAction = (view: InspectView) => {
@@ -2755,6 +3116,7 @@ export default function LexiconPage() {
       next.add(view);
       return next;
     });
+    void saveProfileDraft();
   };
 
   const handleRuleDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -3009,12 +3371,33 @@ export default function LexiconPage() {
                           <button
                             type="button"
                             onClick={openWorkspace}
-                            className="rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700"
+                            disabled={deriveState === 'deriving'}
+                            className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-wait disabled:bg-orange-300"
                           >
-                            Build profile
+                            {deriveState === 'deriving' && (
+                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            )}
+                            {deriveState === 'deriving' ? 'Deriving profile...' : 'Build profile'}
                           </button>
                         )}
                       </div>
+                      {(deriveState === 'deriving' || deriveError || ifcSelected) && (
+                        <div
+                          className={`mx-6 mb-5 rounded-lg border px-4 py-3 text-sm ${
+                            deriveError
+                              ? 'border-amber-200 bg-amber-50 text-amber-900'
+                              : 'border-orange-200 bg-orange-50 text-orange-950'
+                          }`}
+                        >
+                          {deriveError
+                            ? deriveError
+                            : deriveState === 'deriving'
+                              ? ifcSelected
+                                ? 'Deriving profile. IFC is selected, so the first build can take longer while the standard is prepared.'
+                                : 'Deriving profile from selected rules and standards.'
+                              : 'IFC selected. First profile build may take longer while the standard is prepared.'}
+                        </div>
+                      )}
 
                       <div
                         className="relative grid min-h-[520px] bg-slate-100 lg:grid-cols-2"
@@ -3235,26 +3618,48 @@ export default function LexiconPage() {
                       <div className="max-w-56 truncate text-sm font-semibold text-gray-950">
                         {displayedProfileName}
                       </div>
-                      <div
-                        className={`mt-1 text-xs ${
-                          autosaveState === 'error'
-                            ? 'text-amber-700'
-                            : autosaveState === 'saving'
-                              ? 'text-gray-500'
-                              : 'text-emerald-700'
-                        }`}
-                      >
-                        {autosaveState === 'saving'
-                          ? 'Autosaving...'
-                          : autosaveState === 'error'
-                            ? 'Autosave pending'
-                            : lastAutosavedAt
-                              ? `Autosaved ${lastAutosavedAt.toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}`
-                              : 'Draft autosave ready'}
+                      <div className="mt-1 flex items-center justify-end gap-2">
+                        {autosaveState === 'saving' && (
+                          <ArrowPathIcon className="h-3.5 w-3.5 animate-spin text-gray-500" />
+                        )}
+                        <div
+                          className={`text-xs ${
+                            autosaveState === 'error'
+                              ? 'text-amber-700'
+                              : autosaveState === 'saving'
+                                ? 'text-gray-500'
+                                : 'text-emerald-700'
+                          }`}
+                        >
+                          {autosaveState === 'saving'
+                            ? 'Autosaving...'
+                            : autosaveState === 'error'
+                              ? 'Autosave pending'
+                              : lastAutosavedAt
+                                ? `Autosaved ${lastAutosavedAt.toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}`
+                                : 'Draft autosave ready'}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => void saveProfileDraft()}
+                        disabled={autosaveState === 'saving'}
+                        className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {autosaveState === 'saving' && (
+                          <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                        )}
+                        Save now
+                      </button>
+                      {autosaveMetrics && (
+                        <div className="mt-2 font-mono text-[11px] text-gray-500">
+                          {autosaveMetrics.durationMs} ms · {autosaveMetrics.payloadBytes} bytes ·
+                          status {autosaveMetrics.status ?? 'network/aborted'}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3546,7 +3951,7 @@ export default function LexiconPage() {
                             </p>
                           </div>
                           <span
-                            className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${
                               autosaveState === 'error'
                                 ? 'border-amber-200 bg-amber-50 text-amber-800'
                                 : autosaveState === 'saving'
@@ -3559,6 +3964,9 @@ export default function LexiconPage() {
                               : autosaveState === 'error'
                                 ? 'Pending'
                                 : 'Saved'}
+                            {autosaveState === 'saving' && (
+                              <ArrowPathIcon className="h-3 w-3 animate-spin" />
+                            )}
                           </span>
                         </div>
                         {draftProfileId && (
@@ -3566,9 +3974,32 @@ export default function LexiconPage() {
                             {draftProfileId}
                           </div>
                         )}
+                        {autosaveMetrics && (
+                          <div className="mt-3 rounded-md border border-gray-200 bg-white p-2 font-mono text-[11px] text-gray-600">
+                            <div>
+                              {autosaveMetrics.method} {autosaveMetrics.endpoint}
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                              <span>{autosaveMetrics.durationMs} ms</span>
+                              <span>{autosaveMetrics.payloadBytes} bytes</span>
+                              <span>status {autosaveMetrics.status ?? 'network/aborted'}</span>
+                            </div>
+                          </div>
+                        )}
                         {autosaveError && (
                           <div className="mt-2 text-xs text-amber-700">{autosaveError}</div>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => void saveProfileDraft()}
+                          disabled={autosaveState === 'saving'}
+                          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {autosaveState === 'saving' && (
+                            <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                          )}
+                          Save now
+                        </button>
                       </div>
 
                       <div className="space-y-4">
