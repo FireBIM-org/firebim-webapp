@@ -354,6 +354,10 @@ export default function RuleBookLibraryPanel({
   }, [setAvailableRules, setRulesApiOnline, setRulesError, setRulesLoading]);
 
   useEffect(() => {
+    if (available_rules.length > 0) {
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -370,7 +374,7 @@ export default function RuleBookLibraryPanel({
     return () => {
       cancelled = true;
     };
-  }, [loadAvailableRules]);
+  }, [available_rules.length, loadAvailableRules]);
 
   useEffect(() => {
     if (selected_rule_ids.length !== 1) {

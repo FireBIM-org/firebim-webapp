@@ -160,6 +160,7 @@ export type RuleBookStore = {
   addRuleToRunner: (rule: RuleListItem) => void;
   removeRuleFromRunner: (runner_item_id: string) => void;
   moveRunnerItem: (from_index: number, to_index: number) => void;
+  setRunnerRuleItems: (items: RuleRunnerItem[]) => void;
   clearRunner: () => void;
 
   setAvailableGraphs: (graphs: BuildingGraphData[]) => void;
@@ -530,6 +531,8 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         runner_rule_items: next,
       };
     }),
+
+  setRunnerRuleItems: (items) => set({ runner_rule_items: items }),
 
   clearRunner: () => set({ runner_rule_items: [] }),
 
