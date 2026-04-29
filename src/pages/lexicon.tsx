@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import {
   Bars3Icon,
   BeakerIcon,
@@ -42,6 +44,8 @@ type InspectView =
   | 'summary'
   | 'coverage'
   | 'choices'
+  | 'save'
+  | 'graphCoverage'
   | 'readiness'
   | 'conformity'
   | 'evidence'
@@ -94,6 +98,70 @@ type StandardDragPayload = {
   kind: 'lexicon-standard';
   standard_id: string;
 };
+
+type RuleTermDescriptor = {
+  value: string;
+  full_iri: string;
+  namespace: string;
+  local_name: string;
+};
+
+type RuleTermLocalNameGroup = {
+  local_name: string;
+  count: number;
+  full_iris?: string[];
+  namespaces?: string[];
+};
+
+type RuleTermStats = {
+  rule_count: number;
+  element_count: number;
+  unique_target_classes: number;
+  unique_property_paths: number;
+  unique_target_property_pairs: number;
+  target_class_local_name_collisions: number;
+  property_path_local_name_collisions: number;
+};
+
+type RuleTermsResponse = {
+  rule_id: string;
+  target_classes?: RuleTermDescriptor[];
+  property_paths?: RuleTermDescriptor[];
+  target_class_local_name_groups?: RuleTermLocalNameGroup[];
+  property_path_local_name_groups?: RuleTermLocalNameGroup[];
+  stats: RuleTermStats;
+};
+
+type RuleTermsAggregateResponse = {
+  rule_ids?: string[];
+  target_classes?: RuleTermDescriptor[];
+  property_paths?: RuleTermDescriptor[];
+  target_class_local_name_groups?: RuleTermLocalNameGroup[];
+  property_path_local_name_groups?: RuleTermLocalNameGroup[];
+  stats: RuleTermStats;
+};
+
+type ProfileDefinitionTerm = RuleTermDescriptor & {
+  id: string;
+  term_kind: 'Class' | 'Property';
+  rule_ids: string[];
+  duplicate: boolean;
+};
+
+const ruleColorClasses = [
+  'bg-sky-500',
+  'bg-emerald-500',
+  'bg-violet-500',
+  'bg-rose-500',
+  'bg-amber-500',
+  'bg-cyan-500',
+  'bg-lime-500',
+  'bg-fuchsia-500',
+];
+
+function ruleColorClass(index: number) {
+  return ruleColorClasses[index % ruleColorClasses.length];
+}
 
 const profiles: ProfileSummary[] = [
   {
@@ -224,53 +292,77 @@ const modeLabels: Record<LexiconMode, string> = {
   inspect: 'Inspect profile',
 };
 
-const inspectActions: Array<{
+type InspectAction = {
   id: InspectView;
   label: string;
   description: string;
   endpoint: string;
-}> = [
+  phase?: 'review' | 'profile' | 'graph' | 'advanced';
+};
+
+const createFromRulesInspectActions: InspectAction[] = [
   {
     id: 'summary',
     label: 'Profile summary',
-    description: 'Show the rules, standards, target classes, and properties in this profile.',
+    description: 'Review rules, standards, and draft definitions before saving.',
     endpoint: 'POST /lexicon/profiles/summary',
+    phase: 'review',
   },
   {
     id: 'coverage',
-    label: 'Rule coverage',
-    description: 'Check which rule requirements are represented by the profile.',
-    endpoint: 'GET /lexicon/profiles/{profile_id}/rules/coverage',
+    label: 'Check rule support',
+    description: 'Check which selected rules the profile can support.',
+    endpoint: 'POST /lexicon/profiles/{profile_id}/rules/coverage',
+    phase: 'review',
   },
   {
     id: 'choices',
-    label: 'Recommended choices',
-    description: 'Find candidate definition choices the user can accept or reject.',
+    label: 'Review suggested choices',
+    description: 'Review candidate definition choices the user can accept or reject.',
     endpoint: 'GET /lexicon/profiles/{profile_id}/mappings/candidates',
+    phase: 'review',
+  },
+  {
+    id: 'save',
+    label: 'Save profile',
+    description: 'Save this draft profile so it can be reused and shared.',
+    endpoint: 'POST /lexicon/profiles',
+    phase: 'profile',
+  },
+  {
+    id: 'graphCoverage',
+    label: 'Compare with BIM graph',
+    description: 'Compare the saved profile with a selected BIM representation.',
+    endpoint: 'POST /lexicon/profiles/{profile_id}/graph-coverage',
+    phase: 'graph',
   },
   {
     id: 'readiness',
-    label: 'Readiness',
-    description: 'Estimate whether the profile is ready to save, share, or use for checks.',
+    label: 'Check readiness',
+    description: 'Estimate whether the profile is ready to use for checks.',
     endpoint: 'POST /lexicon/profiles/summary',
+    phase: 'graph',
   },
   {
     id: 'conformity',
-    label: 'Conformity',
+    label: 'Advanced: Conformity',
     description: 'Run semantic and structural validity checks for the current profile.',
     endpoint: 'POST /lexicon/conformity/check',
+    phase: 'advanced',
   },
   {
     id: 'evidence',
-    label: 'Graph evidence',
-    description: 'Prepare the view that later compares this profile with a BIM graph.',
+    label: 'Advanced: Graph evidence',
+    description: 'Summarize classes, properties, and subjects in a selected BIM graph.',
     endpoint: 'POST /lexicon/graphs/evidence-summary',
+    phase: 'advanced',
   },
   {
     id: 'reconstruction',
-    label: 'Reconstruction',
+    label: 'Advanced: Reconstruction',
     description: 'Preview how the selected standards can support a canonical graph.',
     endpoint: 'POST /lexicon/reconstruction',
+    phase: 'advanced',
   },
 ];
 
@@ -797,16 +889,245 @@ function StepPill({
   );
 }
 
+function ProfileSummaryAccordion({
+  title,
+  count,
+  tone,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  count: number;
+  tone: 'rules' | 'standards' | 'definitions';
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(Boolean(defaultOpen));
+  const toneClass =
+    tone === 'rules'
+      ? 'border-sky-200 bg-sky-50 text-sky-900'
+      : tone === 'standards'
+        ? 'border-orange-200 bg-orange-50 text-orange-900'
+        : 'border-gray-200 bg-gray-50 text-gray-900';
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50"
+      >
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-gray-950">{title}</div>
+          <div className="mt-1 text-xs text-gray-500">
+            {count} {count === 1 ? 'item' : 'items'}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${toneClass}`}>
+            {count}
+          </span>
+          {open ? (
+            <ChevronDoubleUpIcon className="h-4 w-4 text-gray-500" />
+          ) : (
+            <ChevronDoubleDownIcon className="h-4 w-4 text-gray-500" />
+          )}
+        </div>
+      </button>
+      {open && <div className="border-t border-gray-100 p-3">{children}</div>}
+    </div>
+  );
+}
+
+function ProfileSummarySourceCard({
+  title,
+  count,
+  tone,
+  children,
+}: {
+  title: string;
+  count: number;
+  tone: 'rules' | 'standards';
+  children: ReactNode;
+}) {
+  const toneClass =
+    tone === 'rules'
+      ? 'border-sky-200 bg-sky-50 text-sky-900'
+      : 'border-orange-200 bg-orange-50 text-orange-900';
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-gray-950">{title}</div>
+          <div className="mt-1 text-xs text-gray-500">
+            {count} {count === 1 ? 'item' : 'items'}
+          </div>
+        </div>
+        <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${toneClass}`}>
+          {count}
+        </span>
+      </div>
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+function shortNamespace(value: string) {
+  if (!value) return '';
+  const normalized = value.replace(/[#/]+$/, '');
+  return normalized.split(/[#/]/).filter(Boolean).pop() ?? value;
+}
+
+function termKey(term: RuleTermDescriptor) {
+  return `${term.full_iri || term.value}`;
+}
+
+function buildDefinitionTerms(
+  aggregate: RuleTermsAggregateResponse | null,
+  perRuleTerms: Record<string, RuleTermsResponse>,
+): ProfileDefinitionTerm[] {
+  if (!aggregate) return [];
+
+  const duplicateLocalNames = new Set<string>();
+  const collectDuplicates = (groups?: RuleTermLocalNameGroup[]) => {
+    (groups ?? []).forEach((group) => {
+      const fullIris = group.full_iris ?? [];
+      const namespaces = group.namespaces ?? [];
+      if (fullIris.length > 1 || namespaces.length > 1) {
+        duplicateLocalNames.add(group.local_name);
+      }
+    });
+  };
+
+  collectDuplicates(aggregate.target_class_local_name_groups);
+  collectDuplicates(aggregate.property_path_local_name_groups);
+
+  const ruleIdsByTerm = new Map<string, Set<string>>();
+  Object.entries(perRuleTerms).forEach(([ruleId, response]) => {
+    [...(response.target_classes ?? []), ...(response.property_paths ?? [])].forEach((term) => {
+      const key = termKey(term);
+      const existing = ruleIdsByTerm.get(key) ?? new Set<string>();
+      existing.add(ruleId);
+      ruleIdsByTerm.set(key, existing);
+    });
+  });
+
+  return [
+    ...(aggregate.target_classes ?? []).map((term) => ({ term, term_kind: 'Class' as const })),
+    ...(aggregate.property_paths ?? []).map((term) => ({ term, term_kind: 'Property' as const })),
+  ]
+    .map(({ term, term_kind }) => ({
+      ...term,
+      id: `${term_kind}:${termKey(term)}`,
+      term_kind,
+      rule_ids: Array.from(ruleIdsByTerm.get(termKey(term)) ?? []),
+      duplicate: duplicateLocalNames.has(term.local_name),
+    }))
+    .sort(
+      (a, b) =>
+        a.local_name.localeCompare(b.local_name) ||
+        a.namespace.localeCompare(b.namespace) ||
+        a.term_kind.localeCompare(b.term_kind),
+    );
+}
+
 function InspectResponsePanel({
   view,
-  ruleCount,
+  rules,
   standards,
 }: {
   view: InspectView;
-  ruleCount: number;
+  rules: RuleRunnerItem[];
   standards: StandardSummary[];
 }) {
-  const activeAction = inspectActions.find((action) => action.id === view) || inspectActions[0];
+  const activeAction =
+    createFromRulesInspectActions.find((action) => action.id === view) ||
+    createFromRulesInspectActions[0];
+  const ruleCount = rules.length;
+  const ruleIds = useMemo(() => rules.map((rule) => rule.rule_id), [rules]);
+  const [aggregateTerms, setAggregateTerms] = useState<RuleTermsAggregateResponse | null>(null);
+  const [perRuleTerms, setPerRuleTerms] = useState<Record<string, RuleTermsResponse>>({});
+  const [termsLoading, setTermsLoading] = useState(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
+  const [expandedTermId, setExpandedTermId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRuleTerms() {
+      if (ruleIds.length === 0) {
+        setAggregateTerms(null);
+        setPerRuleTerms({});
+        setTermsError(null);
+        return;
+      }
+
+      setTermsLoading(true);
+      setTermsError(null);
+
+      try {
+        const aggregateResponse = await fetch(`${env.apiBaseUrl}/rules/terms/aggregate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rule_ids: ruleIds, compact_terms: false }),
+        });
+
+        if (!aggregateResponse.ok) {
+          throw new Error(`Aggregate terms failed: ${aggregateResponse.status}`);
+        }
+
+        const aggregate = (await aggregateResponse.json()) as RuleTermsAggregateResponse;
+        const individualResponses = await Promise.all(
+          ruleIds.map(async (ruleId) => {
+            const response = await fetch(
+              `${env.apiBaseUrl}/rules/${encodeURIComponent(ruleId)}/terms`,
+            );
+            if (!response.ok) {
+              throw new Error(`Rule terms failed for ${ruleId}: ${response.status}`);
+            }
+            return [ruleId, (await response.json()) as RuleTermsResponse] as const;
+          }),
+        );
+
+        if (cancelled) return;
+
+        setAggregateTerms(aggregate);
+        setPerRuleTerms(Object.fromEntries(individualResponses));
+      } catch (error) {
+        if (cancelled) return;
+        setAggregateTerms(null);
+        setPerRuleTerms({});
+        setTermsError(error instanceof Error ? error.message : 'Failed to load rule terms');
+      } finally {
+        if (!cancelled) {
+          setTermsLoading(false);
+        }
+      }
+    }
+
+    void loadRuleTerms();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ruleIds]);
+
+  const definitions = useMemo(
+    () => buildDefinitionTerms(aggregateTerms, perRuleTerms),
+    [aggregateTerms, perRuleTerms],
+  );
+  const definitionCount =
+    definitions.length ||
+    (aggregateTerms?.stats.unique_target_classes ?? 0) +
+      (aggregateTerms?.stats.unique_property_paths ?? 0);
+  const duplicateCount =
+    (aggregateTerms?.stats.target_class_local_name_collisions ?? 0) +
+    (aggregateTerms?.stats.property_path_local_name_collisions ?? 0);
+  const ruleIndexById = useMemo(
+    () => new Map(ruleIds.map((ruleId, index) => [ruleId, index])),
+    [ruleIds],
+  );
 
   if (view === 'summary') {
     return (
@@ -814,22 +1135,171 @@ function InspectResponsePanel({
         <div>
           <div className="rule-workspace-header">Profile summary</div>
           <p className="mt-2 text-sm text-gray-600">
-            This profile draft combines {ruleCount} rules with {standards.length} standards. The
-            backend summary should become the primary source for target classes, properties, and
-            unresolved choices.
+            This profile draft combines {ruleCount} rules with {standards.length} standards. Open
+            each group to inspect what the profile is made from before saving it.
           </p>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          {[
-            ['Rules', ruleCount],
-            ['Standards', standards.length],
-            ['Definitions', ruleCount * Math.max(standards.length, 1) * 3],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
-              <div className="text-xs font-semibold text-gray-500 uppercase">{label}</div>
-              <div className="mt-2 text-2xl font-semibold text-gray-950">{value}</div>
+        <div className="space-y-4">
+          <div className="grid items-stretch gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+            <ProfileSummarySourceCard title="Rules" count={ruleCount} tone="rules">
+              <div className="space-y-2">
+                {rules.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
+                    No rules selected.
+                  </div>
+                ) : (
+                  rules.slice(0, 4).map((rule, index) => (
+                    <div key={rule.runner_item_id} className="flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${ruleColorClass(index)}`} />
+                      <span className="truncate text-sm font-medium text-gray-900">
+                        {rule.label}
+                      </span>
+                    </div>
+                  ))
+                )}
+                {rules.length > 4 && (
+                  <div className="text-xs text-gray-500">+ {rules.length - 4} more rules</div>
+                )}
+              </div>
+            </ProfileSummarySourceCard>
+
+            <div className="flex items-center justify-center">
+              <div className="rounded-full border border-gray-200 bg-white p-2 text-gray-500 shadow-sm">
+                <LinkIcon className="h-5 w-5" />
+              </div>
             </div>
-          ))}
+
+            <ProfileSummarySourceCard title="Standards" count={standards.length} tone="standards">
+              <div className="space-y-2">
+                {standards.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
+                    No standards selected.
+                  </div>
+                ) : (
+                  standards.map((standard) => (
+                    <div key={standard.id} className="rounded-lg bg-orange-50/70 p-2">
+                      <div className="truncate text-sm font-semibold text-gray-950">
+                        {standard.title || standardLabel(standard)}
+                      </div>
+                      <div className="mt-1 text-xs text-gray-600">
+                        {standard.ontology_family}/{standard.country} - {standard.version}
+                      </div>
+                      <div className="mt-1 text-[11px] text-gray-500">
+                        {standard.class_count} classes, {standard.property_count} properties,{' '}
+                        {standard.property_set_count} sets
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ProfileSummarySourceCard>
+          </div>
+
+          <ProfileSummaryAccordion
+            title="Definitions"
+            count={definitionCount}
+            tone="definitions"
+            defaultOpen
+          >
+            {duplicateCount > 0 && (
+              <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                Possible duplicate terms detected: {duplicateCount} local-name collisions. Terms
+                with the same short name from different namespaces are highlighted below.
+              </div>
+            )}
+            {termsLoading && (
+              <div className="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-500">
+                Loading rule terms...
+              </div>
+            )}
+            {termsError && (
+              <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                {termsError}
+              </div>
+            )}
+            <div className="max-h-72 space-y-1 overflow-y-auto">
+              {definitions.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
+                  Definitions will appear after rule term statistics are available.
+                </div>
+              ) : (
+                definitions.map((definition) => (
+                  <button
+                    key={definition.id}
+                    type="button"
+                    onClick={() =>
+                      setExpandedTermId((value) => (value === definition.id ? null : definition.id))
+                    }
+                    className={`w-full rounded-md border px-3 py-2 text-left ${
+                      definition.duplicate
+                        ? 'border-amber-200 bg-amber-50'
+                        : 'border-gray-100 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex shrink-0 -space-x-1">
+                          {definition.rule_ids.map((ruleId) => (
+                            <span
+                              key={ruleId}
+                              className={`h-2.5 w-2.5 rounded-full ring-1 ring-white ${ruleColorClass(
+                                ruleIndexById.get(ruleId) ?? 0,
+                              )}`}
+                              title={rules.find((rule) => rule.rule_id === ruleId)?.label || ruleId}
+                            />
+                          ))}
+                        </div>
+                        <div className="truncate text-sm font-medium text-gray-900">
+                          {definition.local_name}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600 uppercase">
+                          {definition.term_kind}
+                        </span>
+                        <span className="text-[11px] text-gray-500">
+                          {shortNamespace(definition.namespace)}
+                        </span>
+                      </div>
+                    </div>
+                    {expandedTermId === definition.id && (
+                      <div className="mt-2 rounded-md bg-white p-2 font-mono text-[11px] break-all text-gray-600">
+                        {definition.full_iri}
+                      </div>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+            {aggregateTerms?.stats && (
+              <div className="mt-3 grid gap-2 text-center text-[11px] text-gray-600 sm:grid-cols-4">
+                <div className="rounded-md bg-gray-50 px-2 py-2">
+                  <div className="font-semibold text-gray-950">
+                    {aggregateTerms.stats.element_count}
+                  </div>
+                  <div>Elements</div>
+                </div>
+                <div className="rounded-md bg-gray-50 px-2 py-2">
+                  <div className="font-semibold text-gray-950">
+                    {aggregateTerms.stats.unique_target_classes}
+                  </div>
+                  <div>Classes</div>
+                </div>
+                <div className="rounded-md bg-gray-50 px-2 py-2">
+                  <div className="font-semibold text-gray-950">
+                    {aggregateTerms.stats.unique_property_paths}
+                  </div>
+                  <div>Properties</div>
+                </div>
+                <div className="rounded-md bg-gray-50 px-2 py-2">
+                  <div className="font-semibold text-gray-950">
+                    {aggregateTerms.stats.unique_target_property_pairs}
+                  </div>
+                  <div>Pairs</div>
+                </div>
+              </div>
+            )}
+          </ProfileSummaryAccordion>
         </div>
       </div>
     );
@@ -881,6 +1351,38 @@ function InspectResponsePanel({
               </button>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'save') {
+    return (
+      <div>
+        <div className="rule-workspace-header">Save profile</div>
+        <p className="mt-2 text-sm text-gray-600">
+          Saving turns this draft into a reusable Lexicon profile with a profile id.
+        </p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700"
+        >
+          Save profile
+        </button>
+      </div>
+    );
+  }
+
+  if (view === 'graphCoverage') {
+    return (
+      <div>
+        <div className="rule-workspace-header">Compare with BIM graph</div>
+        <p className="mt-2 text-sm text-gray-600">
+          Choose a BIM representation to see which target classes and properties are covered by
+          graph data.
+        </p>
+        <div className="mt-4 min-h-56 rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-500">
+          BIM graph selection is not connected in this flow yet.
         </div>
       </div>
     );
@@ -1540,7 +2042,7 @@ export default function LexiconPage() {
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      {inspectActions.map((action) => (
+                      {createFromRulesInspectActions.map((action) => (
                         <button
                           key={action.id}
                           type="button"
@@ -1568,7 +2070,7 @@ export default function LexiconPage() {
                     <div className="min-h-full rounded-xl border border-gray-200 bg-white/95 p-5 shadow-sm">
                       <InspectResponsePanel
                         view={activeInspectView}
-                        ruleCount={runnerRuleItems.length}
+                        rules={runnerRuleItems}
                         standards={selectedStandards}
                       />
                     </div>
