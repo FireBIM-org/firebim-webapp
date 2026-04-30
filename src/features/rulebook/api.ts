@@ -49,11 +49,84 @@ type GraphFetchApiResponse = {
   triple_count?: number | null;
 };
 
+type PublishRuleJsonResponse = {
+  published?: boolean;
+  rule_id?: string | null;
+  graph_uri?: string | null;
+  entry?: string | null;
+  element_count?: number | null;
+  label?: string | null;
+  success?: boolean;
+  error?: string | null;
+  message?: string | null;
+  fallback?: boolean;
+};
+
+type PublishGraphJsonRequest = {
+  graph_id: string;
+  ttl: string;
+};
+
+type PublishGraphJsonResponse = {
+  success?: boolean;
+  graph_id: string;
+  graph_uri: string;
+  dataset?: string;
+  overwritten?: boolean;
+  message?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
 function getRuleIdFromGraphUri(graph_uri?: string | null): string | null {
   if (!graph_uri) return null;
 
   const parts = graph_uri.split('/').filter(Boolean);
   return parts.length > 0 ? parts[parts.length - 1] : null;
+}
+
+function normalizeRulePublishPayload(input: unknown): { rule: Record<string, unknown> } {
+  if (!isRecord(input)) {
+    throw new Error('Rule upload must contain a JSON object.');
+  }
+
+  const raw_rule = isRecord(input.rule) ? input.rule : input;
+  const { rule_elements, ...rest } = raw_rule;
+  const elements = Array.isArray(raw_rule.elements)
+    ? raw_rule.elements
+    : Array.isArray(rule_elements)
+      ? rule_elements
+      : undefined;
+
+  return {
+    rule: {
+      ...rest,
+      ...(elements ? { elements } : {}),
+    },
+  };
+}
+
+function normalizeGraphPublishPayload(input: unknown): PublishGraphJsonRequest {
+  if (!isRecord(input)) {
+    throw new Error('Graph upload must contain a JSON object.');
+  }
+
+  const raw_graph = isRecord(input.graph) ? input.graph : input;
+  const graph_id =
+    typeof raw_graph.graph_id === 'string'
+      ? raw_graph.graph_id
+      : typeof raw_graph.id === 'string'
+        ? raw_graph.id
+        : '';
+  const ttl = typeof raw_graph.ttl === 'string' ? raw_graph.ttl : '';
+
+  if (!graph_id || !ttl) {
+    throw new Error('Graph JSON must include graph_id and ttl.');
+  }
+
+  return { graph_id, ttl };
 }
 
 function normalizeRuleDefinition(input: unknown): RuleDefinition {
@@ -479,8 +552,32 @@ export async function deleteRule(
   };
 }
 
+export async function publishRuleJson(input: unknown): Promise<PublishRuleJsonResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/publish`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(normalizeRulePublishPayload(input)),
+  });
+
+  return parseJsonResponse<PublishRuleJsonResponse>(res);
+}
+
 export async function getGraphsHealth(): Promise<GraphHealthResponse> {
   return requestJsonWithFallback<GraphHealthResponse>([{ url: `${env.apiBaseUrl}/graphs/health` }]);
+}
+
+export async function publishBuildingGraphJson(input: unknown): Promise<PublishGraphJsonResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/graphs/publish`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(normalizeGraphPublishPayload(input)),
+  });
+
+  return parseJsonResponse<PublishGraphJsonResponse>(res);
 }
 
 export async function listStoredBuildingGraphs(): Promise<GraphListApiItem[]> {
