@@ -1650,6 +1650,8 @@ function InspectResponsePanel({
   const [coverageError, setCoverageError] = useState<string | null>(null);
   const [coverageCandidates, setCoverageCandidates] = useState<CoverageCandidate[]>([]);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
+  const [candidatesError, setCandidatesError] = useState<string | null>(null);
+  const [ruleSupportAnalysed, setRuleSupportAnalysed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1714,56 +1716,6 @@ function InspectResponsePanel({
       cancelled = true;
     };
   }, [ruleIds]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRuleCoverage() {
-      if (view !== 'coverage' || !profileId || ruleIds.length === 0) {
-        setCoverage(null);
-        setCoverageError(null);
-        return;
-      }
-
-      setCoverageLoading(true);
-      setCoverageError(null);
-
-      try {
-        const response = await fetch(
-          `${env.apiBaseUrl}/lexicon/profiles/${encodeURIComponent(profileId)}/rules/coverage`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rule_ids: ruleIds }),
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`Rule support check failed: ${response.status}`);
-        }
-
-        const data = (await response.json()) as ProfileRulesCoverageResponse;
-        if (!cancelled) {
-          setCoverage(data);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setCoverage(null);
-          setCoverageError(error instanceof Error ? error.message : 'Rule support check failed');
-        }
-      } finally {
-        if (!cancelled) {
-          setCoverageLoading(false);
-        }
-      }
-    }
-
-    void loadRuleCoverage();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profileId, ruleIds, view]);
 
   const definitions = useMemo(
     () => buildDefinitionTerms(aggregateTerms, perRuleTerms),
@@ -1842,44 +1794,68 @@ function InspectResponsePanel({
   );
 
   useEffect(() => {
-    let cancelled = false;
+    setCoverage(null);
+    setCoverageCandidates([]);
+    setCoverageError(null);
+    setCandidatesError(null);
+    setCoverageLoading(false);
+    setCandidatesLoading(false);
+    setRuleSupportAnalysed(false);
+  }, [candidateLimit, profileId, ruleIds, standards]);
 
-    async function loadCandidates() {
-      if (view !== 'coverage' || allRuleTerms.length === 0 || standards.length === 0) {
+  const analyseRuleSupport = async () => {
+    if (!profileId || ruleIds.length === 0 || coverageLoading || candidatesLoading) return;
+
+    setRuleSupportAnalysed(true);
+    setCoverageLoading(true);
+    setCandidatesLoading(true);
+    setCoverageError(null);
+    setCandidatesError(null);
+
+    try {
+      const response = await fetch(
+        `${env.apiBaseUrl}/lexicon/profiles/${encodeURIComponent(profileId)}/rules/coverage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rule_ids: ruleIds }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Rule support check failed: ${response.status}`);
+      }
+
+      setCoverage((await response.json()) as ProfileRulesCoverageResponse);
+    } catch (error) {
+      setCoverage(null);
+      setCoverageError(error instanceof Error ? error.message : 'Rule support check failed');
+    } finally {
+      setCoverageLoading(false);
+    }
+
+    try {
+      if (allRuleTerms.length === 0 || standards.length === 0) {
         setCoverageCandidates([]);
         return;
       }
 
-      setCandidatesLoading(true);
-
-      try {
-        const results = await fetchRuleOntologyCandidates(
-          ruleIds,
-          allRuleTerms,
-          standards,
-          candidateLimit,
-        );
-
-        if (!cancelled) {
-          setCoverageCandidates(results);
-        }
-      } catch {
-        if (!cancelled) {
-          setCoverageCandidates([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setCandidatesLoading(false);
-        }
-      }
+      const results = await fetchRuleOntologyCandidates(
+        ruleIds,
+        allRuleTerms,
+        standards,
+        candidateLimit,
+      );
+      setCoverageCandidates(results);
+    } catch (error) {
+      setCoverageCandidates([]);
+      setCandidatesError(
+        error instanceof Error ? error.message : 'Candidate rule support analysis failed',
+      );
+    } finally {
+      setCandidatesLoading(false);
     }
-
-    void loadCandidates();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [allRuleTerms, candidateLimit, ruleIds, standards, view]);
+  };
 
   if (view === 'summary') {
     return (
@@ -2100,235 +2076,279 @@ function InspectResponsePanel({
           </div>
         )}
 
-        {coverageLoading && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-            Checking rule support...
-          </div>
-        )}
-
-        {coverageError && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            {coverageError}
-          </div>
-        )}
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <CoverageDonut
-            label="Target classes"
-            total={classTotal}
-            missing={missingTargetClasses.length}
-          />
-          <CoverageDonut
-            label="Properties"
-            total={propertyTotal}
-            missing={missingProperties.length}
-          />
-        </div>
-
-        <div className="grid gap-2 text-center text-xs text-gray-600 md:grid-cols-4">
-          {[
-            ['Elements', aggregateTerms?.stats.element_count ?? 0],
-            ['Classes', aggregateTerms?.stats.unique_target_classes ?? 0],
-            ['Properties', aggregateTerms?.stats.unique_property_paths ?? 0],
-            ['Pairs', aggregateTerms?.stats.unique_target_property_pairs ?? 0],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-lg border border-gray-200 bg-white p-3">
-              <div className="text-lg font-semibold text-gray-950">{value}</div>
-              <div>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_1px_minmax(0,1.1fr)]">
-          <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="font-semibold text-gray-950">Missing in rules</div>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
-                {missingRows.length}
-              </span>
-            </div>
-            <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
-              {missingRows.length === 0 ? (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-                  No missing targets or properties returned by the coverage check.
-                </div>
-              ) : (
-                missingRows.map((item) => (
-                  <div key={`${item.kind}-${item.term}`} className="rounded-lg bg-gray-50 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="truncate text-sm font-semibold text-gray-950">
-                        {shortTermName(item.term)}
-                      </div>
-                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600 uppercase">
-                        {item.kind}
-                      </span>
-                    </div>
-                    <div className="mt-1 truncate font-mono text-[11px] text-gray-500">
-                      {item.term}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="hidden bg-gradient-to-b from-transparent via-gray-300 to-transparent lg:block" />
-
-          <div className="rounded-xl border border-gray-200 bg-white p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="font-semibold text-gray-950">Potential matches</div>
-              <span className="rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-800">
-                top {candidateLimit} / standard
-              </span>
-            </div>
-            <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
-              {candidatesLoading ? (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
-                  Asking Lexicon to compare rule terms with selected standards...
-                </div>
-              ) : suggestedCoverageCandidates.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
-                  Candidate matches will appear when selected standards have possible alternatives
-                  for missing rule terms.
-                </div>
-              ) : (
-                suggestedCoverageCandidates.map((candidate) => (
-                  <div
-                    key={`${candidate.ruleId}-${candidate.missingTerm}-${candidate.standardId}-${candidate.termId}`}
-                    className="rounded-lg border border-orange-100 bg-orange-50/50 p-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-gray-950">
-                          {candidate.label}
-                        </div>
-                        <div className="mt-1 text-xs text-gray-600">
-                          {candidate.standardLabel} for {shortTermName(candidate.missingTerm)}
-                        </div>
-                      </div>
-                      <div className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-gray-700">
-                        {candidate.score === null
-                          ? 'search'
-                          : `${Math.round(candidate.score * 100)}%`}
-                      </div>
-                    </div>
-                    <div className="mt-2 truncate font-mono text-[11px] text-gray-500">
-                      {candidate.uri}
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                      <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-gray-600">
-                        rule {ruleKindToTermType(candidate.kind)}
-                      </span>
-                      <span className="text-gray-400">to</span>
-                      <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-gray-600">
-                        standard {normalizeTermType(candidate.candidateKind)}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="font-semibold text-gray-950">Type compatibility</div>
-              <p className="mt-1 text-sm text-gray-600">
-                Checks whether rule targets are matched to the same kind of standard term. Allowed:
-                class to class, property to property, set to set, class to subclass, and subclass to
-                class.
+              <div className="font-semibold text-gray-950">Analyse rule support</div>
+              <p className="mt-1 max-w-2xl text-sm text-gray-600">
+                This runs coverage and candidate matching against the selected standards. It can be
+                heavier when IFC or many rules are selected, so Lexicon only runs it when you ask.
               </p>
             </div>
-            <div
-              className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                mismatchCount === 0
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                  : 'border-amber-200 bg-amber-50 text-amber-800'
-              }`}
+            <button
+              type="button"
+              onClick={analyseRuleSupport}
+              disabled={!profileId || termsLoading || coverageLoading || candidatesLoading}
+              className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
             >
-              {compatibleCount}/{compatibilityRows.length || 0} compatible
-            </div>
+              {(coverageLoading || candidatesLoading) && (
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+              )}
+              {coverageLoading || candidatesLoading ? 'Analysing...' : 'Analyse rule support'}
+            </button>
           </div>
-
-          <div className="mt-4 space-y-2">
-            {compatibilityRows.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
-                Type compatibility appears after candidate matches are available.
-              </div>
-            ) : (
-              compatibilityRows.slice(0, 8).map((row) => (
-                <div
-                  key={`${row.missingTerm}-${row.standardId}-${row.termId}-compatibility`}
-                  className={`rounded-lg border p-3 ${
-                    row.compatible
-                      ? 'border-emerald-100 bg-emerald-50/70'
-                      : 'border-amber-200 bg-amber-50'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-gray-950">
-                        {shortTermName(row.missingTerm)} to {row.label}
-                      </div>
-                      <div className="mt-1 text-xs text-gray-600">{row.standardLabel}</div>
-                    </div>
-                    <span
-                      className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                        row.compatible
-                          ? 'border-emerald-200 bg-white text-emerald-800'
-                          : 'border-amber-300 bg-white text-amber-800'
-                      }`}
-                    >
-                      {row.compatible ? 'OK' : 'Review'}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                    <span className="rounded-md bg-white px-2 py-1">rule {row.ruleType}</span>
-                    <span>{'->'}</span>
-                    <span className="rounded-md bg-white px-2 py-1">
-                      standard {row.ontologyType}
-                    </span>
-                    {!row.compatible && (
-                      <span className="text-amber-800">
-                        Prefer matching class-class, property-property, or set-set.
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {compatibilityRows.length > 8 && (
+          {termsLoading && (
             <div className="mt-3 text-xs text-gray-500">
-              Showing first 8 of {compatibilityRows.length} candidate type checks.
+              Rule terms are still loading. The analysis button will unlock when they are ready.
             </div>
           )}
         </div>
 
-        {coverage && (
-          <div className="grid gap-3 text-center text-xs text-gray-600 sm:grid-cols-3">
-            <div className="rounded-lg bg-gray-50 p-3">
-              <div className="text-lg font-semibold text-gray-950">
-                {coverage.fully_supported_rule_ids?.length ?? 0}
-              </div>
-              <div>Fully supported</div>
-            </div>
-            <div className="rounded-lg bg-gray-50 p-3">
-              <div className="text-lg font-semibold text-gray-950">
-                {coverage.partially_supported_rules?.length ?? 0}
-              </div>
-              <div>Need choices</div>
-            </div>
-            <div className="rounded-lg bg-gray-50 p-3">
-              <div className="text-lg font-semibold text-gray-950">
-                {coverage.unsupported_rule_ids?.length ?? 0}
-              </div>
-              <div>Unsupported</div>
-            </div>
+        {!ruleSupportAnalysed && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+            Rule support has not been analysed yet. Use the button above to run the check.
           </div>
+        )}
+
+        {ruleSupportAnalysed && (
+          <>
+            {coverageLoading && (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                Checking rule support...
+              </div>
+            )}
+
+            {coverageError && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                {coverageError}
+              </div>
+            )}
+
+            {candidatesError && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                {candidatesError}
+              </div>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <CoverageDonut
+                label="Target classes"
+                total={classTotal}
+                missing={missingTargetClasses.length}
+              />
+              <CoverageDonut
+                label="Properties"
+                total={propertyTotal}
+                missing={missingProperties.length}
+              />
+            </div>
+
+            <div className="grid gap-2 text-center text-xs text-gray-600 md:grid-cols-4">
+              {[
+                ['Elements', aggregateTerms?.stats.element_count ?? 0],
+                ['Classes', aggregateTerms?.stats.unique_target_classes ?? 0],
+                ['Properties', aggregateTerms?.stats.unique_property_paths ?? 0],
+                ['Pairs', aggregateTerms?.stats.unique_target_property_pairs ?? 0],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-gray-200 bg-white p-3">
+                  <div className="text-lg font-semibold text-gray-950">{value}</div>
+                  <div>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_1px_minmax(0,1.1fr)]">
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold text-gray-950">Missing in rules</div>
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                    {missingRows.length}
+                  </span>
+                </div>
+                <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
+                  {missingRows.length === 0 ? (
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                      No missing targets or properties returned by the coverage check.
+                    </div>
+                  ) : (
+                    missingRows.map((item) => (
+                      <div key={`${item.kind}-${item.term}`} className="rounded-lg bg-gray-50 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="truncate text-sm font-semibold text-gray-950">
+                            {shortTermName(item.term)}
+                          </div>
+                          <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600 uppercase">
+                            {item.kind}
+                          </span>
+                        </div>
+                        <div className="mt-1 truncate font-mono text-[11px] text-gray-500">
+                          {item.term}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="hidden bg-gradient-to-b from-transparent via-gray-300 to-transparent lg:block" />
+
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold text-gray-950">Potential matches</div>
+                  <span className="rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-800">
+                    top {candidateLimit} / standard
+                  </span>
+                </div>
+                <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
+                  {candidatesLoading ? (
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                      Asking Lexicon to compare rule terms with selected standards...
+                    </div>
+                  ) : suggestedCoverageCandidates.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
+                      Candidate matches will appear when selected standards have possible
+                      alternatives for missing rule terms.
+                    </div>
+                  ) : (
+                    suggestedCoverageCandidates.map((candidate) => (
+                      <div
+                        key={`${candidate.ruleId}-${candidate.missingTerm}-${candidate.standardId}-${candidate.termId}`}
+                        className="rounded-lg border border-orange-100 bg-orange-50/50 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-semibold text-gray-950">
+                              {candidate.label}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-600">
+                              {candidate.standardLabel} for {shortTermName(candidate.missingTerm)}
+                            </div>
+                          </div>
+                          <div className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-gray-700">
+                            {candidate.score === null
+                              ? 'search'
+                              : `${Math.round(candidate.score * 100)}%`}
+                          </div>
+                        </div>
+                        <div className="mt-2 truncate font-mono text-[11px] text-gray-500">
+                          {candidate.uri}
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                          <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-gray-600">
+                            rule {ruleKindToTermType(candidate.kind)}
+                          </span>
+                          <span className="text-gray-400">to</span>
+                          <span className="rounded-full bg-white px-2 py-0.5 font-semibold text-gray-600">
+                            standard {normalizeTermType(candidate.candidateKind)}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-gray-950">Type compatibility</div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Checks whether rule targets are matched to the same kind of standard term.
+                    Allowed: class to class, property to property, set to set, class to subclass,
+                    and subclass to class.
+                  </p>
+                </div>
+                <div
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                    mismatchCount === 0
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : 'border-amber-200 bg-amber-50 text-amber-800'
+                  }`}
+                >
+                  {compatibleCount}/{compatibilityRows.length || 0} compatible
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {compatibilityRows.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 p-3 text-sm text-gray-500">
+                    Type compatibility appears after candidate matches are available.
+                  </div>
+                ) : (
+                  compatibilityRows.slice(0, 8).map((row) => (
+                    <div
+                      key={`${row.missingTerm}-${row.standardId}-${row.termId}-compatibility`}
+                      className={`rounded-lg border p-3 ${
+                        row.compatible
+                          ? 'border-emerald-100 bg-emerald-50/70'
+                          : 'border-amber-200 bg-amber-50'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-gray-950">
+                            {shortTermName(row.missingTerm)} to {row.label}
+                          </div>
+                          <div className="mt-1 text-xs text-gray-600">{row.standardLabel}</div>
+                        </div>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                            row.compatible
+                              ? 'border-emerald-200 bg-white text-emerald-800'
+                              : 'border-amber-300 bg-white text-amber-800'
+                          }`}
+                        >
+                          {row.compatible ? 'OK' : 'Review'}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                        <span className="rounded-md bg-white px-2 py-1">rule {row.ruleType}</span>
+                        <span>{'->'}</span>
+                        <span className="rounded-md bg-white px-2 py-1">
+                          standard {row.ontologyType}
+                        </span>
+                        {!row.compatible && (
+                          <span className="text-amber-800">
+                            Prefer matching class-class, property-property, or set-set.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {compatibilityRows.length > 8 && (
+                <div className="mt-3 text-xs text-gray-500">
+                  Showing first 8 of {compatibilityRows.length} candidate type checks.
+                </div>
+              )}
+            </div>
+
+            {coverage && (
+              <div className="grid gap-3 text-center text-xs text-gray-600 sm:grid-cols-3">
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <div className="text-lg font-semibold text-gray-950">
+                    {coverage.fully_supported_rule_ids?.length ?? 0}
+                  </div>
+                  <div>Fully supported</div>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <div className="text-lg font-semibold text-gray-950">
+                    {coverage.partially_supported_rules?.length ?? 0}
+                  </div>
+                  <div>Need choices</div>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <div className="text-lg font-semibold text-gray-950">
+                    {coverage.unsupported_rule_ids?.length ?? 0}
+                  </div>
+                  <div>Unsupported</div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
