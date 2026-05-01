@@ -3580,8 +3580,15 @@ export default function LexiconPage() {
                                 <span className="min-w-0 flex-1 text-sm font-semibold text-gray-950">
                                   {option.title}
                                 </span>
-                                {!option.available && (
-                                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-500 uppercase">
+                                {(option.id === 'rules' || !option.available) && (
+                                  <span
+                                    className={[
+                                      'rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase',
+                                      option.id === 'rules'
+                                        ? 'border-yellow-300 bg-yellow-100 text-yellow-800'
+                                        : 'border-orange-300 bg-orange-100 text-orange-800',
+                                    ].join(' ')}
+                                  >
                                     Work in progress
                                   </span>
                                 )}

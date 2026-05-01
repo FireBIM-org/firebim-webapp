@@ -58,7 +58,14 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
                           : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                       } inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium`}
                     >
-                      {item.name}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span>{item.name}</span>
+                        {item.href === '/lexicon' && (
+                          <span className="rounded-full border border-yellow-300 bg-yellow-100 px-1.5 py-0.5 text-[9px] font-semibold text-yellow-800 uppercase">
+                            WIP
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   );
                 })}
