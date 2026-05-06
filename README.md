@@ -2,10 +2,7 @@
 [![Build & Push Image](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/build-image.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/build-image.yml)
 [![CI](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/ci.yml/badge.svg)](https://github.com/FireBIM-org/firebim-webapp/actions/workflows/ci.yml)
 
-Example frontend for firebim-api-server.
-
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+Frontend for [firebim-api-server](https://github.com/FireBIM-org/firebim-api-server). Built with Next.js (Pages Router), NextAuth, TanStack Query, and Tailwind CSS.
 
 ## Features
 
@@ -18,43 +15,98 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 * View list of IDS files
 * View IDS file details (including download)
 * Make analysis of IFC file using IDS file
+* Build, save, and publish rule elements and rules in RuleBuilder
+* Review, run, and inspect rules against graphs in RuleBook
 
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Node.js | 22 |
+| pnpm | 10 |
+| Docker & Docker Compose | latest |
+| firebim-api-server stack | running |
+
+Install pnpm via corepack:
+```bash
+corepack enable && corepack prepare pnpm@10 --activate
+```
 
 ## Getting Started
 
-First, run the development server:
+### 1. Start the backend stack
+
+The webapp depends on a running instance of firebim-api-server. Start it first:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd ../firebim-api-server
+docker compose up -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Wait for Authentik to finish initialising at [http://localhost:9080](http://localhost:9080) before starting the webapp.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+### 2. Configure the webapp
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Copy the example env file and adjust if needed:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```bash
+cp .docker/.env.example .docker/.env   # edit NEXTAUTH_SECRET, client credentials, etc.
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The defaults in `docker-compose.yml` match the dev values provisioned by the firebim-api-server Authentik blueprint, so no changes are required for a standard local setup.
 
-## Learn More
+### 3a. Run with Docker (recommended)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+make up-build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+The webapp will be available at [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+make logs     # tail container logs
+make down     # stop the container
+```
 
-## Deploy on Vercel
+### 3b. Run with pnpm (hot-reload dev server)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+make install  # install dependencies (first time only)
+make dev      # starts Next.js with Turbopack at http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+> **Note:** When running outside Docker you still need the backend stack running via Docker Compose.
+
+## Common tasks
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Install / update dependencies |
+| `make dev` | Start dev server with hot-reload |
+| `make build` | Production build |
+| `make lint` | Run ESLint |
+| `make generate-api` | Regenerate `src/types/api.ts` from `openapi.json` |
+| `make up-build` | Rebuild and start Docker container |
+| `make down` | Stop Docker container |
+| `make logs` | Tail Docker container logs |
+
+## Architecture
+
+```
+Browser  ──►  Next.js (port 3000)
+                │
+                ├─ /api/proxy/…  ──►  firebim-api-server (FastAPI)
+                └─ /api/auth/…   ──►  NextAuth ──► Authentik (OIDC)
+```
+
+Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network (or `localhost` via `extra_hosts` when running in a container).
+
+## Rule Features
+
+The webapp also includes two authenticated rule-focused areas:
+
+* `RuleBuilder` for assembling rule elements, connecting decision flows, and publishing rules
+* `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
+
+Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
+

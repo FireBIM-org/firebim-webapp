@@ -1,8 +1,18 @@
-# Base image for building the application
-FROM node:20-alpine AS builder
-
-# Set working directory
+# Stage 1: Dependencies
+FROM node:22-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@10 --activate
 WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
+
+# Stage 2: Build
+FROM node:22-alpine AS builder
+RUN corepack enable && corepack prepare pnpm@10 --activate
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY ./ ./
+COPY .docker/.env .env
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build arguments (defaults keep local rebuilds happy)
 ARG GIT_COMMIT=unknown
@@ -15,32 +25,20 @@ ENV NEXT_PUBLIC_GIT_COMMIT=$GIT_COMMIT \
     NEXT_PUBLIC_GIT_BRANCH=$GIT_BRANCH \
     NEXT_PUBLIC_BUILD_TIME=$BUILD_TIME
 
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
+RUN pnpm build
 
-# Install dependencies
-RUN npm ci
-
-# Copy the rest of the application code
-COPY . .
-
-COPY .docker/.env .env
-# Build the application
-RUN npm run build
-
-# Production image, copy all files and run next
-FROM node:20-alpine AS runner
-
+# Stage 3: Runner
+FROM node:22-alpine AS runner
 WORKDIR /app
+
+# Upgrade OS packages and strip npm/corepack (not needed at runtime)
+# to reduce attack surface and eliminate bundled transitive vulnerabilities
+RUN apk upgrade --no-cache && \
+    rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
 # Set to production environment
 ENV NODE_ENV=production
-
-# Upgrade OS packages to fix known CVEs (e.g. zlib CVE-2026-22184).
-# Remove npm/npx since they are not needed at runtime — this eliminates the entire
-# surface of npm-bundled CVEs (cross-spawn, glob, minimatch, tar, etc.).
-RUN apk upgrade --no-cache && \
-    rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Add a non-root user to run the app
 RUN addgroup --system --gid 1001 nodejs && \

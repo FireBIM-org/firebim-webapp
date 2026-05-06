@@ -4,760 +4,3680 @@
  */
 
 export interface paths {
-    "/token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login For Access Token */
-        post: operations["login_for_access_token_token_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/users/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register User */
-        post: operations["register_user_register_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Read Users Me */
+    get: operations['read_users_me_users_me_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/graphs/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/users/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Users Me */
-        get: operations["read_users_me_users_me_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Graphs Health */
+    get: operations['graphs_health_graphs_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/graphs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ifc-models": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Models
-         * @description Get all IFC models belonging to the current user.
-         */
-        get: operations["get_models_ifc_models_get"];
-        put?: never;
-        /**
-         * Upload Model
-         * @description Upload an IFC-STEP file, save to S3, and queue it for processing.
-         */
-        post: operations["upload_model_ifc_models_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Graphs */
+    get: operations['list_graphs_graphs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/graphs/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ifc-models/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Model
-         * @description Get metadata for an IFC model by its ID.
-         */
-        get: operations["get_model_ifc_models__id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Publish Graph */
+    post: operations['publish_graph_graphs_publish_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/graphs/{graph_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ifc-models/{id}/download": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download Model
-         * @description Download an IFC-STEP file by its ID.
-         */
-        get: operations["download_model_ifc_models__id__download_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Fetch Graph */
+    get: operations['fetch_graph_graphs__graph_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Graph */
+    delete: operations['delete_graph_graphs__graph_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/graphs/extract-schema': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ids-files": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Ids Files
-         * @description Get all IDS files belonging to the current user.
-         */
-        get: operations["get_ids_files_ids_files_get"];
-        put?: never;
-        /**
-         * Upload Ids
-         * @description Upload an IDS file (XML-based) and save to S3.
-         */
-        post: operations["upload_ids_ids_files_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Extract Graph Schema */
+    post: operations['extract_graph_schema_graphs_extract_schema_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ids-files/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Ids
-         * @description Get metadata for an IDS file by its ID.
-         */
-        get: operations["get_ids_ids_files__id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Rules Health */
+    get: operations['rules_health_rules_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/validate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ids-files/{id}/download": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download Ids
-         * @description Download an IDS file by its ID.
-         */
-        get: operations["download_ids_ids_files__id__download_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Validate Rule */
+    post: operations['validate_rule_rules_validate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/compile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/async/check-model-with-ids": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Async Check Model With Ids
-         * @description Asynchronously check a model against an IDS file.
-         *     Returns immediately with a task ID for polling the result.
-         *
-         *     This endpoint demonstrates the first requested pattern:
-         *     "Call that returns immediately with id for polling if result is ready. Task is sent to worker."
-         */
-        post: operations["async_check_model_with_ids_async_check_model_with_ids_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Compile Rule */
+    post: operations['compile_rule_rules_compile_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/decompile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/async/check-result/{check_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Async Check Result
-         * @description Get the result of an asynchronous check operation by its ID.
-         *     This is the polling endpoint to check if a result is ready.
-         */
-        get: operations["get_async_check_result_async_check_result__check_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Decompile Rule */
+    post: operations['decompile_rule_rules_decompile_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ifc-models/{model_id}/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Sync Check Model With Ids
-         * @description Synchronously check a model against an IDS file.
-         *     Waits for the worker to complete and returns the result.
-         *
-         *     This endpoint demonstrates the second requested pattern:
-         *     "Call that waits for the worker to return with the result."
-         */
-        get: operations["sync_check_model_with_ids_ifc_models__model_id__check_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Publish Rule */
+    post: operations['publish_rule_rules_publish_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/list': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** List Rules */
+    get: operations['list_rules_rules_list_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/fetch': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Fetch Rule */
+    post: operations['fetch_rule_rules_fetch_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/delete': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Delete Rule */
+    post: operations['delete_rule_rules_delete_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/assemble': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assemble Rule */
+    post: operations['assemble_rule_rules_assemble_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/assemble/compile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assemble And Compile Rule */
+    post: operations['assemble_and_compile_rule_rules_assemble_compile_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/rule-elements/derive': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Derive Rule Element */
+    post: operations['derive_rule_element_rules_rule_elements_derive_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/rule-elements': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Rule Elements */
+    get: operations['list_rule_elements_rules_rule_elements_get'];
+    put?: never;
+    /** Publish Rule Element */
+    post: operations['publish_rule_element_rules_rule_elements_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/rule-elements/fetch': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Fetch Rule Element */
+    post: operations['fetch_rule_element_rules_rule_elements_fetch_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/rule-elements/delete': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Delete Rule Element */
+    post: operations['delete_rule_element_rules_rule_elements_delete_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/connect': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Connect Rules */
+    post: operations['connect_rules_rules_connect_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/disconnect': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Disconnect Rules */
+    post: operations['disconnect_rules_rules_disconnect_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/check-completeness': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Check Completeness */
+    post: operations['check_completeness_rules_check_completeness_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/force-end': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Force End */
+    post: operations['force_end_rules_force_end_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/rule-elements/{element_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Rule Element */
+    get: operations['get_rule_element_rules_rule_elements__element_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/{rule_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Rule */
+    get: operations['get_rule_rules__rule_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/{rule_id}/ttl': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Rule Ttl */
+    get: operations['get_rule_ttl_rules__rule_id__ttl_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/{rule_id}/ttl.json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Rule Ttl Json */
+    get: operations['get_rule_ttl_json_rules__rule_id__ttl_json_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Checks Health */
+    get: operations['checks_health_checks_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/run': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Check */
+    post: operations['run_check_checks_run_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/run-vertical': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Check Vertical */
+    post: operations['run_check_vertical_checks_run_vertical_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/run-horisontal': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Check Horisontal */
+    post: operations['run_check_horisontal_checks_run_horisontal_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/run-diagnostic': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Check Diagnostic */
+    post: operations['run_check_diagnostic_checks_run_diagnostic_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/run-blind': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run Blind Check */
+    post: operations['run_blind_check_checks_run_blind_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/checks/compatibility': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Check Compatibility */
+    post: operations['check_compatibility_checks_compatibility_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Health */
+    get: operations['health_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Models
+     * @description Get all IFC models belonging to the current user.
+     */
+    get: operations['get_models_ifc_models_get'];
+    put?: never;
+    /**
+     * Upload Model
+     * @description Upload an IFC-STEP file, save to S3, and queue it for processing.
+     */
+    post: operations['upload_model_ifc_models_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Model
+     * @description Get metadata for an IFC model by its ID.
+     */
+    get: operations['get_model_ifc_models__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download Model
+     * @description Download an IFC-STEP file by its ID.
+     */
+    get: operations['download_model_ifc_models__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Ids Files
+     * @description Get all IDS files belonging to the current user.
+     */
+    get: operations['get_ids_files_ids_files_get'];
+    put?: never;
+    /**
+     * Upload Ids
+     * @description Upload an IDS file (XML-based) and save to S3.
+     */
+    post: operations['upload_ids_ids_files_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Ids
+     * @description Get metadata for an IDS file by its ID.
+     */
+    get: operations['get_ids_ids_files__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files/{id}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download Ids
+     * @description Download an IDS file by its ID.
+     */
+    get: operations['download_ids_ids_files__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/async/check-model-with-ids': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Async Check Model With Ids
+     * @description Asynchronously check a model against an IDS file.
+     *     Returns immediately with a task ID for polling the result.
+     *
+     *     This endpoint demonstrates the first requested pattern:
+     *     "Call that returns immediately with id for polling if result is ready. Task is sent to worker."
+     */
+    post: operations['async_check_model_with_ids_async_check_model_with_ids_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/async/check-result/{check_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Async Check Result
+     * @description Get the result of an asynchronous check operation by its ID.
+     *     This is the polling endpoint to check if a result is ready.
+     */
+    get: operations['get_async_check_result_async_check_result__check_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{model_id}/check': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Sync Check Model With Ids
+     * @description Synchronously check a model against an IDS file.
+     *     Waits for the worker to complete and returns the result.
+     *
+     *     This endpoint demonstrates the second requested pattern:
+     *     "Call that waits for the worker to return with the result."
+     */
+    get: operations['sync_check_model_with_ids_ifc_models__model_id__check_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** Body_login_for_access_token_token_post */
-        Body_login_for_access_token_token_post: {
-            /** Grant Type */
-            grant_type?: string | null;
-            /** Username */
-            username: string;
-            /** Password */
-            password: string;
-            /**
-             * Scope
-             * @default
-             */
-            scope: string;
-            /** Client Id */
-            client_id?: string | null;
-            /** Client Secret */
-            client_secret?: string | null;
-        };
-        /** Body_upload_ids_ids_files_post */
-        Body_upload_ids_ids_files_post: {
-            /**
-             * File
-             * Format: binary
-             */
-            file: string;
-        };
-        /** Body_upload_model_ifc_models_post */
-        Body_upload_model_ifc_models_post: {
-            /**
-             * File
-             * Format: binary
-             */
-            file: string;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** Token */
-        Token: {
-            /** Access Token */
-            access_token: string;
-            /** Token Type */
-            token_type: string;
-        };
-        /** User */
-        User: {
-            /** Username */
-            username: string;
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Id */
-            id: string;
-            /** Is Active */
-            is_active: boolean;
-        };
-        /** UserCreate */
-        UserCreate: {
-            /** Username */
-            username: string;
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Password */
-            password: string;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-        };
+  schemas: {
+    /** BlindCheckRunOptions */
+    BlindCheckRunOptions: {
+      /**
+       * Include Targets
+       * @default true
+       */
+      include_targets: boolean;
+      /**
+       * Include Debug
+       * @default true
+       */
+      include_debug: boolean;
+      /**
+       * Max Steps
+       * @default 100000
+       */
+      max_steps: number;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** BlindCheckRunRequest */
+    BlindCheckRunRequest: {
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      options?: components['schemas']['BlindCheckRunOptions'];
+    };
+    /** BlindCheckRunResponse */
+    BlindCheckRunResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+      /**
+       * Mode
+       * @default blind_shacl_construct
+       */
+      mode: string;
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      summary?: components['schemas']['CheckRunSummary'];
+      /** End Outputs */
+      end_outputs?: components['schemas']['BlindCheckTerminalOutput'][];
+      /** Terminal Counts */
+      terminal_counts?: {
+        [key: string]: number;
+      };
+      /** Message Counts */
+      message_counts?: {
+        [key: string]: number;
+      };
+      /** Debug */
+      debug?: Record<string, never>;
+    };
+    /** BlindCheckTerminalOutput */
+    BlindCheckTerminalOutput: {
+      /** Target Node */
+      target_node: string;
+      /** Terminal Node Id */
+      terminal_node_id?: string | null;
+      /** Terminal Value */
+      terminal_value?: string | null;
+      /**
+       * Final Status
+       * @default Unknown
+       */
+      final_status: string;
+    };
+    /** Body_upload_ids_ids_files_post */
+    Body_upload_ids_ids_files_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** Body_upload_model_ifc_models_post */
+    Body_upload_model_ifc_models_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+    };
+    /** CheckCompatibilityRequest */
+    CheckCompatibilityRequest: {
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+    };
+    /** CheckCompatibilityResponse */
+    CheckCompatibilityResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      /**
+       * Compatibility Score
+       * @default 0
+       */
+      compatibility_score: number;
+      /** Target Classes Required */
+      target_classes_required?: string[];
+      /** Properties Required */
+      properties_required?: string[];
+      /** Target Classes Found */
+      target_classes_found?: components['schemas']['CompatibilityMatch'][];
+      /** Properties Found */
+      properties_found?: components['schemas']['CompatibilityMatch'][];
+      /** Missing Target Classes */
+      missing_target_classes?: string[];
+      /** Missing Properties */
+      missing_properties?: string[];
+      /** Graph Classes Unused By Rule */
+      graph_classes_unused_by_rule?: components['schemas']['CompatibilityMatch'][];
+      /** Graph Properties Unused By Rule */
+      graph_properties_unused_by_rule?: components['schemas']['CompatibilityMatch'][];
+      /** Warnings */
+      warnings?: components['schemas']['CompatibilityWarning'][];
+    };
+    /** CheckDiagnosticResponse */
+    CheckDiagnosticResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      /** Solver */
+      solver: string;
+      /** Start Node Id */
+      start_node_id?: string | null;
+      summary?: components['schemas']['CheckRunSummary'];
+      /** End Nodes */
+      end_nodes?: components['schemas']['CheckEndNodeSummary'][];
+      /** End Node Targets */
+      end_node_targets?: components['schemas']['CheckEndNodeTargets'][];
+      engine?: components['schemas']['CheckRunEngineInfo'];
+      /** Compatibility */
+      compatibility?: Record<string, never>;
+      /** Report Text */
+      report_text?: string | null;
+      /** Debug */
+      debug?: Record<string, never>;
+      /** Compiled Rule */
+      compiled_rule?: Record<string, never>;
+      /** Targets */
+      targets?: components['schemas']['CheckTargetResult'][];
+      /** Trace */
+      trace?: Record<string, never>[];
+      timings?: components['schemas']['CheckDiagnosticTimingGroups'];
+      /** Planner */
+      planner?: Record<string, never>;
+      /** Transition Inspections */
+      transition_inspections?: Record<string, never>[];
+      /** Node Inspections */
+      node_inspections?: Record<string, never>[];
+      /** Terminal Failures */
+      terminal_failures?: Record<string, never>[];
+      /** Sequence Events */
+      sequence_events?: Record<string, never>[];
+      /** Completed Chains */
+      completed_chains?: Record<string, never>[];
+    };
+    /** CheckDiagnosticTimingGroups */
+    CheckDiagnosticTimingGroups: {
+      /** Request Ms */
+      request_ms?: {
+        [key: string]: number;
+      };
+      /** Rule Ms */
+      rule_ms?: {
+        [key: string]: number;
+      };
+      /** Per Node Ms */
+      per_node_ms?: {
+        [key: string]: number;
+      };
+      /** Per Class Ms */
+      per_class_ms?: {
+        [key: string]: number;
+      };
+      /** Per Transition Ms */
+      per_transition_ms?: {
+        [key: string]: number;
+      };
+      /** Per Completed Chain Ms */
+      per_completed_chain_ms?: Record<string, never>[];
+    };
+    /** CheckEndNodeSummary */
+    CheckEndNodeSummary: {
+      /** End Node Id */
+      end_node_id: string;
+      /** Terminal Value */
+      terminal_value?: string | null;
+      /** Terminal Kind */
+      terminal_kind?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Output Text */
+      output_text?: string | null;
+      /** Analysis Code */
+      analysis_code?: string | null;
+      /**
+       * Count
+       * @default 0
+       */
+      count: number;
+    };
+    /** CheckEndNodeTargets */
+    CheckEndNodeTargets: {
+      /** End Node Id */
+      end_node_id: string;
+      /** Target Nodes */
+      target_nodes?: string[];
+    };
+    /** CheckRunEngineInfo */
+    CheckRunEngineInfo: {
+      /**
+       * Engine
+       * @default standard_compiled_runtime
+       */
+      engine: string;
+      /**
+       * Inference
+       * @default rdfs
+       */
+      inference: string;
+      /**
+       * Advanced
+       * @default true
+       */
+      advanced: boolean;
+      /** Runtime */
+      runtime?: string | null;
+      /** Evaluator */
+      evaluator?: string | null;
+      /** Target Resolver */
+      target_resolver?: string | null;
+      /** Mode */
+      mode?: string | null;
+      /** Solver Mode */
+      solver_mode?: string | null;
+      /** Planner Strategy */
+      planner_strategy?: string | null;
+      /**
+       * Diagnostics Enabled
+       * @default false
+       */
+      diagnostics_enabled: boolean;
+    };
+    /** CheckRunOptions */
+    CheckRunOptions: {
+      /**
+       * Inference
+       * @description none | rdfs | owlrl | both
+       * @default rdfs
+       */
+      inference: string;
+      /**
+       * Advanced
+       * @default true
+       */
+      advanced: boolean;
+      /**
+       * Include Report Text
+       * @default true
+       */
+      include_report_text: boolean;
+      /**
+       * Include Report Graph Ttl
+       * @default false
+       */
+      include_report_graph_ttl: boolean;
+      /**
+       * Include Targets
+       * @default true
+       */
+      include_targets: boolean;
+      /**
+       * Include Trace
+       * @default true
+       */
+      include_trace: boolean;
+      /**
+       * Debug
+       * @default false
+       */
+      debug: boolean;
+      /**
+       * Diagnostics
+       * @default false
+       */
+      diagnostics: boolean;
+      /**
+       * Fail Fast
+       * @default false
+       */
+      fail_fast: boolean;
+      /**
+       * Max Steps Per Target
+       * @default 100
+       */
+      max_steps_per_target: number;
+      /** Solver */
+      solver?: string | null;
+      /**
+       * Planner Strategy
+       * @description auto | forward | backward
+       * @default auto
+       */
+      planner_strategy: string;
+      /**
+       * Include Planner Debug
+       * @default false
+       */
+      include_planner_debug: boolean;
+      /**
+       * Include End Node Targets
+       * @default false
+       */
+      include_end_node_targets: boolean;
+      /** Diagnostic Terminal Values */
+      diagnostic_terminal_values?: string[];
+      /** Diagnostic End Node Ids */
+      diagnostic_end_node_ids?: string[];
+      /** Diagnostic Analysis Codes */
+      diagnostic_analysis_codes?: string[];
+      /**
+       * Diagnostic Success Only
+       * @default false
+       */
+      diagnostic_success_only: boolean;
+    };
+    /** CheckRunRequest */
+    CheckRunRequest: {
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      options?: components['schemas']['CheckRunOptions'];
+    };
+    /** CheckRunSummary */
+    CheckRunSummary: {
+      /**
+       * Total Targets
+       * @default 0
+       */
+      total_targets: number;
+      /**
+       * Passed
+       * @default 0
+       */
+      passed: number;
+      /**
+       * Failed
+       * @default 0
+       */
+      failed: number;
+      /**
+       * Unknown
+       * @default 0
+       */
+      unknown: number;
+      /**
+       * Conforms
+       * @default false
+       */
+      conforms: boolean;
+      /** Terminal Counts */
+      terminal_counts?: {
+        [key: string]: number;
+      };
+      /** Missing Data Categories */
+      missing_data_categories?: {
+        [key: string]: number;
+      };
+    };
+    /** CheckSimpleRunResponse */
+    CheckSimpleRunResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Id */
+      graph_id: string;
+      /** Solver */
+      solver: string;
+      /** Start Node Id */
+      start_node_id?: string | null;
+      summary?: components['schemas']['CheckRunSummary'];
+      /** End Nodes */
+      end_nodes?: components['schemas']['CheckEndNodeSummary'][];
+      /** End Node Targets */
+      end_node_targets?: components['schemas']['CheckEndNodeTargets'][];
+      engine?: components['schemas']['CheckRunEngineInfo'];
+      /** Compatibility */
+      compatibility?: Record<string, never>;
+      /** Report Text */
+      report_text?: string | null;
+      /** Debug */
+      debug?: Record<string, never>;
+    };
+    /** CheckTargetResult */
+    CheckTargetResult: {
+      /** Target Node */
+      target_node: string;
+      /** Target Class */
+      target_class?: string | null;
+      /**
+       * Status
+       * @default Unknown
+       */
+      status: string;
+      /** Message */
+      message?: string | null;
+      /** Terminal Node Id */
+      terminal_node_id?: string | null;
+      /** Trace */
+      trace?: components['schemas']['CheckTargetTraceStep'][];
+      /** Evidence */
+      evidence?: Record<string, never>;
+    };
+    /** CheckTargetTraceStep */
+    CheckTargetTraceStep: {
+      /** Node Id */
+      node_id: string;
+      /** Node Type */
+      node_type: string;
+      /**
+       * Status
+       * @default Unknown
+       */
+      status: string;
+      /** Next Node Id */
+      next_node_id?: string | null;
+      /** Evidence */
+      evidence?: Record<string, never>;
+    };
+    /** CompatibilityMatch */
+    CompatibilityMatch: {
+      /** Value */
+      value: string;
+      /** Count */
+      count?: number | null;
+    };
+    /** CompatibilityWarning */
+    CompatibilityWarning: {
+      /** Code */
+      code: string;
+      /** Message */
+      message: string;
+    };
+    /** GraphDeleteResponse */
+    GraphDeleteResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Dataset */
+      dataset: string;
+      /** Message */
+      message: string;
+    };
+    /** GraphFetchResponse */
+    GraphFetchResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Ttl */
+      ttl: string;
+    };
+    /** GraphListItem */
+    GraphListItem: {
+      /** Graph Uri */
+      graph_uri: string;
+      /** Triple Count */
+      triple_count?: number | null;
+    };
+    /** GraphListResponse */
+    GraphListResponse: {
+      /** Count */
+      count: number;
+      /** Graph Uris */
+      graph_uris: string[];
+      /** Graphs */
+      graphs?: components['schemas']['GraphListItem'][];
+    };
+    /** GraphPublishRequest */
+    GraphPublishRequest: {
+      /**
+       * Graph Id
+       * @description Stable graph identifier
+       */
+      graph_id: string;
+      /**
+       * Ttl
+       * @description Building graph in Turtle format
+       */
+      ttl: string;
+    };
+    /** GraphPublishResponse */
+    GraphPublishResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Dataset */
+      dataset: string;
+      /** Overwritten */
+      overwritten: boolean;
+      /** Message */
+      message: string;
+    };
+    /** GraphSchemaEdgeSummary */
+    GraphSchemaEdgeSummary: {
+      /** From Class */
+      from_class: string;
+      /** To Class */
+      to_class: string;
+      /** Predicates */
+      predicates?: string[];
+      /**
+       * Support
+       * @default 0
+       */
+      support: number;
+      /** Examples */
+      examples?: {
+        [key: string]: string;
+      }[];
+    };
+    /** GraphSchemaExtractRequest */
+    GraphSchemaExtractRequest: {
+      /**
+       * Graph Id
+       * @description Stable graph identifier
+       */
+      graph_id: string;
+      /**
+       * Include Examples
+       * @default false
+       */
+      include_examples: boolean;
+      /**
+       * Max Examples Per Edge
+       * @default 3
+       */
+      max_examples_per_edge: number;
+    };
+    /** GraphSchemaExtractResponse */
+    GraphSchemaExtractResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /**
+       * Triple Count
+       * @default 0
+       */
+      triple_count: number;
+      /** Class Counts */
+      class_counts?: {
+        [key: string]: number;
+      };
+      /** Property Counts */
+      property_counts?: {
+        [key: string]: number;
+      };
+      /** Class To Class Edges */
+      class_to_class_edges?: components['schemas']['GraphSchemaEdgeSummary'][];
+      /** Forward Predicates By Class Pair */
+      forward_predicates_by_class_pair?: {
+        [key: string]: string[];
+      };
+      /** Reverse Predicates By Class Pair */
+      reverse_predicates_by_class_pair?: {
+        [key: string]: string[];
+      };
+      /** Warnings */
+      warnings?: string[];
+    };
+    /** GraphsHealthResponse */
+    GraphsHealthResponse: {
+      /** Status */
+      status: string;
+      /** Storage Connected */
+      storage_connected: boolean;
+      /** Dataset */
+      dataset: string;
+      /** Storage Backend */
+      storage_backend?: string | null;
+      /** Storage Host */
+      storage_host?: string | null;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components['schemas']['ValidationError'][];
+    };
+    /** RuleAssembleCompileResponse */
+    RuleAssembleCompileResponse: {
+      /** Rule */
+      rule?: Record<string, never> | null;
+      /** Rule Id */
+      rule_id: string;
+      /**
+       * Element Count
+       * @default 0
+       */
+      element_count: number;
+      /**
+       * Ttl
+       * @default
+       */
+      ttl: string;
+      /**
+       * Complete
+       * @default false
+       */
+      complete: boolean;
+      /**
+       * Open
+       * @default false
+       */
+      open: boolean;
+      /**
+       * Broken
+       * @default false
+       */
+      broken: boolean;
+      /** Errors */
+      errors?: string[];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleAssembleRequest */
+    RuleAssembleRequest: {
+      /** Rule Id */
+      rule_id: string;
+      /** Entry */
+      entry: string;
+      /** Element Ids */
+      element_ids?: string[];
+      /** Links */
+      links?: components['schemas']['RuleLinkRequest'][];
+      /**
+       * Validate
+       * @default true
+       */
+      validate: boolean;
+    };
+    /** RuleAssembleResponse */
+    RuleAssembleResponse: {
+      /** Rule */
+      rule?: Record<string, never> | null;
+      /**
+       * Element Count
+       * @default 0
+       */
+      element_count: number;
+      /**
+       * Complete
+       * @default false
+       */
+      complete: boolean;
+      /**
+       * Open
+       * @default false
+       */
+      open: boolean;
+      /**
+       * Broken
+       * @default false
+       */
+      broken: boolean;
+      /**
+       * Entry Ok
+       * @default false
+       */
+      entry_ok: boolean;
+      /**
+       * Missing Entry
+       * @default false
+       */
+      missing_entry: boolean;
+      /** Missing Nodes */
+      missing_nodes?: string[];
+      /** Open Branches */
+      open_branches?: Record<string, never>[];
+      /** Errors */
+      errors?: string[];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleCompileRequest */
+    RuleCompileRequest: {
+      rule: components['schemas']['RuleDraft'];
+    };
+    /** RuleCompileResponse */
+    RuleCompileResponse: {
+      /** Rule Id */
+      rule_id: string;
+      /** Element Count */
+      element_count: number;
+      /** Ttl */
+      ttl: string;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleCompletenessRequest */
+    RuleCompletenessRequest: {
+      rule: components['schemas']['RuleDraft'];
+    };
+    /** RuleCompletenessResponse */
+    RuleCompletenessResponse: {
+      /** Complete */
+      complete: boolean;
+      /** Open */
+      open: boolean;
+      /** Broken */
+      broken: boolean;
+      /** Entry Ok */
+      entry_ok: boolean;
+      /** Missing Entry */
+      missing_entry: boolean;
+      /** Missing Nodes */
+      missing_nodes: string[];
+      /** Open Branches */
+      open_branches: Record<string, never>[];
+      /** Errors */
+      errors: string[];
+    };
+    /** RuleConnectRequest */
+    RuleConnectRequest: {
+      rule: components['schemas']['RuleDraft'];
+      /** Source Id */
+      source_id: string;
+      /** Branch */
+      branch: string;
+      /** Target Id */
+      target_id: string;
+    };
+    /** RuleConnectResponse */
+    RuleConnectResponse: {
+      /** Updated */
+      updated: boolean;
+      /** Overwritten */
+      overwritten: boolean;
+      /** Previous Target Id */
+      previous_target_id?: string | null;
+      /** Rule */
+      rule: Record<string, never>;
+    };
+    /** RuleDecompileRequest */
+    RuleDecompileRequest: {
+      /** Ttl */
+      ttl: string;
+    };
+    /** RuleDecompileResponse */
+    RuleDecompileResponse: {
+      /** Rule */
+      rule?: Record<string, never> | null;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleDeleteRequest */
+    RuleDeleteRequest: {
+      /** Rule Id */
+      rule_id: string;
+    };
+    /** RuleDeleteResponse */
+    RuleDeleteResponse: {
+      /** Deleted */
+      deleted: boolean;
+      /** Graph Uri */
+      graph_uri: string;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleDisconnectRequest */
+    RuleDisconnectRequest: {
+      rule: components['schemas']['RuleDraft'];
+      /** Source Id */
+      source_id: string;
+      /** Branch */
+      branch: string;
+    };
+    /** RuleDisconnectResponse */
+    RuleDisconnectResponse: {
+      /** Updated */
+      updated: boolean;
+      /** Previous Target Id */
+      previous_target_id?: string | null;
+      /** Rule */
+      rule: Record<string, never>;
+    };
+    /** RuleDraft */
+    RuleDraft: {
+      /** Id */
+      id: string;
+      /** Entry */
+      entry: string;
+      /** Elements */
+      elements?: components['schemas']['RuleElementPayload'][];
+    };
+    /** RuleElementDeleteRequest */
+    RuleElementDeleteRequest: {
+      /** Element Id */
+      element_id: string;
+    };
+    /** RuleElementDeleteResponse */
+    RuleElementDeleteResponse: {
+      /** Deleted */
+      deleted: boolean;
+      /** Graph Uri */
+      graph_uri: string;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleElementDeriveRequest */
+    RuleElementDeriveRequest: {
+      /** Source Id */
+      source_id: string;
+      /** New Id */
+      new_id: string;
+      /**
+       * Preserve Paths
+       * @default false
+       */
+      preserve_paths: boolean;
+      /** Overrides */
+      overrides?: Record<string, never>;
+    };
+    /** RuleElementDeriveResponse */
+    RuleElementDeriveResponse: {
+      rule_element: components['schemas']['RuleElementJson'];
+    };
+    /** RuleElementFetchRequest */
+    RuleElementFetchRequest: {
+      /** Element Id */
+      element_id: string;
+    };
+    /** RuleElementFetchResponse */
+    RuleElementFetchResponse: {
+      /** Graph Uri */
+      graph_uri: string;
+      /**
+       * Ttl
+       * @default
+       */
+      ttl: string;
+      /** Rule Element */
+      rule_element?: Record<string, never> | null;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleElementJson */
+    RuleElementJson: {
+      /** Id */
+      id: string;
+      /**
+       * Element Type
+       * @default decision
+       */
+      element_type: string;
+      /** Target Class */
+      target_class?: string | null;
+      /** Property Path */
+      property_path?: string | null;
+      /** Operator */
+      operator?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** True Path */
+      true_path?: string | null;
+      /** False Path */
+      false_path?: string | null;
+      /** Unknown Path */
+      unknown_path?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Config */
+      config?: Record<string, never>;
+      /** Graph Uri */
+      graph_uri?: string | null;
+    };
+    /** RuleElementListItem */
+    RuleElementListItem: {
+      /** Element Id */
+      element_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Element Type */
+      element_type?: string | null;
+      /** Label */
+      label?: string | null;
+    };
+    /** RuleElementListResponse */
+    RuleElementListResponse: {
+      /** Count */
+      count: number;
+      /** Graph Uris */
+      graph_uris?: string[];
+      /** Rule Elements */
+      rule_elements?: components['schemas']['RuleElementListItem'][];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Warning */
+      warning?: string | null;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleElementPayload */
+    RuleElementPayload: {
+      /** Id */
+      id: string;
+      /**
+       * Element Type
+       * @default decision
+       */
+      element_type: string;
+      /** Target Class */
+      target_class?: string | null;
+      /** Property Path */
+      property_path?: string | null;
+      /** Operator */
+      operator?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** True Path */
+      true_path?: string | null;
+      /** False Path */
+      false_path?: string | null;
+      /** Unknown Path */
+      unknown_path?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Config */
+      config?: Record<string, never>;
+    };
+    /** RuleElementPublishRequest */
+    RuleElementPublishRequest: {
+      /** Id */
+      id: string;
+      /**
+       * Element Type
+       * @default decision
+       */
+      element_type: string;
+      /** Target Class */
+      target_class?: string | null;
+      /** Property Path */
+      property_path?: string | null;
+      /** Operator */
+      operator?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** True Path */
+      true_path?: string | null;
+      /** False Path */
+      false_path?: string | null;
+      /** Unknown Path */
+      unknown_path?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Config */
+      config?: Record<string, never>;
+    };
+    /** RuleElementPublishResponse */
+    RuleElementPublishResponse: {
+      /** Published */
+      published: boolean;
+      /** Element Id */
+      element_id?: string | null;
+      /** Graph Uri */
+      graph_uri?: string | null;
+      /** Element Type */
+      element_type?: string | null;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleFetchRequest */
+    RuleFetchRequest: {
+      /** Rule Id */
+      rule_id: string;
+    };
+    /** RuleFetchResponse */
+    RuleFetchResponse: {
+      /** Graph Uri */
+      graph_uri: string;
+      /**
+       * Ttl
+       * @default
+       */
+      ttl: string;
+      /** Rule */
+      rule?: Record<string, never> | null;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleForceEndRequest */
+    RuleForceEndRequest: {
+      rule: components['schemas']['RuleDraft'];
+      /**
+       * Mode
+       * @default per_branch
+       */
+      mode: string;
+      /**
+       * Node Type
+       * @default end
+       */
+      node_type: string;
+      /**
+       * Label Prefix
+       * @default forced_end
+       */
+      label_prefix: string;
+    };
+    /** RuleForceEndResponse */
+    RuleForceEndResponse: {
+      /** Updated */
+      updated: boolean;
+      /** Filled Count */
+      filled_count: number;
+      /** Created Node Ids */
+      created_node_ids: string[];
+      /** Rule */
+      rule: Record<string, never>;
+    };
+    /** RuleLinkRequest */
+    RuleLinkRequest: {
+      /** Source Id */
+      source_id: string;
+      /** Branch */
+      branch: string;
+      /** Target Id */
+      target_id: string;
+    };
+    /** RuleListItem */
+    RuleListItem: {
+      /** Rule Id */
+      rule_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Entry */
+      entry?: string | null;
+      /** Label */
+      label?: string | null;
+      /**
+       * Element Count
+       * @default 0
+       */
+      element_count: number;
+    };
+    /** RuleListResponse */
+    RuleListResponse: {
+      /** Count */
+      count: number;
+      /** Rules */
+      rules?: components['schemas']['RuleListItem'][];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Warning */
+      warning?: string | null;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RulePublishRequest */
+    RulePublishRequest: {
+      rule: components['schemas']['RuleDraft'];
+    };
+    /** RulePublishResponse */
+    RulePublishResponse: {
+      /** Published */
+      published: boolean;
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Graph Uri */
+      graph_uri?: string | null;
+      /** Entry */
+      entry?: string | null;
+      /**
+       * Element Count
+       * @default 0
+       */
+      element_count: number;
+      /** Label */
+      label?: string | null;
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleTtlResponse */
+    RuleTtlResponse: {
+      /** Graph Uri */
+      graph_uri: string;
+      /** Ttl */
+      ttl: string;
+      /**
+       * Content Type
+       * @default text/turtle
+       */
+      content_type: string;
+    };
+    /** RuleValidateRequest */
+    RuleValidateRequest: {
+      rule: components['schemas']['RuleDraft'];
+    };
+    /** RuleValidateResponse */
+    RuleValidateResponse: {
+      /** Valid */
+      valid: boolean;
+      /** Rule Id */
+      rule_id: string;
+      /** Entry */
+      entry?: string | null;
+      /** Element Count */
+      element_count: number;
+      /** Errors */
+      errors?: string[];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** User */
+    User: {
+      /** Username */
+      username: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Id */
+      id: string;
+      /** Is Active */
+      is_active: boolean;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login_for_access_token_token_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/x-www-form-urlencoded": components["schemas"]["Body_login_for_access_token_token_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Token"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  read_users_me_users_me_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    register_user_register_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserCreate"];
-            };
+        content: {
+          'application/json': components['schemas']['User'];
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    read_users_me_users_me_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-        };
+  };
+  graphs_health_graphs_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_models_ifc_models_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
+        content: {
+          'application/json': components['schemas']['GraphsHealthResponse'];
         };
+      };
     };
-    upload_model_ifc_models_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_model_ifc_models_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  list_graphs_graphs_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_model_ifc_models__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['GraphListResponse'];
         };
+      };
     };
-    download_model_ifc_models__id__download_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  publish_graph_graphs_publish_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_ids_files_ids_files_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['GraphPublishRequest'];
+      };
     };
-    upload_ids_ids_files_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_ids_ids_files_post"];
-            };
+        content: {
+          'application/json': components['schemas']['GraphPublishResponse'];
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    get_ids_ids_files__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  fetch_graph_graphs__graph_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        graph_id: string;
+      };
+      cookie?: never;
     };
-    download_ids_ids_files__id__download_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['GraphFetchResponse'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    async_check_model_with_ids_async_check_model_with_ids_post: {
-        parameters: {
-            query: {
-                model_id: string;
-                ids_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_graph_graphs__graph_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        graph_id: string;
+      };
+      cookie?: never;
     };
-    get_async_check_result_async_check_result__check_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                check_id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          'application/json': components['schemas']['GraphDeleteResponse'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
     };
-    sync_check_model_with_ids_ifc_models__model_id__check_get: {
-        parameters: {
-            query: {
-                ids_id: string;
-                /** @description Timeout in seconds */
-                timeout?: number;
-            };
-            header?: never;
-            path: {
-                model_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  extract_graph_schema_graphs_extract_schema_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['GraphSchemaExtractRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['GraphSchemaExtractResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  rules_health_rules_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  validate_rule_rules_validate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleValidateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleValidateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  compile_rule_rules_compile_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleCompileRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleCompileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  decompile_rule_rules_decompile_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleDecompileRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleDecompileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  publish_rule_rules_publish_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RulePublishRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RulePublishResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_rules_rules_list_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleListResponse'];
+        };
+      };
+    };
+  };
+  fetch_rule_rules_fetch_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleFetchRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_rule_rules_delete_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleDeleteRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  assemble_rule_rules_assemble_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleAssembleRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleAssembleResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  assemble_and_compile_rule_rules_assemble_compile_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleAssembleRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleAssembleCompileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  derive_rule_element_rules_rule_elements_derive_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleElementDeriveRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementDeriveResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_rule_elements_rules_rule_elements_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementListResponse'];
+        };
+      };
+    };
+  };
+  publish_rule_element_rules_rule_elements_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleElementPublishRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementPublishResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_rule_element_rules_rule_elements_fetch_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleElementFetchRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_rule_element_rules_rule_elements_delete_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleElementDeleteRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  connect_rules_rules_connect_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleConnectRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleConnectResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  disconnect_rules_rules_disconnect_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleDisconnectRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleDisconnectResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_completeness_rules_check_completeness_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleCompletenessRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleCompletenessResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  force_end_rules_force_end_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleForceEndRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleForceEndResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_rule_element_rules_rule_elements__element_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        element_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleElementFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_rule_rules__rule_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_rule_ttl_rules__rule_id__ttl_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Raw Turtle for the rule graph */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/plain': string;
+          /**
+           * @example PREFIX ex: <http://example.org/firebim/>
+           *     PREFIX fb: <http://example.org/firebim/rule/>
+           *     PREFIX sh: <http://www.w3.org/ns/shacl#>
+           *
+           *     ex:room_area_rule a ex:RuleSet ;
+           *         ex:entryPoint ex:check_room_area .
+           */
+          'text/turtle': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_rule_ttl_json_rules__rule_id__ttl_json_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleTtlResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  checks_health_checks_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  run_check_checks_run_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CheckRunRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckSimpleRunResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_check_vertical_checks_run_vertical_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CheckRunRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckSimpleRunResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_check_horisontal_checks_run_horisontal_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CheckRunRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckSimpleRunResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_check_diagnostic_checks_run_diagnostic_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CheckRunRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckDiagnosticResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  run_blind_check_checks_run_blind_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BlindCheckRunRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BlindCheckRunResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_compatibility_checks_compatibility_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CheckCompatibilityRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CheckCompatibilityResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  health_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  get_models_ifc_models_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  upload_model_ifc_models_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_model_ifc_models_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_model_ifc_models__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  download_model_ifc_models__id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ids_files_ids_files_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  upload_ids_ids_files_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_ids_ids_files_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ids_ids_files__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  download_ids_ids_files__id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  async_check_model_with_ids_async_check_model_with_ids_post: {
+    parameters: {
+      query: {
+        model_id: string;
+        ids_id: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_async_check_result_async_check_result__check_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        check_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  sync_check_model_with_ids_ifc_models__model_id__check_get: {
+    parameters: {
+      query: {
+        ids_id: string;
+        /** @description Timeout in seconds */
+        timeout?: number;
+      };
+      header?: never;
+      path: {
+        model_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
 }

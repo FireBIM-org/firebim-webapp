@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+
 import { components } from '../types/api';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
@@ -59,6 +60,10 @@ export interface AsyncCheckResult {
   error?: string;
 }
 
+// Module-level guard: prevents concurrent / repeated signIn() calls when
+// multiple in-flight requests all receive a 401 at the same time.
+let isSigningIn = false;
+
 // API client class — auth is handled by next-auth via the proxy routes
 export class ApiClient {
   private axiosInstance: AxiosInstance;
@@ -70,6 +75,35 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
     });
+
+    // On 401 from any proxy route the session is dead — trigger re-login immediately.
+    // This covers both SESSION_EXPIRED (definitively failed refresh) and NOT_AUTHENTICATED
+    // (no session cookie), as well as backend-originated 401s forwarded by the proxy.
+    // Guard: only run in the browser (no-op during SSR).
+    if (typeof window !== 'undefined') {
+      this.axiosInstance.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+          const isProxy401 =
+            error.response?.status === 401 &&
+            (error.config?.url as string | undefined)?.startsWith('/api/proxy/');
+
+          if (isProxy401 && !isSigningIn) {
+            isSigningIn = true;
+            try {
+              const { signIn } = await import('next-auth/react');
+              await signIn('authentik');
+            } catch {
+              // Only reset on error. If signIn succeeds and triggers a redirect,
+              // keep the flag true until navigation completes so concurrent
+              // in-flight 401s don't fire additional signIn calls.
+              isSigningIn = false;
+            }
+          }
+          return Promise.reject(error);
+        },
+      );
+    }
   }
 
   // Get user profile from API server (goes through proxy which adds auth)

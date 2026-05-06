@@ -7,14 +7,11 @@
 #        docker compose up -d --build
 #
 # The webapp joins the api-server's Docker network so it can reach the
-# FastAPI backend (http://api:8000) directly.
+# FastAPI backend (http://api:8000) and the Authentik server directly.
 #
-# For Authentik (OIDC), the issuer URL must be the same for both the
-# browser and the server-side NextAuth code (http://localhost:9090/…).
-# The extra_hosts entry maps "localhost" inside the container to the
-# Docker host, so the container can reach the host-published Authentik
-# port (9090 → authentik-server:9000).
-
+# For Authentik (OIDC), the browser-facing issuer URL uses localhost:9080
+# (the host-published port). The server-side token refresh uses the Docker
+# service name (authentik-server:9000) via the shared network.
 services:
   webapp:
     build:
@@ -45,4 +42,17 @@ services:
       - AUTHENTIK_CLIENT_SECRET=local-dev-client-secret
       # Browser-accessible issuer URL (also works from the container
       # thanks to the extra_hosts entry above).
-      - AUTHENTIK_ISSUER_URL=http://localhost:9090/application/o/firebim/
+      - AUTHENTIK_ISSUER_URL=http://localhost:9080/application/o/firebim/
+      # Server-side internal URL for token refresh — uses Docker service name
+      # so the container doesn't need to round-trip through the host.
+      - AUTHENTIK_INTERNAL_ISSUER_URL=http://authentik-server:9000/application/o/firebim/
+
+      # ── Umami analytics (optional) ───────────────────────────────
+      - NEXT_PUBLIC_UMAMI_ANALYTICS_WEBSITE_ID=change-me-ignore-local-XXXX-XXXX-XXXXXXXXXXXX
+    networks:
+      - default
+      - firebim-api-server_default
+
+networks:
+  firebim-api-server_default:
+    external: true

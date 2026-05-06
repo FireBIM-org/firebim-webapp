@@ -9,7 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+.idea
 # testing
 /coverage
 
@@ -29,6 +29,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# lockfiles from other package managers (project uses pnpm)
+package-lock.json
+yarn.lock
 
 # env files (can opt-in for committing if needed)
 .env*
