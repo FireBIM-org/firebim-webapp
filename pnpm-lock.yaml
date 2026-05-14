@@ -18,14 +18,14 @@ importers:
         specifier: ^5.0.1
         version: 5.2.2(react-hook-form@7.75.0(react@19.2.5))
       '@ifc-lite/geometry':
-        specifier: ^1.16.5
-        version: 1.17.0
+        specifier: ^1.18.4
+        version: 1.18.4
       '@ifc-lite/parser':
-        specifier: ^2.1.9
-        version: 2.3.0
+        specifier: ^2.4.0
+        version: 2.4.0
       '@ifc-lite/renderer':
-        specifier: ^1.15.3
-        version: 1.18.0
+        specifier: ^1.20.0
+        version: 1.20.0
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.11(tailwindcss@4.2.4)
@@ -165,35 +165,40 @@ packages:
     peerDependencies:
       react-hook-form: ^7.55.0
 
-  '@ifc-lite/data@1.15.2':
-    resolution: {integrity: sha512-UgKtY3qJKhpy+918Ya9VieRC5cLm914ovWhgni/tj0zwLjoy7HmoNuj+x897CJuPfM3egGdJ/2zo7AGzpwpMMg==}
+  '@ifc-lite/data@1.17.0':
+    resolution: {integrity: sha512-ypDZHPko7UHuSQB7L8bEuYeVUE4VBriOKty4vxTZFrndnfpSbtuhuoLucBg8dNWqfyVycz3k2RYav+JnvtFN2A==}
 
   '@ifc-lite/encoding@1.14.6':
     resolution: {integrity: sha512-B3zTnUm8mQBa6kXNy7g2ad+WSvIChk8VVj87oFtmuMnipj6Kd9iwUGNVL3R/WEYhWgKSUkkXYTUvaDehI+eFqQ==}
 
-  '@ifc-lite/geometry@1.17.0':
-    resolution: {integrity: sha512-o4LrAZe0cSL34fTkHvANgal4QEl1rKAGcELG1oWCb+pXfhRt/dNP2N/PQDKvfkdGrGILiy51auxr7l2t0opoZA==}
+  '@ifc-lite/geometry@1.18.4':
+    resolution: {integrity: sha512-ijpQi9ETBjZWOilZr18iMbiI1nP1Y/6XZVVdW9Pw0aVHfiX6u6WzarL3FsiiHv3IWXLRU9GcrBjaZ56Agh4WJA==}
+    peerDependencies:
+      '@ifc-lite/wasm-threaded': '*'
+    peerDependenciesMeta:
+      '@ifc-lite/wasm-threaded':
+        optional: true
 
-  '@ifc-lite/ifcx@2.1.0':
-    resolution: {integrity: sha512-BwZWhGDxFXXqICPwgI93FemY8ehuUAVlRZg02AF5eF3HF3OkfJuyUGK0v9MnemhXDo6OulDzkuLCEJangebzyA==}
+  '@ifc-lite/ifcx@2.1.1':
+    resolution: {integrity: sha512-aFpLhYYoblOQU73+0XcJ+7Qe1uBHLgiyUym11LJmvlkeYyvkLGCCtZguuV16l2Ap9ICiyNEnIPMjIkSKdshVoQ==}
 
   '@ifc-lite/mutations@1.15.0':
     resolution: {integrity: sha512-WB9jz9zcSt7+jQ/XCHwGBsQTdHwV6Tg58Ps3W6bZ21XMlwbxS2JHr3qcpVfcPV8O7SQPl1mCg/dFdI3kgPHXzA==}
 
-  '@ifc-lite/parser@2.3.0':
-    resolution: {integrity: sha512-JalxYkceDMQbzadvndHvGlnExMoBSFRclY03t+RqcMPn4PpQ9nclCtC5MmNWkM4M4msLoAvFNLwr8U9Hyf8O/w==}
+  '@ifc-lite/parser@2.4.0':
+    resolution: {integrity: sha512-8+pDP/ua3q9UjFlFUtbEJF/rWVZOe3siBdFAFRJtvgucCiQ2RbvJVUBwcBt8xABkF3srqZzyvF6mNJKduBzs6A==}
 
-  '@ifc-lite/pointcloud@0.2.0':
-    resolution: {integrity: sha512-9djLO7NL5dVZiHu7N1k2b66eCp0jrkfTHJDZ2Se/ocBjP95f3tDzJsaOuGTV5MSTmXeMgSsKcJMRtwQG8nu/vw==}
+  '@ifc-lite/pointcloud@0.3.1':
+    resolution: {integrity: sha512-wMLXmJFUfZPT5SrDDHsw0r3w2vk2+owKDDD28+WTaOecimpmOTcYW6G7HfRnLEdp99/UeFLIQz0gSM42VLURgA==}
 
-  '@ifc-lite/renderer@1.18.0':
-    resolution: {integrity: sha512-HUDpIHZY0xS5qGAB0ilCTwKZHT+bAiknQC1hPmyXpIZLPSr6XilZLKeL78IO6W8Potx/I90PU5/Nl/IFcN0O6w==}
+  '@ifc-lite/renderer@1.20.0':
+    resolution: {integrity: sha512-sgUW4tx4jWkMQBZGP4S8qLB9HtaX/NXUllJw9TTEjn3mg3gAIlFLoinZ+SZ5U29Dpxc22aAvDYIe6wEwo5XjoA==}
 
   '@ifc-lite/spatial@1.14.5':
     resolution: {integrity: sha512-vFsGSiwXsFcb+aBx4p3rTAWqs4Vd0k7P0OkIdH1ZhyQJ9hXa5muJFls3FI3JI+RcPbth2HyyrmUkReLYBn4G6w==}
 
-  '@ifc-lite/wasm@1.16.8':
-    resolution: {integrity: sha512-6rsnnqi/iBSivHaO0v8DAzT1cKzsF5n4VCJAht2VkgW307Oa+TiS+LEfcmswfPqksF8D9/0o3ADZX7Fu5t1aEg==}
+  '@ifc-lite/wasm@1.16.10':
+    resolution: {integrity: sha512-wK2Ts522X28uEGcDJC/Qw9gXAllz3DBmKLU5XcIDJc47lHJZb65IMPLHP0Kyyh/HBqxWAU+qh1mqlkBD5VhtdQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1860,48 +1865,53 @@ snapshots:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.75.0(react@19.2.5)
 
-  '@ifc-lite/data@1.15.2': {}
+  '@ifc-lite/data@1.17.0': {}
 
   '@ifc-lite/encoding@1.14.6': {}
 
-  '@ifc-lite/geometry@1.17.0':
+  '@ifc-lite/geometry@1.18.4':
     dependencies:
-      '@ifc-lite/data': 1.15.2
-      '@ifc-lite/wasm': 1.16.8
+      '@ifc-lite/data': 1.17.0
+      '@ifc-lite/wasm': 1.16.10
     optionalDependencies:
       '@tauri-apps/api': 2.11.0
 
-  '@ifc-lite/ifcx@2.1.0':
+  '@ifc-lite/ifcx@2.1.1':
     dependencies:
-      '@ifc-lite/data': 1.15.2
+      '@ifc-lite/data': 1.17.0
       '@ifc-lite/mutations': 1.15.0
-      '@ifc-lite/pointcloud': 0.2.0
+      '@ifc-lite/pointcloud': 0.3.1
 
   '@ifc-lite/mutations@1.15.0':
     dependencies:
-      '@ifc-lite/data': 1.15.2
+      '@ifc-lite/data': 1.17.0
 
-  '@ifc-lite/parser@2.3.0':
+  '@ifc-lite/parser@2.4.0':
     dependencies:
-      '@ifc-lite/data': 1.15.2
+      '@ifc-lite/data': 1.17.0
       '@ifc-lite/encoding': 1.14.6
-      '@ifc-lite/ifcx': 2.1.0
+      '@ifc-lite/ifcx': 2.1.1
+      '@ifc-lite/wasm': 1.16.10
 
-  '@ifc-lite/pointcloud@0.2.0':
+  '@ifc-lite/pointcloud@0.3.1':
     dependencies:
       laz-perf: 0.0.6
 
-  '@ifc-lite/renderer@1.18.0':
+  '@ifc-lite/renderer@1.20.0':
     dependencies:
-      '@ifc-lite/geometry': 1.17.0
+      '@ifc-lite/geometry': 1.18.4
       '@ifc-lite/spatial': 1.14.5
-      '@ifc-lite/wasm': 1.16.8
+      '@ifc-lite/wasm': 1.16.10
+    transitivePeerDependencies:
+      - '@ifc-lite/wasm-threaded'
 
   '@ifc-lite/spatial@1.14.5':
     dependencies:
-      '@ifc-lite/geometry': 1.17.0
+      '@ifc-lite/geometry': 1.18.4
+    transitivePeerDependencies:
+      - '@ifc-lite/wasm-threaded'
 
-  '@ifc-lite/wasm@1.16.8': {}
+  '@ifc-lite/wasm@1.16.10': {}
 
   '@img/colour@1.1.0':
     optional: true
