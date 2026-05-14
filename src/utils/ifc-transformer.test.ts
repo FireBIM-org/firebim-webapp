@@ -16,7 +16,7 @@ describe('ifc-transformer', () => {
     const entities = [
       {
         expressID: 1,
-        type: 'IFCWALLSTANDARDCASE',
+        type: 'IFCWALL',
         GlobalId: { value: '12345' },
         Name: { value: 'Basic Wall' },
         attributes: {
@@ -30,7 +30,7 @@ describe('ifc-transformer', () => {
     expect(result.entities).toHaveLength(1);
     expect(result.entities[0]).toEqual({
       id: '1',
-      type: 'IFCWALLSTANDARDCASE',
+      type: 'IFCWALL',
       globalId: '12345',
       name: 'Basic Wall',
       attributes: {
