@@ -1,13 +1,13 @@
 # Stage 1: Dependencies
 FROM node:26-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10 --activate
+RUN npm install -g pnpm@10.29.3
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM node:26-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10 --activate
+RUN npm install -g pnpm@10.29.3
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY ./ ./
