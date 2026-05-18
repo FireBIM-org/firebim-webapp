@@ -8,13 +8,7 @@ type RuleElementType = RuleData['element_type'];
 type Props = {
   selectedRule: RuleData | null;
   onChange: (patch: Partial<RuleData>) => void;
-  onPublish: () => void;
-  onDuplicate: () => void;
-  onDelete: () => void;
-  onDerive: () => void;
   onBuildTree?: () => void;
-  publishState: 'idle' | 'saving' | 'success' | 'error';
-  publishMessage: string | null;
   collapsed: boolean;
   onToggleCollapsed: () => void;
 };
@@ -36,13 +30,7 @@ function getEffectiveElementType(rule: RuleData | null): RuleElementType | null 
 export default function RuleInspectorPanel({
   selectedRule,
   onChange,
-  onPublish,
-  onDuplicate,
-  onDelete,
-  onDerive,
   onBuildTree,
-  publishState,
-  publishMessage,
   collapsed,
   onToggleCollapsed,
 }: Props) {
@@ -50,6 +38,9 @@ export default function RuleInspectorPanel({
   const isStart = elementType === 'start';
   const isDecision = elementType === 'decision';
   const isEnd = elementType === 'end';
+  const hasConnectedStartBranch = Boolean(
+    selectedRule?.true_path || selectedRule?.false_path || selectedRule?.unknown_path,
+  );
 
   const handleTextChange = (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -135,64 +126,21 @@ export default function RuleInspectorPanel({
         </div>
 
         <div className="space-y-2 border-b border-gray-200 px-4 py-3">
-          <button
-            type="button"
-            onClick={onDuplicate}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
-          >
-            Duplicate selected rule element
-          </button>
-
-          {selectedRule.graph_uri && (
-            <button
-              type="button"
-              onClick={onDerive}
-              className="w-full rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
-            >
-              Derive from stored rule element
-            </button>
-          )}
-
           {isStart && onBuildTree ? (
             <button
               type="button"
               onClick={onBuildTree}
-              className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+              disabled={!hasConnectedStartBranch}
+              className="w-full rounded-md border border-indigo-300 bg-white px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+              title={
+                hasConnectedStartBranch
+                  ? 'Build rule from selected start rule element'
+                  : 'Connect the selected start rule element before building'
+              }
             >
               Build rule from start rule element
             </button>
           ) : null}
-
-          <button
-            type="button"
-            onClick={onDelete}
-            className="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-          >
-            Delete selected rule element
-          </button>
-
-          <button
-            type="button"
-            onClick={onPublish}
-            disabled={publishState === 'saving'}
-            className="w-full rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {publishState === 'saving' ? 'Publishing...' : 'Publish selected rule element'}
-          </button>
-
-          {publishMessage && (
-            <p
-              className={`text-xs ${
-                publishState === 'error'
-                  ? 'text-red-600'
-                  : publishState === 'success'
-                    ? 'text-green-600'
-                    : 'text-gray-500'
-              }`}
-            >
-              {publishMessage}
-            </p>
-          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">

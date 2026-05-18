@@ -12,7 +12,7 @@ export default function Home() {
     <Layout title="Home | FireBIM">
       <div className="relative overflow-hidden">
         <div className="pt-10 pb-16 sm:pt-16 lg:pt-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
             <div className="lg:grid lg:grid-cols-12 lg:gap-8">
               <div className="sm:text-center md:mx-auto md:max-w-2xl lg:col-span-6 lg:text-left">
                 <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
@@ -80,7 +80,7 @@ export default function Home() {
         </div>
 
         <div className="bg-white py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl px-2 sm:px-3 lg:px-4 xl:max-w-[96rem]">
             <div className="lg:text-center">
               <h2 className="text-lg font-semibold text-orange-600">Features</h2>
               <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">

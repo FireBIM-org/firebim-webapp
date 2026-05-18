@@ -7,6 +7,7 @@ import {
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
   PlayIcon,
+  ViewfinderCircleIcon,
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -437,6 +438,7 @@ export function BuildingGraphView({
   const [successOverviewActive, setSuccessOverviewActive] = useState(false);
   const [logCollapsed, setLogCollapsed] = useState(false);
   const [successIconCelebrating, setSuccessIconCelebrating] = useState(false);
+  const graphViewportRef = useRef<HTMLDivElement | null>(null);
   const logScrollRef = useRef<HTMLDivElement | null>(null);
   const stepCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -578,6 +580,10 @@ export function BuildingGraphView({
     () => layout.nodes.find((node: PositionedNode) => node.id === primaryFocusNodeId) ?? null,
     [layout.nodes, primaryFocusNodeId],
   );
+  const zoomAnchor = selectedNode ?? {
+    x: layout.bounds.centerX,
+    y: layout.bounds.centerY,
+  };
   const propertyBubbles = useMemo(() => buildPropertyBubbles(selectedNode), [selectedNode]);
   const graphNodesById = useMemo(
     () =>
@@ -730,6 +736,29 @@ export function BuildingGraphView({
     setDragging(null);
   };
 
+  const getUserUnitsPerScreenPixel = () => {
+    const rect = graphViewportRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) {
+      return 1;
+    }
+
+    return Math.max(layout.bounds.width / rect.width, layout.bounds.height / rect.height);
+  };
+
+  const handleZoomToSelected = () => {
+    if (!selectedNode || collapsed) {
+      return;
+    }
+
+    const userUnitsPerScreenPixel = getUserUnitsPerScreenPixel();
+    setSuccessOverviewActive(false);
+    setZoom(2.1);
+    setPan({
+      x: (layout.bounds.centerX - selectedNode.x) / userUnitsPerScreenPixel,
+      y: (layout.bounds.centerY - selectedNode.y) / userUnitsPerScreenPixel,
+    });
+  };
+
   const getVisualState = (nodeId: string): VisualNodeState => {
     if (successOverviewVisible && !selectedNodeId) {
       return 3;
@@ -798,6 +827,11 @@ export function BuildingGraphView({
     setZoom(1.15);
     setPan({ x: 0, y: 0 });
   };
+  const userUnitsPerScreenPixel = getUserUnitsPerScreenPixel();
+  const graphPan = {
+    x: pan.x * userUnitsPerScreenPixel,
+    y: pan.y * userUnitsPerScreenPixel,
+  };
 
   return (
     <div className={baseClass}>
@@ -817,6 +851,7 @@ export function BuildingGraphView({
           {graph_loaded && active_graph_data ? (
             <>
               <div
+                ref={graphViewportRef}
                 className="absolute inset-0 cursor-grab overflow-hidden active:cursor-grabbing"
                 onWheel={handleWheel}
                 onMouseDown={handleMouseDown}
@@ -830,7 +865,9 @@ export function BuildingGraphView({
                   viewBox={`0 0 ${layout.bounds.width} ${layout.bounds.height}`}
                   preserveAspectRatio="xMidYMid meet"
                 >
-                  <g transform={`translate(${pan.x} ${pan.y}) scale(${zoom})`}>
+                  <g
+                    transform={`translate(${graphPan.x} ${graphPan.y}) translate(${zoomAnchor.x} ${zoomAnchor.y}) scale(${zoom}) translate(${-zoomAnchor.x} ${-zoomAnchor.y})`}
+                  >
                     {Array.from(
                       { length: layout.bounds.maxRing },
                       (_: unknown, index: number) => index + 1,
@@ -1053,6 +1090,15 @@ export function BuildingGraphView({
           disabled={collapsed}
         >
           <MagnifyingGlassMinusIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleZoomToSelected}
+          className="rounded-lg border border-slate-200 bg-white/95 p-2 text-slate-600 shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+          title="Zoom to selected node"
+          disabled={collapsed || !selectedNode}
+        >
+          <ViewfinderCircleIcon className="h-4 w-4" />
         </button>
         <button
           type="button"

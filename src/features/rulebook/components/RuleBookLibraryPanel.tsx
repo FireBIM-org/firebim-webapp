@@ -1,5 +1,6 @@
 import {
   ArrowPathIcon,
+  ArrowUpTrayIcon,
   Bars3Icon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -9,12 +10,11 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import type { RuleListItem } from '../types';
 
-import { deleteRule, getRule, getRulesHealth, listRules } from '../api';
-import { ensureSeededExampleRules, getSeededExampleRuleDefinition } from '../examples';
+import { deleteRule, getRule, getRulesHealth, listRules, publishRuleJson } from '../api';
 import { getVisibleRuleLibraryGroups, useRuleBookStore, type RuleBookStore } from '../store';
 
 type Props = {
@@ -31,6 +31,18 @@ function buildDraggablePayload(rule: RuleListItem) {
     graph_uri: rule.graph_uri ?? null,
     source: rule.source,
   });
+}
+
+async function readJsonUpload(file: File): Promise<unknown> {
+  if (!file.name.toLowerCase().endsWith('.json')) {
+    throw new Error('Only .json files can be uploaded.');
+  }
+
+  try {
+    return JSON.parse(await file.text()) as unknown;
+  } catch {
+    throw new Error('The selected file is not valid JSON.');
+  }
 }
 
 function RuleCard({
@@ -239,6 +251,9 @@ export default function RuleBookLibraryPanel({
   const is_collapsed = collapsed ?? store_collapsed;
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const ruleUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [ruleUploading, setRuleUploading] = useState(false);
+  const [ruleUploadMessage, setRuleUploadMessage] = useState<string | null>(null);
 
   const selected_rule_ids = useMemo(
     () =>
@@ -344,17 +359,50 @@ export default function RuleBookLibraryPanel({
       const [health, api_rules] = await Promise.all([getRulesHealth(), listRules()]);
 
       setRulesApiOnline(Boolean(health.ok || health.status === 'ok'));
-      setAvailableRules(ensureSeededExampleRules(api_rules));
+      setAvailableRules(api_rules);
     } catch (error) {
       setRulesApiOnline(false);
       setRulesError(error instanceof Error ? error.message : 'Failed to load rules');
-      setAvailableRules(ensureSeededExampleRules([]));
+      setAvailableRules([]);
     } finally {
       setRulesLoading(false);
     }
   }, [setAvailableRules, setRulesApiOnline, setRulesError, setRulesLoading]);
 
+  const handleUploadRuleJson = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+
+      if (!file) return;
+
+      setRuleUploading(true);
+      setRuleUploadMessage(null);
+      setRulesError(null);
+
+      try {
+        const json = await readJsonUpload(file);
+        const result = await publishRuleJson(json);
+
+        await loadAvailableRules();
+
+        const label = result.label || result.rule_id || file.name;
+        setRuleUploadMessage(`Uploaded rule: ${label}`);
+      } catch (error) {
+        setRuleUploadMessage(null);
+        setRulesError(error instanceof Error ? error.message : 'Rule upload failed');
+      } finally {
+        setRuleUploading(false);
+      }
+    },
+    [loadAvailableRules, setRulesError],
+  );
+
   useEffect(() => {
+    if (available_rules.length > 0) {
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -371,7 +419,7 @@ export default function RuleBookLibraryPanel({
     return () => {
       cancelled = true;
     };
-  }, [loadAvailableRules]);
+  }, [available_rules.length, loadAvailableRules]);
 
   useEffect(() => {
     if (selected_rule_ids.length !== 1) {
@@ -380,22 +428,9 @@ export default function RuleBookLibraryPanel({
 
     let cancelled = false;
     const selected_rule_id = selected_rule_ids[0];
-    const selected_rule = available_rules.find(
-      (rule: RuleListItem) => rule.rule_id === selected_rule_id,
-    );
 
     async function loadSelectedRule() {
       try {
-        if (selected_rule?.source === 'example') {
-          const example_definition = getSeededExampleRuleDefinition(selected_rule_id);
-
-          if (cancelled) return;
-
-          setSelectedRuleId(selected_rule_id);
-          setSelectedRuleDefinition(example_definition);
-          return;
-        }
-
         const definition = await getRule(selected_rule_id);
 
         if (cancelled) return;
@@ -415,7 +450,7 @@ export default function RuleBookLibraryPanel({
     return () => {
       cancelled = true;
     };
-  }, [available_rules, selected_rule_ids, setSelectedRuleDefinition, setSelectedRuleId]);
+  }, [selected_rule_ids, setSelectedRuleDefinition, setSelectedRuleId]);
 
   const handleToggleCollapsed = () => {
     if (onToggleCollapsed) {
@@ -582,6 +617,37 @@ export default function RuleBookLibraryPanel({
         >
           <MagnifyingGlassIcon className="h-4 w-4" />
         </button>
+      </div>
+
+      <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2">
+        <input
+          ref={ruleUploadInputRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={(event) => {
+            void handleUploadRuleJson(event);
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => ruleUploadInputRef.current?.click()}
+          disabled={ruleUploading || rules_loading}
+          className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          title="Upload a rule JSON file"
+        >
+          <ArrowUpTrayIcon
+            className={['h-4 w-4', ruleUploading ? 'animate-pulse' : ''].join(' ')}
+          />
+          {ruleUploading ? 'Uploading rule...' : 'Upload rule JSON'}
+        </button>
+
+        {ruleUploadMessage ? (
+          <div className="min-w-0 truncate text-xs text-emerald-700">{ruleUploadMessage}</div>
+        ) : (
+          <div className="min-w-0 truncate text-xs text-gray-400">Only .json files</div>
+        )}
       </div>
 
       {searchOpen && (
