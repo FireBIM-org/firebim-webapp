@@ -11,7 +11,7 @@
     "lint:fix": "oxlint --fix src/",
     "format": "oxfmt src/",
     "format:check": "oxfmt --check src/",
-    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts",
+    "generate:api": "openapi-typescript openapi.json --output src/types/api.ts && oxfmt src/types/api.ts",
     "test:rulebook-diagnostic": "node scripts/verify-rulebook-diagnostic.mjs",
     "test:api-access": "node scripts/verify-api-access.mjs",
     "test:merge-safety": "pnpm lint && pnpm exec tsc --noEmit && pnpm run test:api-access && pnpm run test:rulebook-diagnostic"
