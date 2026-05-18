@@ -47,37 +47,13 @@ Wait for Authentik to finish initialising at [http://localhost:9080](http://loca
 
 ### 2. Configure the webapp
 
-For local `pnpm` development, copy the example env file and adjust if needed:
+Copy the example env file and adjust if needed:
 
 ```bash
 cp .env.example .env.local
 ```
 
-For Docker development, `.docker/.env` is a build-time placeholder file for public Next.js variables. Runtime values are supplied by `docker-compose.yml`.
-
-By default, `docker-compose.yml` matches the standard local FireBIM stack and joins the backend network `firebim_api_server_lexicon_default`. If your backend project uses another network name, set `FIREBIM_API_NETWORK` before starting the webapp:
-
-```bash
-FIREBIM_API_NETWORK=firebim_api_server_lexicon_default make up-build
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:FIREBIM_API_NETWORK = 'firebim_api_server_lexicon_default'
-make up-build
-```
-
-The standard local runtime values are:
-
-* `API_BACKEND_URL=http://api:8000`
-* `AUTHENTIK_ISSUER_URL=http://localhost:9080/application/o/firebim/`
-* `AUTHENTIK_INTERNAL_ISSUER_URL=http://authentik-server:9000/application/o/firebim/`
-* `AUTHENTIK_CLIENT_ID=firebim`
-* `AUTHENTIK_CLIENT_SECRET=local-dev-client-secret`
-* `FIREBIM_API_NETWORK=firebim_api_server_lexicon_default`
-
-That means the frontend container talks to your local API/Auth stack without any backend changes. Only update those values if your local ports, credentials, or Docker network name differ.
+The defaults in `docker-compose.yml` match the dev values provisioned by the firebim-api-server Authentik blueprint, so no changes are required for a standard local setup.
 
 ### 3a. Run with Docker (recommended)
 
@@ -109,12 +85,6 @@ The local health endpoint is available at [http://localhost:3000/api/health](htt
 curl http://localhost:8000/health
 ```
 
-If the webapp container is attached to the backend Docker network, this should also work from inside the container:
-
-```bash
-docker exec <webapp-container> node -e "fetch('http://api:8000/health').then(async r => console.log(r.status, await r.text()))"
-```
-
 ## Common tasks
 
 | Command | Description |
@@ -137,7 +107,7 @@ Browser  ──►  Next.js (port 3000)
                 └─ /api/auth/…   ──►  NextAuth ──► Authentik (OIDC)
 ```
 
-Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network. The browser-facing Authentik issuer stays on `localhost:9080`, with `extra_hosts` allowing the container to resolve that host binding when needed.
+Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network (or `localhost` via `extra_hosts` when running in a container).
 
 ## Rule Features
 
@@ -147,3 +117,4 @@ The webapp also includes two authenticated rule-focused areas:
 * `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
 
 Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
+

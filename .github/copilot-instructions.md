@@ -5,7 +5,7 @@ Frontend for firebim-api-server.
 The backend API is in a separate repo (firebim-api-server).
 
 ## Tech Stack
-- **Framework**: Next.js 16 (Pages Router)
+- **Framework**: Next.js 15 (Pages Router)
 - **Language**: TypeScript (strict)
 - **Auth**: NextAuth v4 with Authentik OIDC provider
 - **Data fetching**: TanStack Query v5
@@ -14,15 +14,6 @@ The backend API is in a separate repo (firebim-api-server).
 - **Styling**: Tailwind CSS v4 + Headless UI
 - **Package manager**: pnpm 10 (never use npm or yarn)
 - **CI/CD**: GitHub Actions
-
-## Local development
-- Prefer Docker on Windows when validating behavior that will deploy to Linux.
-- Start the backend stack first from the sibling `firebim-api-server` repo with `docker compose up -d`.
-- The webapp Compose file expects the backend Docker network to be `firebim-api-server_default` unless `FIREBIM_API_NETWORK` is set.
-- For lexicon-oriented local stacks, the backend network is often `firebim_api_server_lexicon_default`; set `FIREBIM_API_NETWORK=firebim_api_server_lexicon_default` before `make up-build`.
-- Docker runtime should use `API_BACKEND_URL=http://api:8000`, with browser API calls still going through `/api/proxy/...`.
-- `.env.local` is for local `pnpm` development. `.docker/.env` only provides build-time placeholders for public Next.js variables.
-- `/api/health` has a short upstream timeout. If it reports `degraded`, verify the backend directly at `http://localhost:8000/health` or from the webapp container with `http://api:8000/health` before assuming the network is broken.
 
 ## Conventions
 - All components use TypeScript — no `any`, no implicit types
