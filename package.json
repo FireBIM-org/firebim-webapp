@@ -29,8 +29,8 @@
     "@tanstack/react-query": "^5.100.10",
     "@xyflow/react": "^12.10.1",
     "axios": "^1.16.1",
-    "next": "16.2.6",
     "html-to-image": "^1.11.13",
+    "next": "16.2.6",
     "next-auth": "^4.24.14",
     "openapi-typescript": "^7.8.0",
     "react": "19.2.6",
@@ -56,6 +56,7 @@
     "oxfmt": "^0.50.0",
     "oxlint": "^1.65.0",
     "tailwindcss": "^4.3.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.7"
   }
 }
