@@ -220,8 +220,10 @@ export class ApiClient {
   }
 
   // Lexicon endpoints
-  async deriveLexiconProfile(): Promise<components['schemas']['LexiconExecutionProfile']> {
-    const response = await this.axiosInstance.get('/api/proxy/lexicon/profiles/derive');
+  async deriveLexiconProfile(
+    request: components['schemas']['LexiconProfileDeriveRequest'],
+  ): Promise<components['schemas']['LexiconProfileDeriveResponse']> {
+    const response = await this.axiosInstance.post('/api/proxy/lexicon/profiles/derive', request);
     return response.data;
   }
 }

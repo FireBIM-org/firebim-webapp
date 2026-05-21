@@ -1,5 +1,6 @@
 import { IfcParser } from '@ifc-lite/parser';
 
+import { listRules } from '../features/rulebook/api';
 import apiClient from './api-client';
 import { extractAndTransform } from './ifc-transformer';
 
@@ -36,7 +37,18 @@ export async function handleIfcUpload(file: File, options: UploadOptions): Promi
     // Fetch Lexicon profile for filtering
     let profile;
     try {
-      profile = await apiClient.deriveLexiconProfile();
+      const rules = await listRules();
+      const ruleIds = rules.map((r) => r.rule_id);
+
+      if (ruleIds.length > 0) {
+        const response = await apiClient.deriveLexiconProfile({
+          ontology_family: 'fbo',
+          country: 'dk',
+          version: 'latest',
+          rule_ids: ruleIds,
+        });
+        profile = response.profile;
+      }
     } catch (e) {
       console.warn('Failed to fetch Lexicon profile, proceeding without filtering:', e);
     }

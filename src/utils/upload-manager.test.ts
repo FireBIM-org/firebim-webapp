@@ -1,9 +1,14 @@
 import { IfcParser } from '@ifc-lite/parser';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { listRules } from '../features/rulebook/api';
 import apiClient from './api-client';
 import { extractAndTransform } from './ifc-transformer';
 import { handleIfcUpload } from './upload-manager';
+
+vi.mock('../features/rulebook/api', () => ({
+  listRules: vi.fn(),
+}));
 
 vi.mock('@ifc-lite/parser', () => {
   return {
@@ -42,6 +47,10 @@ describe('handleIfcUpload', () => {
     const onProgress = vi.fn();
     const onSuccess = vi.fn();
 
+    vi.mocked(listRules).mockResolvedValue([{ rule_id: 'rule-1' }] as any);
+    vi.mocked(apiClient.deriveLexiconProfile).mockResolvedValue({
+      profile: { target_classes: [], property_paths: [], relation_paths: [] },
+    } as any);
     vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-123' } as any);
     vi.mocked(apiClient.uploadModelData).mockResolvedValue({ message: 'ok' });
     vi.mocked(extractAndTransform).mockReturnValue({
@@ -84,6 +93,10 @@ describe('handleIfcUpload', () => {
       };
     });
 
+    vi.mocked(listRules).mockResolvedValue([{ rule_id: 'rule-1' }] as any);
+    vi.mocked(apiClient.deriveLexiconProfile).mockResolvedValue({
+      profile: { target_classes: [], property_paths: [], relation_paths: [] },
+    } as any);
     vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-1' } as any);
     vi.mocked(apiClient.uploadModelData).mockResolvedValue({ message: 'ok' });
     vi.mocked(extractAndTransform).mockReturnValue({
