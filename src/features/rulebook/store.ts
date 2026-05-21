@@ -1,13 +1,5 @@
 import { create } from 'zustand';
 
-import { SEEDED_EXAMPLE_RULE_IDS } from './examples';
-
-const MANAGED_EXAMPLE_RULE_IDS = [
-  ...SEEDED_EXAMPLE_RULE_IDS,
-  'building-height',
-  'building-large-height-fire-check',
-  'large-building-fire-height-sequence',
-];
 import type {
   BuildingGraphData,
   ExecutionTimeline,
@@ -33,24 +25,12 @@ function defaultLibraryState(): RuleBookLibraryState {
 
 function normalizeLibraryState(input: RuleBookLibraryState): RuleBookLibraryState {
   const next_rule_category_map = { ...input.rule_category_map };
-  const next_trashed_rule_ids = input.trashed_rule_ids.filter(
-    (rule_id) => !MANAGED_EXAMPLE_RULE_IDS.includes(rule_id),
-  );
-
-  for (const rule_id of MANAGED_EXAMPLE_RULE_IDS) {
-    next_rule_category_map[rule_id] = 'examples';
-  }
 
   return {
     ...input,
     rule_category_map: next_rule_category_map,
-    custom_rule_labels: {
-      ...input.custom_rule_labels,
-      'building-height':
-        input.custom_rule_labels['building-height'] ||
-        'Entry_Target - Building - 1 decision elements',
-    },
-    trashed_rule_ids: next_trashed_rule_ids,
+    custom_rule_labels: { ...input.custom_rule_labels },
+    trashed_rule_ids: input.trashed_rule_ids,
   };
 }
 
@@ -180,6 +160,7 @@ export type RuleBookStore = {
   addRuleToRunner: (rule: RuleListItem) => void;
   removeRuleFromRunner: (runner_item_id: string) => void;
   moveRunnerItem: (from_index: number, to_index: number) => void;
+  setRunnerRuleItems: (items: RuleRunnerItem[]) => void;
   clearRunner: () => void;
 
   setAvailableGraphs: (graphs: BuildingGraphData[]) => void;
@@ -550,6 +531,8 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
         runner_rule_items: next,
       };
     }),
+
+  setRunnerRuleItems: (items) => set({ runner_rule_items: items }),
 
   clearRunner: () => set({ runner_rule_items: [] }),
 

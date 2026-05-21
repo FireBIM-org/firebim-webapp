@@ -1,4 +1,45 @@
+import axios, { AxiosInstance } from 'axios';
+
 import { env } from '@/config/env';
+
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
+
+let isSigningIn = false;
+
+function createProxyAxios(): AxiosInstance {
+  const instance = axios.create({
+    baseURL: API_HOST,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (typeof window !== 'undefined') {
+    instance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const isProxy401 =
+          error.response?.status === 401 &&
+          (error.config?.url as string | undefined)?.startsWith('/api/proxy/');
+
+        if (isProxy401 && !isSigningIn) {
+          isSigningIn = true;
+          try {
+            const { signIn } = await import('next-auth/react');
+            await signIn('authentik');
+          } catch {
+            isSigningIn = false;
+          }
+        }
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  return instance;
+}
+
+const proxyAxios = createProxyAxios();
 
 export type RuleHealthResponse = {
   status?: string;
@@ -34,6 +75,55 @@ export type RuleElementJson = {
 };
 
 export type RuleElementPayload = RuleElementJson;
+
+export type RuleBuilderViewport = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
+export type RuleBuilderWorkspaceNode = {
+  canvas_node_id: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  rule: RuleElementJson;
+};
+
+export type RuleBuilderWorkspaceEdge = {
+  id: string;
+  source: string;
+  source_handle?: string | null;
+  target: string;
+  target_handle?: string | null;
+};
+
+export type RuleBuilderWorkspacePayload = {
+  name: string;
+  entry_node_id: string;
+  entry_node_label: string;
+  viewport: RuleBuilderViewport;
+  nodes: RuleBuilderWorkspaceNode[];
+  edges: RuleBuilderWorkspaceEdge[];
+};
+
+export type RuleBuilderWorkspace = RuleBuilderWorkspacePayload & {
+  id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RuleBuilderWorkspaceSummary = {
+  id: string;
+  name: string;
+  entry_node_id: string;
+  entry_node_label: string;
+  created_at: string;
+  updated_at: string;
+  node_count: number;
+  edge_count: number;
+};
 
 export type RuleJson = {
   id: string;
@@ -158,12 +248,62 @@ export type PublishRuleResponse = {
   fallback?: boolean;
 };
 
+export type CreateRuleBuilderWorkspaceResponse = {
+  workspace: RuleBuilderWorkspace;
+};
+
+export type UpdateRuleBuilderWorkspaceResponse = {
+  workspace: RuleBuilderWorkspace;
+};
+
+export type ListRuleBuilderWorkspacesResponse = {
+  count: number;
+  workspaces: RuleBuilderWorkspaceSummary[];
+};
+
+export type GetRuleBuilderWorkspaceResponse = {
+  workspace: RuleBuilderWorkspace;
+};
+
+export type DeleteRuleBuilderWorkspaceResponse = {
+  deleted: boolean;
+  workspace_id: string;
+};
+
+export type DeleteRuleBuilderWorkspacesBatchResponse = {
+  deleted_ids: string[];
+  not_found_ids: string[];
+};
+
+export type ExportRuleBuilderWorkspaceRuleElementsResponse = {
+  saved: boolean;
+  workspace_id: string;
+  group_id: string;
+  group_name: string;
+  entry_node_id: string;
+  entry_node_label: string;
+  created_count: number;
+  elements: Array<{
+    source_id: string;
+    element_id: string;
+    graph_uri: string;
+  }>;
+  duplicate_rule_element_ids: string[];
+};
+
 export type RuleListItem = {
   rule_id: string;
   label: string;
   graph_uri?: string | null;
+  source?: 'api' | 'example';
   entry?: string | null;
   rule_element_count?: number | null;
+  target_classes?: string[];
+  description?: string | null;
+};
+
+export type ConvertRuleToWorkspaceResponse = {
+  workspace: RuleBuilderWorkspace;
 };
 
 export type EnsureRuleElementsResult = {
@@ -376,6 +516,82 @@ export async function publishRule(payload: PublishRuleRequest): Promise<PublishR
   return parseJsonResponse<PublishRuleResponse>(res);
 }
 
+export async function createRuleBuilderWorkspace(
+  payload: RuleBuilderWorkspacePayload,
+): Promise<CreateRuleBuilderWorkspaceResponse> {
+  const response = await proxyAxios.post<CreateRuleBuilderWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces`,
+    payload,
+  );
+  return response.data;
+}
+
+export async function updateRuleBuilderWorkspace(
+  workspaceId: string,
+  payload: RuleBuilderWorkspacePayload,
+): Promise<UpdateRuleBuilderWorkspaceResponse> {
+  const response = await proxyAxios.put<UpdateRuleBuilderWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces/${workspaceId}`,
+    payload,
+  );
+  return response.data;
+}
+
+export async function listRuleBuilderWorkspaces(): Promise<ListRuleBuilderWorkspacesResponse> {
+  const response = await proxyAxios.get<ListRuleBuilderWorkspacesResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces`,
+  );
+  return response.data;
+}
+
+export async function getRuleBuilderWorkspace(
+  workspaceId: string,
+): Promise<GetRuleBuilderWorkspaceResponse> {
+  const response = await proxyAxios.get<GetRuleBuilderWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces/${workspaceId}`,
+  );
+  return response.data;
+}
+
+export async function convertRuleToRuleBuilderWorkspace(
+  ruleId: string,
+): Promise<ConvertRuleToWorkspaceResponse> {
+  const response = await proxyAxios.post<ConvertRuleToWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/rules/${encodeURIComponent(ruleId)}/workspace`,
+    {},
+  );
+  return response.data;
+}
+
+export async function deleteRuleBuilderWorkspace(
+  workspaceId: string,
+): Promise<DeleteRuleBuilderWorkspaceResponse> {
+  const response = await proxyAxios.delete<DeleteRuleBuilderWorkspaceResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces/${workspaceId}`,
+  );
+  return response.data;
+}
+
+export async function deleteRuleBuilderWorkspacesBatch(
+  workspaceIds: string[],
+): Promise<DeleteRuleBuilderWorkspacesBatchResponse> {
+  const response = await proxyAxios.post<DeleteRuleBuilderWorkspacesBatchResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces/delete-batch`,
+    { workspace_ids: workspaceIds },
+  );
+  return response.data;
+}
+
+export async function exportRuleBuilderWorkspaceRuleElements(
+  workspaceId: string,
+): Promise<ExportRuleBuilderWorkspaceRuleElementsResponse> {
+  const response = await proxyAxios.post<ExportRuleBuilderWorkspaceRuleElementsResponse>(
+    `${env.apiBaseUrl}/rulebuilder/workspaces/${workspaceId}/export-rule-elements`,
+    {},
+  );
+  return response.data;
+}
+
 export async function listRules(): Promise<RuleListItem[]> {
   const res = await fetch(`${env.apiBaseUrl}/rules/list`);
 
@@ -412,6 +628,7 @@ export async function listRules(): Promise<RuleListItem[]> {
       rule_id,
       label: (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? rule_id,
       graph_uri,
+      source: raw.source === 'example' ? 'example' : 'api',
       entry: (raw.entry as string | undefined) ?? null,
       rule_element_count:
         typeof raw.rule_element_count === 'number'

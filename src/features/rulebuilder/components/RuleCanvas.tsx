@@ -15,13 +15,21 @@ import {
   type NodeMouseHandler,
   type NodeTypes,
   type ReactFlowInstance,
+  type Viewport,
 } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  RuleBuilderWorkspace,
+  RuleBuilderWorkspaceEdge,
+  RuleBuilderWorkspaceNode,
+  RuleBuilderWorkspacePayload,
+} from '@/features/rulebuilder/api';
+import {
   buildRuleTreeFromStart,
+  detectCyclesInRules,
   extractRulesFromCanvasNodes,
 } from '@/features/rulebuilder/buildTree';
 import { BuildTreeRequest, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
@@ -32,6 +40,10 @@ import RuleElementNode from './RuleElementNode';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
+const MIN_CANVAS_ZOOM = 0.05;
+const MAX_CANVAS_ZOOM = 1.5;
+const FIT_VIEW_PADDING = 0.2;
+const EXPORT_PIXEL_RATIO = 4;
 
 type DragPayload = {
   kind: 'rule-node-template';
@@ -67,6 +79,9 @@ type Props = {
   buildTreeRequest?: BuildTreeRequest | null;
   onTreeBuilt?: (result: BuiltTreeResult) => void;
   builtRuleEdgePhase?: 'idle' | 'connected' | 'complete';
+  workspaceToLoad?: RuleBuilderWorkspace | null;
+  onWorkspaceStateChange?: (workspace: RuleBuilderWorkspacePayload | null) => void;
+  completenessIssueNodeIds?: string[];
 };
 
 type BranchHandle = 'true' | 'false' | 'unknown';
@@ -114,6 +129,46 @@ function buildEdgeId(sourceId: string, handle: BranchHandle, targetId: string) {
   return `${sourceId}::${handle}::${targetId}`;
 }
 
+function sanitizeCanvasFileName(rawLabel: string) {
+  return (
+    [...rawLabel]
+      .filter((char) => {
+        const code = char.charCodeAt(0);
+        return !'<>:"/\\|?*'.includes(char) && (code < 0 || code > 31);
+      })
+      .join('')
+      .trim() || 'rulebuilder-canvas'
+  );
+}
+
+function cycleEdgeIdsFromRules(rules: RuleData[]) {
+  const cycleEdgeIds = new Set<string>();
+
+  for (const cycle of detectCyclesInRules(rules)) {
+    const closedCycle =
+      cycle.length > 0 && cycle[0] !== cycle[cycle.length - 1] ? [...cycle, cycle[0]] : cycle;
+
+    for (let index = 0; index < closedCycle.length - 1; index += 1) {
+      const sourceId = closedCycle[index];
+      const targetId = closedCycle[index + 1];
+      const sourceRule = rules.find((rule: RuleData) => rule.id === sourceId);
+      if (!sourceRule) continue;
+
+      if (sourceRule.true_path === targetId) {
+        cycleEdgeIds.add(buildEdgeId(sourceId, 'true', targetId));
+      }
+      if (sourceRule.false_path === targetId) {
+        cycleEdgeIds.add(buildEdgeId(sourceId, 'false', targetId));
+      }
+      if (sourceRule.unknown_path === targetId) {
+        cycleEdgeIds.add(buildEdgeId(sourceId, 'unknown', targetId));
+      }
+    }
+  }
+
+  return cycleEdgeIds;
+}
+
 function clearTargetReferences(rule: RuleData, targetId: string): RuleData {
   return {
     ...rule,
@@ -124,7 +179,7 @@ function clearTargetReferences(rule: RuleData, targetId: string): RuleData {
 }
 
 function allowsMultipleIncoming(rule: RuleData | undefined | null) {
-  return rule?.element_type === 'end';
+  return rule?.element_type === 'decision' || rule?.element_type === 'end';
 }
 
 function updateRuleBranch(rule: RuleData, branch: RuleBranch, targetId: string | null): RuleData {
@@ -176,6 +231,64 @@ function currentEdgeById(edges: Edge[], edgeId: string) {
   return edges.find((edge: Edge) => edge.id === edgeId) || null;
 }
 
+function serializeWorkspaceNodes(nodes: Node[]): RuleBuilderWorkspaceNode[] {
+  return nodes
+    .map((node: Node) => {
+      const rule = node.data?.rule as RuleData | undefined;
+      if (!rule) return null;
+
+      return {
+        canvas_node_id: node.id,
+        position: {
+          x: node.position.x,
+          y: node.position.y,
+        },
+        rule: {
+          ...rule,
+        },
+      };
+    })
+    .filter((node): node is RuleBuilderWorkspaceNode => Boolean(node));
+}
+
+function serializeWorkspaceEdges(edges: Edge[]): RuleBuilderWorkspaceEdge[] {
+  return edges.map((edge: Edge) => ({
+    id: edge.id,
+    source: edge.source,
+    source_handle: typeof edge.sourceHandle === 'string' ? edge.sourceHandle : null,
+    target: edge.target,
+    target_handle: typeof edge.targetHandle === 'string' ? edge.targetHandle : null,
+  }));
+}
+
+function buildWorkspacePayload(
+  nodes: Node[],
+  edges: Edge[],
+  viewport: Viewport,
+): RuleBuilderWorkspacePayload | null {
+  const workspaceNodes = serializeWorkspaceNodes(nodes);
+  const startNode = workspaceNodes.find(
+    (node: RuleBuilderWorkspaceNode) => node.rule.element_type === 'start',
+  );
+
+  if (!startNode) {
+    return null;
+  }
+
+  return {
+    name: (startNode.rule.label || startNode.rule.id || 'RuleBuilder workspace').trim(),
+    entry_node_id: startNode.rule.id,
+    entry_node_label: (startNode.rule.label || startNode.rule.id || 'RuleBuilder workspace').trim(),
+    viewport: {
+      x: viewport.x,
+      y: viewport.y,
+      zoom: viewport.zoom,
+    },
+    nodes: workspaceNodes,
+    edges: serializeWorkspaceEdges(edges),
+  };
+}
+
 function RuleCanvasInner({
   selectedNodeId,
   onSelectedNodeChange,
@@ -186,12 +299,16 @@ function RuleCanvasInner({
   buildTreeRequest,
   onTreeBuilt,
   builtRuleEdgePhase = 'idle',
+  workspaceToLoad,
+  onWorkspaceStateChange,
+  completenessIssueNodeIds = [],
 }: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastHandledDuplicateRequestId = useRef<number | null>(null);
   const lastHandledDeleteRequestId = useRef<number | null>(null);
   const lastHandledDeriveRequestId = useRef<number | null>(null);
   const lastHandledBuildTreeRequestId = useRef<number | null>(null);
+  const lastAppliedWorkspaceKey = useRef<string | null>(null);
 
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
@@ -203,6 +320,32 @@ function RuleCanvasInner({
     const node = nodes.find((item: Node) => item.id === selectedNodeId);
     return (node?.data?.rule as RuleData | undefined) || null;
   }, [nodes, selectedNodeId]);
+
+  const visualNodes = useMemo(() => {
+    const issueIds = new Set(completenessIssueNodeIds);
+
+    return nodes.map((node: Node) => {
+      const rule = node.data?.rule as RuleData | undefined;
+      if (!rule) return node;
+
+      const hasIncoming = edges.some((edge: Edge) => edge.target === node.id);
+      const hasOutgoing = edges.some((edge: Edge) => edge.source === node.id);
+      const isIsolated = !hasIncoming && !hasOutgoing;
+      const visualState = issueIds.has(node.id)
+        ? 'completeness-issue'
+        : isIsolated
+          ? 'dimmed'
+          : 'normal';
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          visualState,
+        },
+      };
+    });
+  }, [completenessIssueNodeIds, edges, nodes]);
 
   const entryNodeFileName = useMemo(() => {
     const startNode = nodes.find((node: Node) => {
@@ -216,17 +359,27 @@ function RuleCanvasInner({
       return 'rulebuilder-canvas';
     }
 
-    return rawLabel.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'rulebuilder-canvas';
+    return sanitizeCanvasFileName(rawLabel);
   }, [nodes]);
 
   const visualEdges = useMemo(() => {
     const visual = getEdgeVisualProps(builtRuleEdgePhase);
+    const cycleEdgeIds = cycleEdgeIdsFromRules(
+      extractRulesFromCanvasNodes(nodes as Array<{ id: string; data?: { rule?: RuleData } }>),
+    );
 
     return edges.map((edge: Edge) => ({
       ...edge,
       ...visual,
+      style: cycleEdgeIds.has(edge.id)
+        ? {
+            ...(visual.style || {}),
+            stroke: '#dc2626',
+            strokeWidth: 3,
+          }
+        : visual.style,
     }));
-  }, [edges, builtRuleEdgePhase]);
+  }, [edges, builtRuleEdgePhase, nodes]);
 
   const syncEdgesFromNodes = useCallback((nextNodes: Node[]) => {
     setEdges(buildEdgesFromNodes(nextNodes));
@@ -319,6 +472,10 @@ function RuleCanvasInner({
 
       const targetNode = nodes.find((node: Node) => node.id === targetId);
       const targetRule = (targetNode?.data?.rule as RuleData | undefined) || null;
+      if (targetRule?.element_type === 'start') {
+        window.alert('Start rule elements cannot receive incoming connections.');
+        return;
+      }
       const allowSharedIncoming = allowsMultipleIncoming(targetRule);
 
       setNodes((current: Node[]) => {
@@ -361,6 +518,17 @@ function RuleCanvasInner({
 
           return node;
         });
+
+        const nextRules = extractRulesFromCanvasNodes(
+          nextNodes as Array<{ id: string; data?: { rule?: RuleData } }>,
+        );
+        const cycleEdgeIds = cycleEdgeIdsFromRules(nextRules);
+        const attemptedEdgeId = buildEdgeId(sourceId, handle, targetId);
+
+        if (cycleEdgeIds.has(attemptedEdgeId)) {
+          window.alert('Connection blocked: this edge would create a loop in the rule graph.');
+          return current;
+        }
 
         syncEdgesFromNodes(nextNodes);
 
@@ -688,7 +856,7 @@ function RuleCanvasInner({
       setExportingImage(true);
       const dataUrl = await toPng(canvas, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: EXPORT_PIXEL_RATIO,
         backgroundColor: '#f9fafb',
       });
 
@@ -704,19 +872,95 @@ function RuleCanvasInner({
     }
   }, [entryNodeFileName]);
 
+  useEffect(() => {
+    if (!reactFlowInstance || !onWorkspaceStateChange) return;
+
+    onWorkspaceStateChange(buildWorkspacePayload(nodes, edges, reactFlowInstance.getViewport()));
+  }, [edges, nodes, onWorkspaceStateChange, reactFlowInstance]);
+
+  useEffect(() => {
+    if (!workspaceToLoad) return;
+    const workspaceKey = `${workspaceToLoad.id}:${workspaceToLoad.updated_at}`;
+    if (lastAppliedWorkspaceKey.current === workspaceKey) return;
+    lastAppliedWorkspaceKey.current = workspaceKey;
+
+    const nextNodes: Node[] = workspaceToLoad.nodes.map((node: RuleBuilderWorkspaceNode) => ({
+      id: node.canvas_node_id,
+      type: 'ruleElement',
+      position: {
+        x: node.position.x,
+        y: node.position.y,
+      },
+      data: {
+        label: node.rule.label || node.rule.id,
+        rule: {
+          ...node.rule,
+        },
+      },
+    }));
+
+    const nextEdges: Edge[] = workspaceToLoad.edges.map((edge: RuleBuilderWorkspaceEdge) => ({
+      id: edge.id,
+      source: edge.source,
+      sourceHandle: edge.source_handle ?? undefined,
+      target: edge.target,
+      targetHandle: edge.target_handle ?? undefined,
+      animated: false,
+      data:
+        edge.source_handle === 'true'
+          ? { branch: 'true_path' }
+          : edge.source_handle === 'false'
+            ? { branch: 'false_path' }
+            : edge.source_handle === 'unknown'
+              ? { branch: 'unknown_path' }
+              : undefined,
+    }));
+
+    setNodes(nextNodes);
+    setEdges(nextEdges);
+    onSelectedNodeChange(null, null);
+    onWorkspaceStateChange?.({
+      name: workspaceToLoad.name,
+      entry_node_id: workspaceToLoad.entry_node_id,
+      entry_node_label: workspaceToLoad.entry_node_label,
+      viewport: workspaceToLoad.viewport,
+      nodes: workspaceToLoad.nodes,
+      edges: workspaceToLoad.edges,
+    });
+
+    if (reactFlowInstance) {
+      requestAnimationFrame(() => {
+        void reactFlowInstance.setViewport(workspaceToLoad.viewport);
+      });
+    }
+  }, [onSelectedNodeChange, onWorkspaceStateChange, reactFlowInstance, workspaceToLoad]);
+
   return (
     <div ref={wrapperRef} className="h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
-        nodes={nodes}
+        nodes={visualNodes}
         edges={visualEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        minZoom={MIN_CANVAS_ZOOM}
+        maxZoom={MAX_CANVAS_ZOOM}
+        fitViewOptions={{
+          minZoom: MIN_CANVAS_ZOOM,
+          maxZoom: MAX_CANVAS_ZOOM,
+          padding: FIT_VIEW_PADDING,
+        }}
         onInit={setReactFlowInstance}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        onMoveEnd={() => {
+          if (!reactFlowInstance || !onWorkspaceStateChange) return;
+          onWorkspaceStateChange(
+            buildWorkspacePayload(nodes, edges, reactFlowInstance.getViewport()),
+          );
+        }}
         fitView
       >
         <Controls>

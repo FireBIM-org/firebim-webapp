@@ -1,3 +1,4 @@
+import { BookOpenIcon, PuzzlePieceIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import React from 'react';
@@ -183,6 +184,36 @@ export default function Dashboard() {
             <div className="ml-4">
               <h3 className="text-lg font-medium text-gray-900">Analyze Model</h3>
               <p className="mt-1 text-sm text-gray-500">Check IFC against IDS specifications</p>
+            </div>
+          </Link>
+
+          <Link href="/rulebuilder" className="flex items-center rounded-lg bg-white p-6 shadow">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-orange-100 text-orange-600">
+              <WrenchScrewdriverIcon className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-gray-900">Create Rules</h3>
+              <p className="mt-1 text-sm text-gray-500">Open RuleBuilder</p>
+            </div>
+          </Link>
+
+          <Link href="/rulebook" className="flex items-center rounded-lg bg-white p-6 shadow">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-orange-100 text-orange-600">
+              <BookOpenIcon className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-gray-900">Manage Rules</h3>
+              <p className="mt-1 text-sm text-gray-500">Open RuleBook</p>
+            </div>
+          </Link>
+
+          <Link href="/lexicon" className="flex items-center rounded-lg bg-white p-6 shadow">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-orange-100 text-orange-600">
+              <PuzzlePieceIcon className="h-6 w-6" />
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-gray-900">Manage Profiles</h3>
+              <p className="mt-1 text-sm text-gray-500">Open Lexicon</p>
             </div>
           </Link>
         </div>

@@ -23,6 +23,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
     { name: 'Analysis', href: '/analysis', requiresAuth: true },
     { name: 'RuleBuilder', href: '/rulebuilder', requiresAuth: true },
     { name: 'RuleBook', href: '/rulebook', requiresAuth: true },
+    { name: 'Lexicon', href: '/lexicon', requiresAuth: true },
   ];
 
   return (
@@ -35,7 +36,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </Head>
 
       <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           <div className="flex h-16 justify-between">
             <div className="flex">
               <div className="flex flex-shrink-0 items-center">
@@ -57,7 +58,14 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
                           : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                       } inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium`}
                     >
-                      {item.name}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span>{item.name}</span>
+                        {item.href === '/lexicon' && (
+                          <span className="rounded-full border border-yellow-300 bg-yellow-100 px-1.5 py-0.5 text-[9px] font-semibold text-yellow-800 uppercase">
+                            WIP
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   );
                 })}
@@ -90,11 +98,13 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
       </nav>
 
       <main className="flex-grow bg-gray-50 py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
+          {children}
+        </div>
       </main>
 
       <footer className="mt-auto border-t border-gray-200 bg-white pt-8 pb-3">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           <p className="text-center text-sm text-gray-500">
             &copy; {new Date().getFullYear()} FireBIM Organization. All rights reserved.
             <br />
