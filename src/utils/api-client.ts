@@ -218,6 +218,12 @@ export class ApiClient {
     });
     return response.data;
   }
+
+  // Lexicon endpoints
+  async deriveLexiconProfile(): Promise<components['schemas']['LexiconExecutionProfile']> {
+    const response = await this.axiosInstance.get('/api/proxy/lexicon/profiles/derive');
+    return response.data;
+  }
 }
 
 // Create and export singleton instance

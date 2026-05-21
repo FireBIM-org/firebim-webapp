@@ -19,6 +19,7 @@ vi.mock('./api-client', () => ({
   default: {
     uploadModel: vi.fn(),
     uploadModelData: vi.fn(),
+    deriveLexiconProfile: vi.fn(),
   },
 }));
 

@@ -6,6 +6,10 @@ import {
   extractRelationshipsOnDemand,
 } from '@ifc-lite/parser';
 
+import { components } from '../types/api';
+
+type LexiconExecutionProfile = components['schemas']['LexiconExecutionProfile'];
+
 export interface TransformedEntity {
   id: string;
   type: string;
@@ -38,24 +42,37 @@ export function transformIfcData(
   rawEntities: any[],
   rawProperties: any[],
   rawRelationships: any[],
+  profile?: LexiconExecutionProfile,
 ): TransformedPayload {
-  const entities = rawEntities.map((entity) => ({
-    id: entity.expressID.toString(),
-    type: entity.type,
-    globalId: entity.GlobalId?.value || '',
-    name: entity.Name?.value,
-    attributes: Object.entries(entity.attributes || {}).reduce(
-      (acc: any, [key, val]: [string, any]) => {
-        acc[key] = val?.value !== undefined ? val.value : val;
-        return acc;
-      },
-      {},
-    ),
-  }));
+  const targetClasses = profile?.target_classes?.map((c) => c.toLowerCase()) || [];
+  const propertyPaths = profile?.property_paths || [];
+  const relationPaths = profile?.relation_paths || [];
+
+  const entities = rawEntities
+    .filter((entity) => {
+      if (targetClasses.length === 0) return true;
+      return targetClasses.includes(entity.type.toLowerCase());
+    })
+    .map((entity) => ({
+      id: entity.expressID.toString(),
+      type: entity.type,
+      globalId: entity.GlobalId?.value || '',
+      name: entity.Name?.value,
+      attributes: Object.entries(entity.attributes || {}).reduce(
+        (acc: any, [key, val]: [string, any]) => {
+          acc[key] = val?.value !== undefined ? val.value : val;
+          return acc;
+        },
+        {},
+      ),
+    }));
 
   const properties: TransformedProperty[] = [];
   rawProperties.forEach((pset) => {
     pset.properties.forEach((prop: any) => {
+      if (propertyPaths.length > 0 && !propertyPaths.includes(prop.name)) {
+        return;
+      }
       properties.push({
         entity_id: pset.entityId.toString(),
         property_set_name: pset.psetName,
@@ -68,6 +85,9 @@ export function transformIfcData(
 
   const relationships: TransformedRelationship[] = [];
   rawRelationships.forEach((rel) => {
+    if (relationPaths.length > 0 && !relationPaths.includes(rel.type)) {
+      return;
+    }
     rel.relatedIds.forEach((relatedId: number) => {
       relationships.push({
         type: rel.type,
@@ -84,7 +104,10 @@ export function transformIfcData(
   };
 }
 
-export function extractAndTransform(store: IfcDataStore): TransformedPayload {
+export function extractAndTransform(
+  store: IfcDataStore,
+  profile?: LexiconExecutionProfile,
+): TransformedPayload {
   const entityIds = Array.from(store.entityIndex.byId.keys());
 
   const rawEntities = entityIds.map((id) => {
@@ -153,5 +176,5 @@ export function extractAndTransform(store: IfcDataStore): TransformedPayload {
     })
     .flat();
 
-  return transformIfcData(rawEntities, rawProperties, rawRelationships);
+  return transformIfcData(rawEntities, rawProperties, rawRelationships, profile);
 }

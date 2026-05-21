@@ -32,7 +32,16 @@ export async function handleIfcUpload(file: File, options: UploadOptions): Promi
 
     // 3. Transform and upload structured data
     onProgress?.(85);
-    const payload = extractAndTransform(store);
+
+    // Fetch Lexicon profile for filtering
+    let profile;
+    try {
+      profile = await apiClient.deriveLexiconProfile();
+    } catch (e) {
+      console.warn('Failed to fetch Lexicon profile, proceeding without filtering:', e);
+    }
+
+    const payload = extractAndTransform(store, profile);
     await apiClient.uploadModelData(model.id, payload);
 
     onProgress?.(100);
