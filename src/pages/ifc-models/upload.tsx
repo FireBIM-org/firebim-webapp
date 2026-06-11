@@ -1,22 +1,101 @@
+import { IfcTypeEnum } from '@ifc-lite/data';
 import { useRouter } from 'next/router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 
+import { listRules } from '@/features/rulebook/api';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { components } from '@/types/api';
+import { handleIfcUpload } from '@/utils/upload-manager';
+
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { useRequireAuth } from '../../hooks/useRequireAuth';
-import { handleIfcUpload } from '../../utils/upload-manager';
+import apiClient from '../../utils/api-client';
+
+type Profile = components['schemas']['LexiconProfileSummaryItem'] & {
+  target_classes?: string[];
+};
+
+const FULL_HIERARCHY_PROFILE: Profile = {
+  id: 'full-hierarchy',
+  name: 'Full Hierarchy',
+  description: 'Keep all IFC objects without filtering',
+  ontology_family: 'none',
+  country: 'none',
+  version: 'none',
+  target_count: 0,
+  property_requirement_count: 0,
+  target_classes: Object.values(IfcTypeEnum).map((c) => c.toString()),
+  updated_at: new Date().toISOString(),
+};
 
 export default function UploadModel() {
   const { user, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [profiles, setProfiles] = useState<Profile[]>([FULL_HIERARCHY_PROFILE]);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(FULL_HIERARCHY_PROFILE.id);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+
+  useEffect(() => {
+    async function deriveProfile() {
+      const rules = await listRules();
+      const ruleIds = rules.map((r) => r.rule_id);
+      if (ruleIds.length < 1) {
+        return null;
+      }
+
+      const response = await apiClient.deriveLexiconProfile({
+        ontology_family: 'fbo',
+        country: 'dk',
+        version: 'latest',
+        rule_ids: ruleIds,
+      });
+      return {
+        id: response.profile.rule_id,
+        name: 'Derived Profile from rules',
+        target_count: response.profile.target_classes?.length || 0,
+        property_requirement_count: response.profile.property_paths?.length || 0,
+        updated_at: new Date().toISOString(),
+        ontology_family: response.ontology_family,
+        country: response.country,
+        version: response.version,
+        ...response.profile,
+      } as Profile;
+    }
+    async function loadProfiles() {
+      try {
+        const response = await apiClient.getProfiles();
+        const items = response.profiles || [];
+        const derivedProfile = await deriveProfile();
+
+        const allProfiles = [FULL_HIERARCHY_PROFILE, ...items];
+        if (derivedProfile) {
+          allProfiles.push(derivedProfile);
+        }
+
+        setProfiles(allProfiles);
+        // 'full-hierarchy' is already the default state
+      } catch (error) {
+        console.error('Failed to load profiles:', error);
+        toast.error('Failed to load Lexicon profiles');
+      } finally {
+        setLoadingProfiles(false);
+      }
+    }
+    loadProfiles();
+  }, []);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) {
+        return;
+      }
+
+      if (!selectedProfileId && profiles.length > 0) {
+        toast.error('Please select a Lexicon profile');
         return;
       }
 
@@ -32,6 +111,9 @@ export default function UploadModel() {
       setUploadProgress(0);
 
       await handleIfcUpload(file, {
+        profileId: selectedProfileId,
+        profile:
+          selectedProfileId === FULL_HIERARCHY_PROFILE.id ? FULL_HIERARCHY_PROFILE : undefined,
         onProgress: (p) => setUploadProgress(p),
         onSuccess: () => {
           toast.success('Model uploaded and processed successfully!');
@@ -45,7 +127,7 @@ export default function UploadModel() {
 
       setIsUploading(false);
     },
-    [router],
+    [router, selectedProfileId, profiles],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -74,6 +156,35 @@ export default function UploadModel() {
       <div className="mt-5 md:mt-0">
         <div className="shadow sm:overflow-hidden sm:rounded-md">
           <div className="space-y-6 bg-white px-4 py-5 sm:p-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Lexicon Profile</label>
+              <select
+                id="profile"
+                name="profile"
+                className="mt-1 rounded-md border border-gray-300 px-3 py-2 text-base focus:border-orange-500 focus:ring-orange-500 focus:outline-none sm:text-sm"
+                value={selectedProfileId}
+                onChange={(e) => setSelectedProfileId(e.target.value)}
+                disabled={isUploading || loadingProfiles}
+              >
+                {loadingProfiles ? (
+                  <option key="loading">Loading profiles...</option>
+                ) : profiles.length === 0 ? (
+                  <option key="no found" value="">
+                    No profiles found
+                  </option>
+                ) : (
+                  profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))
+                )}
+              </select>
+              <p className="mt-2 text-xs text-gray-500">
+                Select a profile to filter and transform the IFC data
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700">IFC File</label>
               <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">

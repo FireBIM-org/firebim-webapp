@@ -17,6 +17,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.0.1
         version: 5.2.2(react-hook-form@7.76.0(react@19.2.6))
+      '@ifc-lite/data':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@ifc-lite/geometry':
         specifier: ^1.18.5
         version: 1.18.5
@@ -167,6 +170,9 @@ packages:
 
   '@ifc-lite/data@1.17.0':
     resolution: {integrity: sha512-ypDZHPko7UHuSQB7L8bEuYeVUE4VBriOKty4vxTZFrndnfpSbtuhuoLucBg8dNWqfyVycz3k2RYav+JnvtFN2A==}
+
+  '@ifc-lite/data@2.0.0':
+    resolution: {integrity: sha512-ZgCnit07avFUd1xxJZGq9eyQC2zlqbynZNhIw2Glm0/zmG0xcVS3SoAa2LbAoLOgH6E7RUAfyMirNFvt1mvfYw==}
 
   '@ifc-lite/encoding@1.14.6':
     resolution: {integrity: sha512-B3zTnUm8mQBa6kXNy7g2ad+WSvIChk8VVj87oFtmuMnipj6Kd9iwUGNVL3R/WEYhWgKSUkkXYTUvaDehI+eFqQ==}
@@ -1897,6 +1903,8 @@ snapshots:
       react-hook-form: 7.76.0(react@19.2.6)
 
   '@ifc-lite/data@1.17.0': {}
+
+  '@ifc-lite/data@2.0.0': {}
 
   '@ifc-lite/encoding@1.14.6': {}
 

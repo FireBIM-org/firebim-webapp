@@ -8,7 +8,7 @@ vi.mock('@ifc-lite/parser', () => ({
   extractAllEntityAttributes: vi.fn(),
   extractEntityAttributesOnDemand: vi.fn(),
   extractPropertiesOnDemand: vi.fn(),
-  extractRelationshipsOnDemand: vi.fn(),
+  extractQuantitiesOnDemand: vi.fn(),
 }));
 
 describe('ifc-transformer', () => {
@@ -64,31 +64,28 @@ describe('ifc-transformer', () => {
     });
   });
 
-  it('should transform relationships', () => {
-    const entities = [
-      { expressID: 1, type: 'IFCWALL', GlobalId: { value: 'G1' }, attributes: {} },
-      { expressID: 2, type: 'IFCSLAB', GlobalId: { value: 'G2' }, attributes: {} },
-    ];
-    const relationships = [
+  it('should transform quantities', () => {
+    const entities = [{ expressID: 1, type: 'IFCWALL', GlobalId: { value: 'G1' }, attributes: {} }];
+    const quantities = [
       {
-        type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-        relatingId: 10,
-        relatedIds: [1, 2],
+        entityId: 1,
+        name: 'Qto_WallBaseQuantities',
+        quantities: [
+          { name: 'Length', value: 5.5, type: 'length' },
+          { name: 'Height', value: 3.0, type: 'length' },
+        ],
       },
     ];
 
-    const result = transformIfcData(entities, [], relationships);
+    const result = transformIfcData(entities, [], quantities);
 
-    expect(result.relationships).toHaveLength(2);
-    expect(result.relationships[0]).toEqual({
-      type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-      relating_id: '10',
-      related_id: '1',
-    });
-    expect(result.relationships[1]).toEqual({
-      type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-      relating_id: '10',
-      related_id: '2',
+    expect(result.quantities).toHaveLength(2);
+    expect(result.quantities[0]).toEqual({
+      entity_id: '1',
+      quantity_set_name: 'Qto_WallBaseQuantities',
+      quantity_name: 'Length',
+      value: '5.5',
+      value_type: 'length',
     });
   });
 
@@ -135,12 +132,12 @@ describe('ifc-transformer', () => {
         properties: [{ name: 'IsExternal', value: true, type: 4 }],
       },
     ]);
-    vi.mocked(parser.extractRelationshipsOnDemand).mockReturnValue({
-      voids: [],
-      fills: [],
-      groups: [],
-      connections: [],
-    });
+    vi.mocked(parser.extractQuantitiesOnDemand).mockReturnValue([
+      {
+        name: 'Qto_WallBaseQuantities',
+        quantities: [{ name: 'Length', value: 5.5, type: 4 }],
+      },
+    ]);
 
     const result = extractAndTransform(mockStore);
 
@@ -189,16 +186,11 @@ describe('ifc-transformer', () => {
       },
     ];
 
-    const mockRelationships = [
+    const mockQuantities = [
       {
-        type: 'VoidsElement',
-        relatingId: 1,
-        relatedIds: [2],
-      },
-      {
-        type: 'FillsElement',
-        relatingId: 2,
-        relatedIds: [3],
+        entityId: 1,
+        name: 'Qto_WallBaseQuantities',
+        quantities: [{ name: 'Length', value: 5.5, type: 'length' }],
       },
     ];
 
@@ -229,25 +221,19 @@ describe('ifc-transformer', () => {
       });
     });
 
-    it('should filter relationships by relation_paths', () => {
-      const profile = {
-        relation_paths: ['VoidsElement'],
-      } as any;
+    it('should filter quantities by entity_id', () => {
+      const result = transformIfcData(mockEntities, [], mockQuantities);
 
-      const result = transformIfcData(mockEntities, [], mockRelationships, profile);
-
-      expect(result.relationships).toHaveLength(1);
-      expect(result.relationships[0].type).toBe('VoidsElement');
-      expect(result.relationships[0].relating_id).toBe('1');
-      expect(result.relationships[0].related_id).toBe('2');
+      expect(result.quantities).toHaveLength(1);
+      expect(result.quantities[0].quantity_name).toBe('Length');
     });
 
     it('should return all data if no profile is provided', () => {
-      const result = transformIfcData(mockEntities, mockProperties, mockRelationships);
+      const result = transformIfcData(mockEntities, mockProperties, mockQuantities);
 
       expect(result.entities).toHaveLength(3);
       expect(result.properties).toHaveLength(3);
-      expect(result.relationships).toHaveLength(2);
+      expect(result.quantities).toHaveLength(1);
     });
   });
 });

@@ -1,14 +1,9 @@
 import { IfcParser } from '@ifc-lite/parser';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { listRules } from '../features/rulebook/api';
 import apiClient from './api-client';
 import { extractAndTransform } from './ifc-transformer';
 import { handleIfcUpload } from './upload-manager';
-
-vi.mock('../features/rulebook/api', () => ({
-  listRules: vi.fn(),
-}));
 
 vi.mock('@ifc-lite/parser', () => {
   return {
@@ -25,6 +20,7 @@ vi.mock('./api-client', () => ({
     uploadModel: vi.fn(),
     uploadModelData: vi.fn(),
     deriveLexiconProfile: vi.fn(),
+    getProfile: vi.fn(),
   },
 }));
 
@@ -47,21 +43,23 @@ describe('handleIfcUpload', () => {
     const onProgress = vi.fn();
     const onSuccess = vi.fn();
 
-    vi.mocked(listRules).mockResolvedValue([{ rule_id: 'rule-1' }] as any);
-    vi.mocked(apiClient.deriveLexiconProfile).mockResolvedValue({
-      profile: { target_classes: [], property_paths: [], relation_paths: [] },
+    vi.mocked(apiClient.getProfile).mockResolvedValue({
+      profile_record: {
+        profile: { target_classes: [], property_paths: [], relation_paths: [] },
+      },
     } as any);
     vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-123' } as any);
     vi.mocked(apiClient.uploadModelData).mockResolvedValue({ message: 'ok' });
     vi.mocked(extractAndTransform).mockReturnValue({
       entities: [],
       properties: [],
-      relationships: [],
+      quantities: [],
     });
 
-    await handleIfcUpload(mockFile, { onProgress, onSuccess });
+    await handleIfcUpload(mockFile, { onProgress, onSuccess, profileId: 'profile-123' });
 
     expect(mockFile.arrayBuffer).toHaveBeenCalled();
+    expect(apiClient.getProfile).toHaveBeenCalledWith('profile-123');
     expect(apiClient.uploadModel).toHaveBeenCalledWith(mockFile);
     expect(extractAndTransform).toHaveBeenCalled();
     expect(apiClient.uploadModelData).toHaveBeenCalledWith('model-123', expect.anything());
@@ -93,19 +91,20 @@ describe('handleIfcUpload', () => {
       };
     });
 
-    vi.mocked(listRules).mockResolvedValue([{ rule_id: 'rule-1' }] as any);
-    vi.mocked(apiClient.deriveLexiconProfile).mockResolvedValue({
-      profile: { target_classes: [], property_paths: [], relation_paths: [] },
+    vi.mocked(apiClient.getProfile).mockResolvedValue({
+      profile_record: {
+        profile: { target_classes: [], property_paths: [], relation_paths: [] },
+      },
     } as any);
     vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-1' } as any);
     vi.mocked(apiClient.uploadModelData).mockResolvedValue({ message: 'ok' });
     vi.mocked(extractAndTransform).mockReturnValue({
       entities: [],
       properties: [],
-      relationships: [],
+      quantities: [],
     });
 
-    const uploadPromise = handleIfcUpload(mockFile, { onProgress });
+    const uploadPromise = handleIfcUpload(mockFile, { onProgress, profileId: 'profile-1' });
 
     // Wait a bit for the first progress call (10)
     await new Promise((r) => setTimeout(r, 0));
@@ -120,5 +119,22 @@ describe('handleIfcUpload', () => {
 
     await uploadPromise;
     expect(onProgress).toHaveBeenCalledWith(100);
+  });
+
+  it('should bypass filtering when profileId is full-hierarchy', async () => {
+    const onSuccess = vi.fn();
+    vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-full' } as any);
+    vi.mocked(apiClient.uploadModelData).mockResolvedValue({ message: 'ok' });
+    vi.mocked(extractAndTransform).mockReturnValue({
+      entities: [],
+      properties: [],
+      quantities: [],
+    });
+
+    await handleIfcUpload(mockFile, { onSuccess, profileId: 'full-hierarchy' });
+
+    expect(apiClient.getProfile).not.toHaveBeenCalled();
+    expect(extractAndTransform).toHaveBeenCalledWith(expect.anything(), undefined);
+    expect(onSuccess).toHaveBeenCalled();
   });
 });
