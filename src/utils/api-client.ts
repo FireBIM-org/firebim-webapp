@@ -60,6 +60,28 @@ export interface AsyncCheckResult {
   error?: string;
 }
 
+export interface IFCModelData {
+  entities: {
+    id: string;
+    type: string;
+    globalId: string;
+    name?: string;
+    attributes: Record<string, any>;
+  }[];
+  properties: {
+    entity_id: string;
+    property_set_name: string;
+    property_name: string;
+    value: string;
+    value_type: string;
+  }[];
+  relationships: {
+    type: string;
+    relating_id: string;
+    related_id: string;
+  }[];
+}
+
 // Module-level guard: prevents concurrent / repeated signIn() calls when
 // multiple in-flight requests all receive a 401 at the same time.
 let isSigningIn = false;
@@ -139,6 +161,11 @@ export class ApiClient {
     const response = await this.axiosInstance.get(`/api/proxy/ifc-models/${id}/download`, {
       responseType: 'blob',
     });
+    return response.data;
+  }
+
+  async uploadModelData(id: string, data: IFCModelData): Promise<{ message: string }> {
+    const response = await this.axiosInstance.post(`/api/proxy/ifc-models/${id}/sql-data`, data);
     return response.data;
   }
 

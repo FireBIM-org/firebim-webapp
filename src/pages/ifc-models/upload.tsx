@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
-import apiClient from '../../utils/api-client';
+import { handleIfcUpload } from '../../utils/upload-manager';
 
 export default function UploadModel() {
   const { user, isLoading: authLoading } = useRequireAuth();
@@ -31,16 +31,19 @@ export default function UploadModel() {
       setIsUploading(true);
       setUploadProgress(0);
 
-      try {
-        await apiClient.uploadModel(file);
-        toast.success('Model uploaded successfully!');
-        router.push('/ifc-models');
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast.error('Failed to upload model. Please try again.');
-      } finally {
-        setIsUploading(false);
-      }
+      await handleIfcUpload(file, {
+        onProgress: (p) => setUploadProgress(p),
+        onSuccess: () => {
+          toast.success('Model uploaded and processed successfully!');
+          router.push('/ifc-models');
+        },
+        onError: (error) => {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload model. Please try again.');
+        },
+      });
+
+      setIsUploading(false);
     },
     [router],
   );
