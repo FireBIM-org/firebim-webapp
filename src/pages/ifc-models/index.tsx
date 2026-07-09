@@ -1,7 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
 
+import ConfirmDialog from '../../components/ConfirmDialog';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
@@ -9,6 +12,8 @@ import apiClient, { type IFCModel } from '../../utils/api-client';
 
 export default function IfcModels() {
   const { user, isLoading: authLoading } = useRequireAuth();
+  const queryClient = useQueryClient();
+  const [modelToDelete, setModelToDelete] = useState<{ id: string; filename: string } | null>(null);
 
   // Fetch user's IFC models
   const { data: models, isLoading: modelsLoading } = useQuery({
@@ -16,6 +21,24 @@ export default function IfcModels() {
     queryFn: () => apiClient.getModels(),
     enabled: !!user,
   });
+
+  const deleteModelMutation = useMutation({
+    mutationFn: (id: string) => apiClient.deleteModel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['models'] });
+      toast.success('Model deleted successfully');
+      setModelToDelete(null);
+    },
+    onError: (error) => {
+      console.error('Delete model error:', error);
+      toast.error('Failed to delete model');
+      setModelToDelete(null);
+    },
+  });
+
+  const handleDelete = (id: string, filename: string) => {
+    setModelToDelete({ id, filename });
+  };
 
   if (authLoading || !user) {
     return (
@@ -104,7 +127,12 @@ export default function IfcModels() {
                               />
                             </div>
                             <div className="ml-4">
-                              <div className="font-medium text-gray-900">{model.filename}</div>
+                              <Link
+                                href={`/ifc-models/${model.id}`}
+                                className="font-medium text-orange-600 hover:text-orange-900"
+                              >
+                                {model.filename}
+                              </Link>
                               <div className="text-gray-500">ID: {model.id}</div>
                             </div>
                           </div>
@@ -116,22 +144,23 @@ export default function IfcModels() {
                           {model.size ? `${Math.round(model.size / 1024)} KB` : 'N/A'}
                         </td>
                         <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
-                          <Link
-                            href={`/ifc-models/${model.id}`}
-                            className="mr-4 text-orange-600 hover:text-orange-900"
-                          >
-                            View<span className="sr-only">, {model.filename}</span>
-                          </Link>
                           <a
                             href="#"
                             onClick={(e) => {
                               e.preventDefault();
                               apiClient.downloadModel(model.id);
                             }}
-                            className="text-orange-600 hover:text-orange-900"
+                            className="mr-4 text-orange-600 hover:text-orange-900"
                           >
                             Download<span className="sr-only">, {model.filename}</span>
                           </a>
+                          <button
+                            onClick={() => handleDelete(model.id, model.filename)}
+                            className="text-red-600 hover:text-red-900"
+                            disabled={deleteModelMutation.isPending}
+                          >
+                            Delete<span className="sr-only">, {model.filename}</span>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -142,6 +171,15 @@ export default function IfcModels() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!modelToDelete}
+        onClose={() => setModelToDelete(null)}
+        onConfirm={() => modelToDelete && deleteModelMutation.mutate(modelToDelete.id)}
+        title="Delete Model"
+        description={`Are you sure you want to delete "${modelToDelete?.filename}"? This action cannot be undone and all associated data will be removed.`}
+        isLoading={deleteModelMutation.isPending}
+      />
     </Layout>
   );
 }

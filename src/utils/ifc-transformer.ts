@@ -3,8 +3,12 @@ import {
   extractAllEntityAttributes,
   extractEntityAttributesOnDemand,
   extractPropertiesOnDemand,
-  extractRelationshipsOnDemand,
+  extractQuantitiesOnDemand,
 } from '@ifc-lite/parser';
+
+import { components } from '../types/api';
+
+type LexiconExecutionProfile = components['schemas']['LexiconExecutionProfile'];
 
 export interface TransformedEntity {
   id: string;
@@ -12,6 +16,8 @@ export interface TransformedEntity {
   globalId: string;
   name?: string;
   attributes: Record<string, any>;
+  parentId?: string;
+  path?: string;
 }
 
 export interface TransformedProperty {
@@ -22,40 +28,83 @@ export interface TransformedProperty {
   value_type: string;
 }
 
-export interface TransformedRelationship {
-  type: string;
-  relating_id: string;
-  related_id: string;
+export interface TransformedQuantity {
+  entity_id: string;
+  quantity_set_name: string;
+  quantity_name: string;
+  value: string;
+  value_type: string;
 }
 
 export interface TransformedPayload {
   entities: TransformedEntity[];
   properties: TransformedProperty[];
-  relationships: TransformedRelationship[];
+  quantities: TransformedQuantity[];
 }
 
 export function transformIfcData(
   rawEntities: any[],
   rawProperties: any[],
-  rawRelationships: any[],
+  rawQuantities: any[],
+  profile?: LexiconExecutionProfile,
 ): TransformedPayload {
-  const entities = rawEntities.map((entity) => ({
-    id: entity.expressID.toString(),
-    type: entity.type,
-    globalId: entity.GlobalId?.value || '',
-    name: entity.Name?.value,
-    attributes: Object.entries(entity.attributes || {}).reduce(
-      (acc: any, [key, val]: [string, any]) => {
-        acc[key] = val?.value !== undefined ? val.value : val;
-        return acc;
-      },
-      {},
-    ),
-  }));
+  const targetClasses =
+    profile?.target_classes?.map((c) => (c.includes('#') ? c.split('#')[1] : c).toLowerCase()) ||
+    [];
+  const propertyPaths =
+    profile?.property_paths?.map((p) => (p.includes('#') ? p.split('#')[1] : p).toLowerCase()) ||
+    [];
+
+  const filteredRawEntities = rawEntities.filter((entity) => {
+    if (targetClasses.length === 0) return true;
+    return targetClasses.includes(entity.type.toLowerCase());
+  });
+
+  const survivingIds = new Set(filteredRawEntities.map((e) => e.expressID));
+
+  const entities = filteredRawEntities.map((entity) => {
+    let parentId = entity.parentId?.toString();
+
+    if (entity.path && targetClasses.length > 0) {
+      const pathIds = entity.path.split('/');
+      let effectiveParentId = undefined;
+      for (let i = pathIds.length - 2; i >= 0; i--) {
+        const ancestorId = Number(pathIds[i]);
+        if (survivingIds.has(ancestorId)) {
+          effectiveParentId = ancestorId.toString();
+          break;
+        }
+      }
+      parentId = effectiveParentId;
+    }
+
+    return {
+      id: entity.expressID.toString(),
+      type: entity.type,
+      globalId: entity.GlobalId?.value || '',
+      name: entity.Name?.value,
+      attributes: Object.entries(entity.attributes || {}).reduce(
+        (acc: any, [key, val]: [string, any]) => {
+          acc[key] = val?.value !== undefined ? val.value : val;
+          return acc;
+        },
+        {},
+      ),
+      parentId,
+      path: entity.path,
+    };
+  });
+  const entityIds = entities.map((entity) => entity.id);
 
   const properties: TransformedProperty[] = [];
   rawProperties.forEach((pset) => {
     pset.properties.forEach((prop: any) => {
+      if (propertyPaths.length > 0 && !propertyPaths.includes(prop.name.toLowerCase())) {
+        return;
+      }
+      if (!entityIds.includes(pset.entityId.toString())) {
+        return;
+      }
       properties.push({
         entity_id: pset.entityId.toString(),
         property_set_name: pset.psetName,
@@ -66,13 +115,18 @@ export function transformIfcData(
     });
   });
 
-  const relationships: TransformedRelationship[] = [];
-  rawRelationships.forEach((rel) => {
-    rel.relatedIds.forEach((relatedId: number) => {
-      relationships.push({
-        type: rel.type,
-        relating_id: rel.relatingId.toString(),
-        related_id: relatedId.toString(),
+  const quantities: TransformedQuantity[] = [];
+  rawQuantities.forEach((qset) => {
+    (qset.quantities || []).forEach((quant: any) => {
+      if (!entityIds.includes(qset.entityId.toString())) {
+        return;
+      }
+      quantities.push({
+        entity_id: qset.entityId.toString(),
+        quantity_set_name: qset.name,
+        quantity_name: quant.name,
+        value: quant.value?.toString() || '',
+        value_type: quant.type,
       });
     });
   });
@@ -80,29 +134,74 @@ export function transformIfcData(
   return {
     entities,
     properties,
-    relationships,
+    quantities,
   };
 }
 
-export function extractAndTransform(store: IfcDataStore): TransformedPayload {
+export function extractAndTransform(
+  store: IfcDataStore,
+  profile?: LexiconExecutionProfile,
+): TransformedPayload {
   const entityIds = Array.from(store.entityIndex.byId.keys());
 
-  const rawEntities = entityIds.map((id) => {
-    const attrs = extractAllEntityAttributes(store, id);
-    const rootAttrs = extractEntityAttributesOnDemand(store, id);
-    const type = store.entityIndex.byId.get(id)?.type || 'UNKNOWN';
-
-    return {
-      expressID: id,
-      type,
-      GlobalId: { value: rootAttrs.globalId || '' },
-      Name: { value: rootAttrs.name },
-      attributes: attrs.reduce((acc, curr) => {
-        acc[curr.name] = { value: curr.value };
-        return acc;
-      }, {} as any),
+  // Build parentId map from spatial hierarchy
+  const parentIdMap = new Map<number, number>();
+  if (store.spatialHierarchy) {
+    const traverse = (node: any, parentId?: number) => {
+      if (parentId !== undefined) {
+        parentIdMap.set(node.expressId, parentId);
+      }
+      if (node.children) {
+        for (const child of node.children) {
+          traverse(child, node.expressId);
+        }
+      }
+      if (node.elements) {
+        for (const elementId of node.elements) {
+          parentIdMap.set(elementId, node.expressId);
+        }
+      }
     };
-  });
+    traverse(store.spatialHierarchy.project);
+  }
+
+  // Build pathMap using parentIdMap
+  const pathMap = new Map<number, string>();
+  const getPath = (id: number): string => {
+    if (pathMap.has(id)) return pathMap.get(id)!;
+    const parentId = parentIdMap.get(id);
+    const path = parentId !== undefined ? `${getPath(parentId)}/${id}` : `${id}`;
+    pathMap.set(id, path);
+    return path;
+  };
+
+  for (const id of entityIds) {
+    getPath(id);
+  }
+
+  const rawEntities = entityIds
+    .map((id) => {
+      const attrs = extractAllEntityAttributes(store, id);
+      const rootAttrs = extractEntityAttributesOnDemand(store, id);
+      const type = store.entityIndex.byId.get(id)?.type || 'UNKNOWN';
+
+      if (!rootAttrs.name && !rootAttrs.objectType) {
+        return undefined;
+      }
+      return {
+        expressID: id,
+        type,
+        GlobalId: { value: rootAttrs.globalId || '' },
+        Name: { value: rootAttrs.name },
+        attributes: attrs.reduce((acc, curr) => {
+          acc[curr.name] = { value: curr.value };
+          return acc;
+        }, {} as any),
+        parentId: parentIdMap.get(id),
+        path: pathMap.get(id),
+      };
+    })
+    .filter((_entity) => _entity);
 
   const rawProperties = entityIds
     .map((id) => {
@@ -121,37 +220,22 @@ export function extractAndTransform(store: IfcDataStore): TransformedPayload {
     .filter((p): p is any[] => p !== null)
     .flat();
 
-  const rawRelationships = entityIds
+  const rawQuantities = entityIds
     .map((id) => {
-      const rels = extractRelationshipsOnDemand(store, id);
-      const results = [];
-      if (rels.voids.length > 0)
-        results.push({
-          type: 'VoidsElement',
-          relatingId: id,
-          relatedIds: rels.voids.map((v) => v.id),
-        });
-      if (rels.fills.length > 0)
-        results.push({
-          type: 'FillsElement',
-          relatingId: id,
-          relatedIds: rels.fills.map((f) => f.id),
-        });
-      if (rels.groups.length > 0)
-        results.push({
-          type: 'AssignsToGroup',
-          relatingId: id,
-          relatedIds: rels.groups.map((g) => g.id),
-        });
-      if (rels.connections.length > 0)
-        results.push({
-          type: 'ConnectsPathElements',
-          relatingId: id,
-          relatedIds: rels.connections.map((c) => c.id),
-        });
-      return results;
+      const qsets = extractQuantitiesOnDemand(store, id);
+      if (qsets.length === 0) return null;
+      return qsets.map((qset) => ({
+        entityId: id,
+        name: qset.name,
+        quantities: qset.quantities.map((p) => ({
+          name: p.name,
+          value: p.value,
+          type: p.type.toString(),
+        })),
+      }));
     })
+    .filter((p): p is any[] => p !== null)
     .flat();
 
-  return transformIfcData(rawEntities, rawProperties, rawRelationships);
+  return transformIfcData(rawEntities, rawProperties, rawQuantities, profile);
 }

@@ -8,7 +8,7 @@ vi.mock('@ifc-lite/parser', () => ({
   extractAllEntityAttributes: vi.fn(),
   extractEntityAttributesOnDemand: vi.fn(),
   extractPropertiesOnDemand: vi.fn(),
-  extractRelationshipsOnDemand: vi.fn(),
+  extractQuantitiesOnDemand: vi.fn(),
 }));
 
 describe('ifc-transformer', () => {
@@ -64,31 +64,28 @@ describe('ifc-transformer', () => {
     });
   });
 
-  it('should transform relationships', () => {
-    const entities = [
-      { expressID: 1, type: 'IFCWALL', GlobalId: { value: 'G1' }, attributes: {} },
-      { expressID: 2, type: 'IFCSLAB', GlobalId: { value: 'G2' }, attributes: {} },
-    ];
-    const relationships = [
+  it('should transform quantities', () => {
+    const entities = [{ expressID: 1, type: 'IFCWALL', GlobalId: { value: 'G1' }, attributes: {} }];
+    const quantities = [
       {
-        type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-        relatingId: 10,
-        relatedIds: [1, 2],
+        entityId: 1,
+        name: 'Qto_WallBaseQuantities',
+        quantities: [
+          { name: 'Length', value: 5.5, type: 'length' },
+          { name: 'Height', value: 3.0, type: 'length' },
+        ],
       },
     ];
 
-    const result = transformIfcData(entities, [], relationships);
+    const result = transformIfcData(entities, [], quantities);
 
-    expect(result.relationships).toHaveLength(2);
-    expect(result.relationships[0]).toEqual({
-      type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-      relating_id: '10',
-      related_id: '1',
-    });
-    expect(result.relationships[1]).toEqual({
-      type: 'IFCRELCONTAINEDINSPATIALSTRUCTURE',
-      relating_id: '10',
-      related_id: '2',
+    expect(result.quantities).toHaveLength(2);
+    expect(result.quantities[0]).toEqual({
+      entity_id: '1',
+      quantity_set_name: 'Qto_WallBaseQuantities',
+      quantity_name: 'Length',
+      value: '5.5',
+      value_type: 'length',
     });
   });
 
@@ -135,12 +132,12 @@ describe('ifc-transformer', () => {
         properties: [{ name: 'IsExternal', value: true, type: 4 }],
       },
     ]);
-    vi.mocked(parser.extractRelationshipsOnDemand).mockReturnValue({
-      voids: [],
-      fills: [],
-      groups: [],
-      connections: [],
-    });
+    vi.mocked(parser.extractQuantitiesOnDemand).mockReturnValue([
+      {
+        name: 'Qto_WallBaseQuantities',
+        quantities: [{ name: 'Length', value: 5.5, type: 4 }],
+      },
+    ]);
 
     const result = extractAndTransform(mockStore);
 
@@ -149,5 +146,94 @@ describe('ifc-transformer', () => {
     expect(result.entities[0].globalId).toBe('G1');
     expect(result.properties).toHaveLength(1);
     expect(result.properties[0].property_set_name).toBe('Pset_WallCommon');
+  });
+
+  describe('filtering', () => {
+    const mockEntities = [
+      {
+        expressID: 1,
+        type: 'IfcWall',
+        GlobalId: { value: 'G1' },
+        attributes: { Name: { value: 'Wall 1' } },
+      },
+      {
+        expressID: 2,
+        type: 'IfcWindow',
+        GlobalId: { value: 'G2' },
+        attributes: { Name: { value: 'Window 1' } },
+      },
+      {
+        expressID: 3,
+        type: 'IfcDoor',
+        GlobalId: { value: 'G3' },
+        attributes: { Name: { value: 'Door 1' } },
+      },
+    ];
+
+    const mockProperties = [
+      {
+        entityId: 1,
+        psetName: 'Pset_WallCommon',
+        properties: [
+          { name: 'IsExternal', value: true, type: 'boolean' },
+          { name: 'LoadBearing', value: false, type: 'boolean' },
+        ],
+      },
+      {
+        entityId: 2,
+        psetName: 'Pset_WindowCommon',
+        properties: [{ name: 'IsExternal', value: true, type: 'boolean' }],
+      },
+    ];
+
+    const mockQuantities = [
+      {
+        entityId: 1,
+        name: 'Qto_WallBaseQuantities',
+        quantities: [{ name: 'Length', value: 5.5, type: 'length' }],
+      },
+    ];
+
+    it('should filter entities by target_classes (case-insensitive)', () => {
+      const profile = {
+        target_classes: ['IFCWALL', 'ifcwindow'],
+      } as any;
+
+      const result = transformIfcData(mockEntities, [], [], profile);
+
+      expect(result.entities).toHaveLength(2);
+      expect(result.entities.map((e) => e.type)).toContain('IfcWall');
+      expect(result.entities.map((e) => e.type)).toContain('IfcWindow');
+      expect(result.entities.map((e) => e.type)).not.toContain('IfcDoor');
+    });
+
+    it('should filter properties by property_paths', () => {
+      const profile = {
+        property_paths: ['IsExternal'],
+      } as any;
+
+      const result = transformIfcData(mockEntities, mockProperties, [], profile);
+
+      expect(result.properties).toHaveLength(2);
+      result.properties.forEach((p) => {
+        expect(p.property_name).toBe('IsExternal');
+        expect(p.property_name).not.toBe('LoadBearing');
+      });
+    });
+
+    it('should filter quantities by entity_id', () => {
+      const result = transformIfcData(mockEntities, [], mockQuantities);
+
+      expect(result.quantities).toHaveLength(1);
+      expect(result.quantities[0].quantity_name).toBe('Length');
+    });
+
+    it('should return all data if no profile is provided', () => {
+      const result = transformIfcData(mockEntities, mockProperties, mockQuantities);
+
+      expect(result.entities).toHaveLength(3);
+      expect(result.properties).toHaveLength(3);
+      expect(result.quantities).toHaveLength(1);
+    });
   });
 });
