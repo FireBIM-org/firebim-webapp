@@ -1,5 +1,5 @@
 import { ArrowPathIcon, ArrowUpTrayIcon, CubeTransparentIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 
 import type { BuildingGraphData } from '../types';
 
@@ -7,9 +7,22 @@ import {
   fetchStoredBuildingGraphRaw,
   listStoredBuildingGraphs,
   parseBuildingGraphTtl,
+  publishBuildingGraphJson,
 } from '../api';
 import { cloneDefaultOntologyCatalog } from '../ontologyCatalog';
 import { useRuleBookStore, type RuleBookStore } from '../store';
+
+async function readJsonUpload(file: File): Promise<unknown> {
+  if (!file.name.toLowerCase().endsWith('.json')) {
+    throw new Error('Only .json files can be uploaded.');
+  }
+
+  try {
+    return JSON.parse(await file.text()) as unknown;
+  } catch {
+    throw new Error('The selected file is not valid JSON.');
+  }
+}
 
 export function GraphToolbar() {
   const available_graphs = useRuleBookStore((state: RuleBookStore) => state.available_graphs);
@@ -32,6 +45,9 @@ export function GraphToolbar() {
   const setGraphError = useRuleBookStore((state: RuleBookStore) => state.setGraphError);
   const setExecutionStatus = useRuleBookStore((state: RuleBookStore) => state.setExecutionStatus);
   const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
+  const graphUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [graphUploading, setGraphUploading] = useState(false);
+  const [graphUploadMessage, setGraphUploadMessage] = useState<string | null>(null);
 
   const loadStoredGraphs = useCallback(async () => {
     setGraphLoading(true);
@@ -115,6 +131,33 @@ export function GraphToolbar() {
     }
   };
 
+  const handleUploadGraphJson = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    setGraphUploading(true);
+    setGraphLoading(true);
+    setGraphError(null);
+    setGraphUploadMessage(null);
+
+    try {
+      const json = await readJsonUpload(file);
+      const result = await publishBuildingGraphJson(json);
+
+      await loadStoredGraphs();
+      setSelectedGraphSource(result.graph_id);
+      setGraphUploadMessage(`Uploaded graph: ${result.graph_id}`);
+    } catch (error) {
+      setGraphUploadMessage(null);
+      setGraphError(error instanceof Error ? error.message : 'Graph upload failed');
+    } finally {
+      setGraphUploading(false);
+      setGraphLoading(false);
+    }
+  };
+
   return (
     <div className="border-b border-gray-200 bg-white px-4 py-3">
       <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
@@ -151,15 +194,40 @@ export function GraphToolbar() {
           {graph_loading ? 'Refreshing...' : 'Refresh graphs'}
         </button>
 
-        <button
-          type="button"
-          onClick={() => void handleLoadBuildingGraph()}
-          disabled={graph_loading || !selected_graph_source}
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <ArrowUpTrayIcon className="h-4 w-4" />
-          {graph_loading ? 'Loading...' : 'Load graph'}
-        </button>
+        <div className="flex shrink-0 flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => void handleLoadBuildingGraph()}
+            disabled={graph_loading || !selected_graph_source}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ArrowUpTrayIcon className="h-4 w-4" />
+            {graph_loading && !graphUploading ? 'Loading...' : 'Load graph'}
+          </button>
+
+          <input
+            ref={graphUploadInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={(event) => {
+              void handleUploadGraphJson(event);
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => graphUploadInputRef.current?.click()}
+            disabled={graph_loading || graphUploading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            title="Upload a graph JSON file"
+          >
+            <ArrowUpTrayIcon
+              className={['h-4 w-4', graphUploading ? 'animate-pulse' : ''].join(' ')}
+            />
+            {graphUploading ? 'Uploading...' : 'Upload graph JSON'}
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
@@ -180,6 +248,12 @@ export function GraphToolbar() {
 
         {graph_error ? (
           <div className="rounded-full bg-red-50 px-3 py-1 text-red-700">{graph_error}</div>
+        ) : null}
+
+        {graphUploadMessage ? (
+          <div className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+            {graphUploadMessage}
+          </div>
         ) : null}
       </div>
     </div>

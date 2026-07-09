@@ -21,6 +21,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/build-info': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Build Info */
+    get: operations['build_info_build_info_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/graphs/health': {
     parameters: {
       query?: never;
@@ -101,6 +118,1131 @@ export interface paths {
     put?: never;
     /** Extract Graph Schema */
     post: operations['extract_graph_schema_graphs_extract_schema_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Models
+     * @description Get all IFC models belonging to the current user.
+     */
+    get: operations['get_models_ifc_models_get'];
+    put?: never;
+    /**
+     * Upload Model
+     * @description Upload an IFC-STEP file, save to S3, and queue it for processing.
+     */
+    post: operations['upload_model_ifc_models_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Model
+     * @description Get metadata for an IFC model by its ID.
+     */
+    get: operations['get_model_ifc_models__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download Model
+     * @description Download an IFC-STEP file by its ID.
+     */
+    get: operations['download_model_ifc_models__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Ids Files
+     * @description Get all IDS files belonging to the current user.
+     */
+    get: operations['get_ids_files_ids_files_get'];
+    put?: never;
+    /**
+     * Upload Ids
+     * @description Upload an IDS file (XML-based) and save to S3.
+     */
+    post: operations['upload_ids_ids_files_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Ids
+     * @description Get metadata for an IDS file by its ID.
+     */
+    get: operations['get_ids_ids_files__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ids-files/{id}/download': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download Ids
+     * @description Download an IDS file by its ID.
+     */
+    get: operations['download_ids_ids_files__id__download_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lexicon Health */
+    get: operations['lexicon_health_lexicon_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/terms': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Catalog Terms */
+    get: operations['list_catalog_terms_lexicon_catalog__ontology_family___country___version__terms_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/terms/{term_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Catalog Term */
+    get: operations['get_catalog_term_lexicon_catalog__ontology_family___country___version__terms__term_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/resolve-terms': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Resolve Catalog Terms */
+    post: operations['resolve_catalog_terms_lexicon_catalog_resolve_terms_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/compare': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Compare Catalog Terms */
+    post: operations['compare_catalog_terms_lexicon_catalog_compare_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/similarity': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Score Catalog Similarity */
+    post: operations['score_catalog_similarity_lexicon_catalog_similarity_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/similarity-matrix': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Score Catalog Similarity Matrix */
+    post: operations['score_catalog_similarity_matrix_lexicon_catalog_similarity_matrix_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/rule-ontology-similarity': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Score Rule Ontology Similarity */
+    post: operations['score_rule_ontology_similarity_lexicon_catalog_rule_ontology_similarity_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/classes/{term_id}/properties': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Class Properties */
+    get: operations['list_class_properties_lexicon_catalog__ontology_family___country___version__classes__term_id__properties_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/classes/{term_id}/property-sets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Class Property Sets */
+    get: operations['list_class_property_sets_lexicon_catalog__ontology_family___country___version__classes__term_id__property_sets_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/classes/{term_id}/children': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Class Children */
+    get: operations['list_class_children_lexicon_catalog__ontology_family___country___version__classes__term_id__children_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/classes/{term_id}/parents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Class Parents */
+    get: operations['list_class_parents_lexicon_catalog__ontology_family___country___version__classes__term_id__parents_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/property-sets/{term_id}/properties': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Property Set Properties */
+    get: operations['list_property_set_properties_lexicon_catalog__ontology_family___country___version__property_sets__term_id__properties_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/properties/{term_id}/classes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Property Classes */
+    get: operations['list_property_classes_lexicon_catalog__ontology_family___country___version__properties__term_id__classes_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/properties/{term_id}/property-sets': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Property Property Sets */
+    get: operations['list_property_property_sets_lexicon_catalog__ontology_family___country___version__properties__term_id__property_sets_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/catalog/{ontology_family}/{country}/{version}/properties/{term_id}/related-properties': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Related Properties */
+    get: operations['list_related_properties_lexicon_catalog__ontology_family___country___version__properties__term_id__related_properties_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/graphs/evidence-summary': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Summarize Graph Evidence */
+    post: operations['summarize_graph_evidence_lexicon_graphs_evidence_summary_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/mappings/validate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Validate Mapping */
+    post: operations['validate_mapping_lexicon_mappings_validate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/mappings/evaluate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Evaluate Mapping */
+    post: operations['evaluate_mapping_lexicon_mappings_evaluate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/mappings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Mappings */
+    get: operations['list_mappings_lexicon_mappings_get'];
+    put?: never;
+    /** Create Mapping */
+    post: operations['create_mapping_lexicon_mappings_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/mappings/{mapping_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Mapping */
+    get: operations['get_mapping_lexicon_mappings__mapping_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Mapping */
+    delete: operations['delete_mapping_lexicon_mappings__mapping_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Handshake */
+    post: operations['create_handshake_lexicon_handshakes_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes/{handshake_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Handshake */
+    get: operations['get_handshake_lexicon_handshakes__handshake_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes/{handshake_id}/accept': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Accept Handshake Payload */
+    post: operations['accept_handshake_payload_lexicon_handshakes__handshake_id__accept_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes/{handshake_id}/next-needed': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Get Handshake Next Needed */
+    post: operations['get_handshake_next_needed_lexicon_handshakes__handshake_id__next_needed_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes/{handshake_id}/reconstruction': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reconstruct Handshake Graph */
+    post: operations['reconstruct_handshake_graph_lexicon_handshakes__handshake_id__reconstruction_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/handshakes/{handshake_id}/conformity': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Check Handshake Conformity */
+    post: operations['check_handshake_conformity_lexicon_handshakes__handshake_id__conformity_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/derive': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Derive Execution Profile */
+    post: operations['derive_execution_profile_lexicon_profiles_derive_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/summary': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Summarize Execution Profile */
+    post: operations['summarize_execution_profile_lexicon_profiles_summary_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Profiles */
+    get: operations['list_profiles_lexicon_profiles_get'];
+    put?: never;
+    /** Create Profile */
+    post: operations['create_profile_lexicon_profiles_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Profile */
+    get: operations['get_profile_lexicon_profiles__profile_id__get'];
+    /** Update Profile */
+    put: operations['update_profile_lexicon_profiles__profile_id__put'];
+    post?: never;
+    /** Delete Profile */
+    delete: operations['delete_profile_lexicon_profiles__profile_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/rules/coverage': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Profile Rules Coverage */
+    post: operations['profile_rules_coverage_lexicon_profiles__profile_id__rules_coverage_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/graph-coverage': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Profile Graph Coverage */
+    post: operations['profile_graph_coverage_lexicon_profiles__profile_id__graph_coverage_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/mappings/candidates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Profile Mapping Candidates */
+    get: operations['profile_mapping_candidates_lexicon_profiles__profile_id__mappings_candidates_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/reconstruction': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reconstruct Canonical Graph */
+    post: operations['reconstruct_canonical_graph_lexicon_reconstruction_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/conformity/check': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Check Lexicon Conformity */
+    post: operations['check_lexicon_conformity_lexicon_conformity_check_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/health': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ontologies Health */
+    get: operations['ontologies_health_ontologies_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Publish Ontology */
+    post: operations['publish_ontology_ontologies_publish_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/conversions/dictionary-json-to-ttl': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Convert Dictionary Json To Ttl */
+    post: operations['convert_dictionary_json_to_ttl_ontologies_conversions_dictionary_json_to_ttl_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Dictionary Candidates */
+    get: operations['list_dictionary_candidates_ontologies_candidates_dictionaries_get'];
+    put?: never;
+    /** Create Dictionary Candidate */
+    post: operations['create_dictionary_candidate_ontologies_candidates_dictionaries_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Dictionary Candidate */
+    get: operations['get_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__get'];
+    put?: never;
+    post?: never;
+    /** Delete Dictionary Candidate */
+    delete: operations['delete_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}/summary': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Dictionary Candidate Summary */
+    get: operations['get_dictionary_candidate_summary_ontologies_candidates_dictionaries__candidate_id__summary_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}/json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Download Dictionary Candidate Json */
+    get: operations['download_dictionary_candidate_json_ontologies_candidates_dictionaries__candidate_id__json_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}/validate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Validate Dictionary Candidate */
+    post: operations['validate_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__validate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}/convert': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Convert Dictionary Candidate */
+    post: operations['convert_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__convert_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/candidates/dictionaries/{candidate_id}/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Publish Dictionary Candidate */
+    post: operations['publish_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__publish_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions/{version}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fetch Ontology Version */
+    get: operations['fetch_ontology_version_ontologies__ontology_family___country__versions__version__get'];
+    put?: never;
+    post?: never;
+    /** Delete Ontology Version */
+    delete: operations['delete_ontology_version_ontologies__ontology_family___country__versions__version__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Ontology Summary */
+    get: operations['get_ontology_summary_ontologies__ontology_family___country__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Ontology Versions */
+    get: operations['list_ontology_versions_ontologies__ontology_family___country__versions_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions/latest': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fetch Latest Ontology Version */
+    get: operations['fetch_latest_ontology_version_ontologies__ontology_family___country__versions_latest_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions/stable': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fetch Stable Ontology Version */
+    get: operations['fetch_stable_ontology_version_ontologies__ontology_family___country__versions_stable_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions/{version}/summary': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fetch Ontology Version Summary */
+    get: operations['fetch_ontology_version_summary_ontologies__ontology_family___country__versions__version__summary_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/{ontology_family}/{country}/versions/{version}/ttl': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Fetch Ontology Ttl */
+    get: operations['fetch_ontology_ttl_ontologies__ontology_family___country__versions__version__ttl_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rulebuilder/workspaces': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Workspaces */
+    get: operations['list_workspaces_rulebuilder_workspaces_get'];
+    put?: never;
+    /** Create Workspace */
+    post: operations['create_workspace_rulebuilder_workspaces_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rulebuilder/rules/{rule_id}/workspace': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Workspace From Rule */
+    post: operations['create_workspace_from_rule_rulebuilder_rules__rule_id__workspace_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rulebuilder/workspaces/{workspace_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Workspace */
+    get: operations['get_workspace_rulebuilder_workspaces__workspace_id__get'];
+    /** Update Workspace */
+    put: operations['update_workspace_rulebuilder_workspaces__workspace_id__put'];
+    post?: never;
+    /** Delete Workspace */
+    delete: operations['delete_workspace_rulebuilder_workspaces__workspace_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rulebuilder/workspaces/delete-batch': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Delete Workspaces */
+    post: operations['delete_workspaces_rulebuilder_workspaces_delete_batch_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rulebuilder/workspaces/{workspace_id}/export-rule-elements': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Export Workspace Rule Elements */
+    post: operations['export_workspace_rule_elements_rulebuilder_workspaces__workspace_id__export_rule_elements_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -448,6 +1590,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/rules/{rule_id}/terms': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Rule Terms */
+    get: operations['get_rule_terms_rules__rule_id__terms_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/rules/terms/aggregate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Aggregate Rule Terms */
+    post: operations['aggregate_rule_terms_rules_terms_aggregate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/rules/{rule_id}/ttl': {
     parameters: {
       query?: never;
@@ -618,203 +1794,6 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/ifc-models': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Models
-     * @description Get all IFC models belonging to the current user.
-     */
-    get: operations['get_models_ifc_models_get'];
-    put?: never;
-    /**
-     * Upload Model
-     * @description Upload an IFC-STEP file, save to S3, and queue it for processing.
-     */
-    post: operations['upload_model_ifc_models_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ifc-models/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Model
-     * @description Get metadata for an IFC model by its ID.
-     */
-    get: operations['get_model_ifc_models__id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ifc-models/{id}/download': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Download Model
-     * @description Download an IFC-STEP file by its ID.
-     */
-    get: operations['download_model_ifc_models__id__download_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ids-files': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Ids Files
-     * @description Get all IDS files belonging to the current user.
-     */
-    get: operations['get_ids_files_ids_files_get'];
-    put?: never;
-    /**
-     * Upload Ids
-     * @description Upload an IDS file (XML-based) and save to S3.
-     */
-    post: operations['upload_ids_ids_files_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ids-files/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Ids
-     * @description Get metadata for an IDS file by its ID.
-     */
-    get: operations['get_ids_ids_files__id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ids-files/{id}/download': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Download Ids
-     * @description Download an IDS file by its ID.
-     */
-    get: operations['download_ids_ids_files__id__download_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/async/check-model-with-ids': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Async Check Model With Ids
-     * @description Asynchronously check a model against an IDS file.
-     *     Returns immediately with a task ID for polling the result.
-     *
-     *     This endpoint demonstrates the first requested pattern:
-     *     "Call that returns immediately with id for polling if result is ready. Task is sent to worker."
-     */
-    post: operations['async_check_model_with_ids_async_check_model_with_ids_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/async/check-result/{check_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Async Check Result
-     * @description Get the result of an asynchronous check operation by its ID.
-     *     This is the polling endpoint to check if a result is ready.
-     */
-    get: operations['get_async_check_result_async_check_result__check_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/ifc-models/{model_id}/check': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Sync Check Model With Ids
-     * @description Synchronously check a model against an IDS file.
-     *     Waits for the worker to complete and returns the result.
-     *
-     *     This endpoint demonstrates the second requested pattern:
-     *     "Call that waits for the worker to return with the result."
-     */
-    get: operations['sync_check_model_with_ids_ifc_models__model_id__check_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -882,7 +1861,9 @@ export interface components {
         [key: string]: number;
       };
       /** Debug */
-      debug?: Record<string, never>;
+      debug?: {
+        [key: string]: unknown;
+      };
     };
     /** BlindCheckTerminalOutput */
     BlindCheckTerminalOutput: {
@@ -900,19 +1881,24 @@ export interface components {
     };
     /** Body_upload_ids_ids_files_post */
     Body_upload_ids_ids_files_post: {
-      /**
-       * File
-       * Format: binary
-       */
+      /** File */
       file: string;
     };
     /** Body_upload_model_ifc_models_post */
     Body_upload_model_ifc_models_post: {
-      /**
-       * File
-       * Format: binary
-       */
+      /** File */
       file: string;
+    };
+    /** BuildInfo */
+    BuildInfo: {
+      /** Git Branch */
+      git_branch: string;
+      /** Git Commit */
+      git_commit: string;
+      /** Build Time */
+      build_time: string;
+      /** Environment */
+      environment: string;
     };
     /** CheckCompatibilityRequest */
     CheckCompatibilityRequest: {
@@ -996,30 +1982,50 @@ export interface components {
       end_node_targets?: components['schemas']['CheckEndNodeTargets'][];
       engine?: components['schemas']['CheckRunEngineInfo'];
       /** Compatibility */
-      compatibility?: Record<string, never>;
+      compatibility?: {
+        [key: string]: unknown;
+      };
       /** Report Text */
       report_text?: string | null;
       /** Debug */
-      debug?: Record<string, never>;
+      debug?: {
+        [key: string]: unknown;
+      };
       /** Compiled Rule */
-      compiled_rule?: Record<string, never>;
+      compiled_rule?: {
+        [key: string]: unknown;
+      };
       /** Targets */
       targets?: components['schemas']['CheckTargetResult'][];
       /** Trace */
-      trace?: Record<string, never>[];
+      trace?: {
+        [key: string]: unknown;
+      }[];
       timings?: components['schemas']['CheckDiagnosticTimingGroups'];
       /** Planner */
-      planner?: Record<string, never>;
+      planner?: {
+        [key: string]: unknown;
+      };
       /** Transition Inspections */
-      transition_inspections?: Record<string, never>[];
+      transition_inspections?: {
+        [key: string]: unknown;
+      }[];
       /** Node Inspections */
-      node_inspections?: Record<string, never>[];
+      node_inspections?: {
+        [key: string]: unknown;
+      }[];
       /** Terminal Failures */
-      terminal_failures?: Record<string, never>[];
+      terminal_failures?: {
+        [key: string]: unknown;
+      }[];
       /** Sequence Events */
-      sequence_events?: Record<string, never>[];
+      sequence_events?: {
+        [key: string]: unknown;
+      }[];
       /** Completed Chains */
-      completed_chains?: Record<string, never>[];
+      completed_chains?: {
+        [key: string]: unknown;
+      }[];
     };
     /** CheckDiagnosticTimingGroups */
     CheckDiagnosticTimingGroups: {
@@ -1044,7 +2050,9 @@ export interface components {
         [key: string]: number;
       };
       /** Per Completed Chain Ms */
-      per_completed_chain_ms?: Record<string, never>[];
+      per_completed_chain_ms?: {
+        [key: string]: unknown;
+      }[];
     };
     /** CheckEndNodeSummary */
     CheckEndNodeSummary: {
@@ -1266,11 +2274,15 @@ export interface components {
       end_node_targets?: components['schemas']['CheckEndNodeTargets'][];
       engine?: components['schemas']['CheckRunEngineInfo'];
       /** Compatibility */
-      compatibility?: Record<string, never>;
+      compatibility?: {
+        [key: string]: unknown;
+      };
       /** Report Text */
       report_text?: string | null;
       /** Debug */
-      debug?: Record<string, never>;
+      debug?: {
+        [key: string]: unknown;
+      };
     };
     /** CheckTargetResult */
     CheckTargetResult: {
@@ -1290,7 +2302,9 @@ export interface components {
       /** Trace */
       trace?: components['schemas']['CheckTargetTraceStep'][];
       /** Evidence */
-      evidence?: Record<string, never>;
+      evidence?: {
+        [key: string]: unknown;
+      };
     };
     /** CheckTargetTraceStep */
     CheckTargetTraceStep: {
@@ -1306,7 +2320,9 @@ export interface components {
       /** Next Node Id */
       next_node_id?: string | null;
       /** Evidence */
-      evidence?: Record<string, never>;
+      evidence?: {
+        [key: string]: unknown;
+      };
     };
     /** CompatibilityMatch */
     CompatibilityMatch: {
@@ -1490,10 +2506,1929 @@ export interface components {
       /** Detail */
       detail?: components['schemas']['ValidationError'][];
     };
+    /** LexiconAcceptedTarget */
+    LexiconAcceptedTarget: {
+      /** Target Class */
+      target_class: string;
+      /** Source Object Ref */
+      source_object_ref?: string | null;
+      /** Mapping Ids */
+      mapping_ids?: string[];
+      /** Property Paths */
+      property_paths?: string[];
+      /** Evidence */
+      evidence?: components['schemas']['LexiconEvidenceItem'][];
+    };
+    /** LexiconBranchReference */
+    LexiconBranchReference: {
+      /** Branch */
+      branch: string;
+      /** Target Node Id */
+      target_node_id?: string | null;
+    };
+    /** LexiconCatalogCompareRequest */
+    LexiconCatalogCompareRequest: {
+      left: components['schemas']['LexiconMappedTermReference'];
+      right: components['schemas']['LexiconMappedTermReference'];
+    };
+    /** LexiconCatalogCompareResponse */
+    LexiconCatalogCompareResponse: {
+      left_term: components['schemas']['LexiconCatalogTermSummary'];
+      right_term: components['schemas']['LexiconCatalogTermSummary'];
+      /** Left Kind */
+      left_kind: string;
+      /** Right Kind */
+      right_kind: string;
+      /** Same Kind */
+      same_kind: boolean;
+      /** Compatible For Mapping */
+      compatible_for_mapping: boolean;
+      /**
+       * Left Is Property Set
+       * @default false
+       */
+      left_is_property_set: boolean;
+      /**
+       * Right Is Property Set
+       * @default false
+       */
+      right_is_property_set: boolean;
+      /** Left Parent Term Ids */
+      left_parent_term_ids?: string[];
+      /** Right Parent Term Ids */
+      right_parent_term_ids?: string[];
+      /** Notes */
+      notes?: string[];
+    };
+    /** LexiconCatalogRelatedTermsResponse */
+    LexiconCatalogRelatedTermsResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Count */
+      count: number;
+      /** Terms */
+      terms?: components['schemas']['LexiconCatalogTermSummary'][];
+    };
+    /** LexiconCatalogResolveRequest */
+    LexiconCatalogResolveRequest: {
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Terms */
+      terms?: string[];
+      /**
+       * Limit Per Term
+       * @default 10
+       */
+      limit_per_term: number;
+    };
+    /** LexiconCatalogResolveResponse */
+    LexiconCatalogResolveResponse: {
+      /** Count */
+      count: number;
+      /** Results */
+      results?: components['schemas']['LexiconCatalogResolvedTerm'][];
+    };
+    /** LexiconCatalogResolvedMatch */
+    LexiconCatalogResolvedMatch: {
+      /** Input Term */
+      input_term: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Match Type */
+      match_type: string;
+      /** Score */
+      score: number;
+      term: components['schemas']['LexiconCatalogTermSummary'];
+    };
+    /** LexiconCatalogResolvedTerm */
+    LexiconCatalogResolvedTerm: {
+      /** Input Term */
+      input_term: string;
+      /** Count */
+      count: number;
+      /** Matches */
+      matches?: components['schemas']['LexiconCatalogResolvedMatch'][];
+    };
+    /** LexiconCatalogSimilarityMatrixCell */
+    LexiconCatalogSimilarityMatrixCell: {
+      /** Left Term Id */
+      left_term_id: string;
+      /** Right Term Id */
+      right_term_id: string;
+      /** Score */
+      score: number;
+    };
+    /** LexiconCatalogSimilarityMatrixRequest */
+    LexiconCatalogSimilarityMatrixRequest: {
+      /** Left Terms */
+      left_terms?: components['schemas']['LexiconMappedTermReference'][];
+      /** Right Terms */
+      right_terms?: components['schemas']['LexiconMappedTermReference'][];
+    };
+    /** LexiconCatalogSimilarityMatrixResponse */
+    LexiconCatalogSimilarityMatrixResponse: {
+      /** Left Count */
+      left_count: number;
+      /** Right Count */
+      right_count: number;
+      /** Cells */
+      cells?: components['schemas']['LexiconCatalogSimilarityMatrixCell'][];
+    };
+    /** LexiconCatalogSimilarityRequest */
+    LexiconCatalogSimilarityRequest: {
+      left: components['schemas']['LexiconMappedTermReference'];
+      right: components['schemas']['LexiconMappedTermReference'];
+    };
+    /** LexiconCatalogSimilarityResponse */
+    LexiconCatalogSimilarityResponse: {
+      left_term: components['schemas']['LexiconCatalogTermSummary'];
+      right_term: components['schemas']['LexiconCatalogTermSummary'];
+      /** Score */
+      score: number;
+      /** Components */
+      components?: components['schemas']['LexiconSimilarityComponentScore'][];
+      /** Notes */
+      notes?: string[];
+    };
+    /** LexiconCatalogTermDetail */
+    LexiconCatalogTermDetail: {
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri: string;
+      /** Kind */
+      kind: string;
+      /** Label */
+      label?: string | null;
+      /** Definition */
+      definition?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Parent Term Ids */
+      parent_term_ids?: string[];
+      /** Child Term Ids */
+      child_term_ids?: string[];
+      /** Property Term Ids */
+      property_term_ids?: string[];
+      /** Property Set Term Ids */
+      property_set_term_ids?: string[];
+      /** Belongs To Class Term Ids */
+      belongs_to_class_term_ids?: string[];
+      /** Related Property Term Ids */
+      related_property_term_ids?: string[];
+      /** Unit */
+      unit?: string | null;
+      /**
+       * Is Property Set
+       * @default false
+       */
+      is_property_set: boolean;
+      /**
+       * Is Predefined Type
+       * @default false
+       */
+      is_predefined_type: boolean;
+    };
+    /** LexiconCatalogTermResponse */
+    LexiconCatalogTermResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      term: components['schemas']['LexiconCatalogTermDetail'];
+    };
+    /** LexiconCatalogTermSummary */
+    LexiconCatalogTermSummary: {
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri: string;
+      /** Kind */
+      kind: string;
+      /** Label */
+      label?: string | null;
+      /** Definition */
+      definition?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Parent Term Ids */
+      parent_term_ids?: string[];
+      /**
+       * Is Predefined Type
+       * @default false
+       */
+      is_predefined_type: boolean;
+    };
+    /** LexiconCatalogTermsResponse */
+    LexiconCatalogTermsResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Count */
+      count: number;
+      /** Total Count */
+      total_count: number;
+      /** Next Cursor */
+      next_cursor?: string | null;
+      /** Terms */
+      terms?: components['schemas']['LexiconCatalogTermSummary'][];
+    };
+    /** LexiconConformityCheckRequest */
+    LexiconConformityCheckRequest: {
+      /**
+       * Ontology Family
+       * @default fbo
+       */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Ttl */
+      ttl: string;
+    };
+    /** LexiconConformityCheckResponse */
+    LexiconConformityCheckResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Ontology Uri */
+      ontology_uri?: string | null;
+      /** Version Iri */
+      version_iri?: string | null;
+      /** Triple Count */
+      triple_count: number;
+      /** Structure Ok */
+      structure_ok: boolean;
+      /** Semantic Ok */
+      semantic_ok: boolean;
+      /** Execution Ready */
+      execution_ready: boolean;
+      /** Conforms */
+      conforms: boolean;
+      /** Unknown Classes */
+      unknown_classes?: string[];
+      /** Unknown Properties */
+      unknown_properties?: string[];
+      /** Missing Type Subjects */
+      missing_type_subjects?: string[];
+      /**
+       * Profile Alignment Ok
+       * @default true
+       */
+      profile_alignment_ok: boolean;
+      /** Missing Profile Target Classes */
+      missing_profile_target_classes?: string[];
+      /** Missing Profile Properties */
+      missing_profile_properties?: components['schemas']['LexiconNeededProperty'][];
+      /** Issues */
+      issues?: components['schemas']['LexiconConformityIssue'][];
+    };
+    /** LexiconConformityIssue */
+    LexiconConformityIssue: {
+      /** Code */
+      code: string;
+      /** Message */
+      message: string;
+      /** Subject */
+      subject?: string | null;
+      /** Predicate */
+      predicate?: string | null;
+      /** Object */
+      object?: string | null;
+    };
+    /** LexiconEntityInput */
+    LexiconEntityInput: {
+      /** Entity Id */
+      entity_id: string;
+      /** Class Uri */
+      class_uri: string;
+      /** Additional Class Uris */
+      additional_class_uris?: string[];
+      /** Label */
+      label?: string | null;
+      /** Properties */
+      properties?: components['schemas']['LexiconEntityPropertyInput'][];
+      /** Relations */
+      relations?: components['schemas']['LexiconEntityRelationInput'][];
+    };
+    /** LexiconEntityPropertyInput */
+    LexiconEntityPropertyInput: {
+      /** Property Uri */
+      property_uri: string;
+      /** Value */
+      value: unknown;
+      /** Datatype Uri */
+      datatype_uri?: string | null;
+      /** Language */
+      language?: string | null;
+    };
+    /** LexiconEntityRelationInput */
+    LexiconEntityRelationInput: {
+      /** Predicate Uri */
+      predicate_uri: string;
+      /** Target Entity Id */
+      target_entity_id: string;
+    };
+    /** LexiconEvidenceItem */
+    LexiconEvidenceItem: {
+      /** Kind */
+      kind: string;
+      /** Source Object Ref */
+      source_object_ref?: string | null;
+      /** Term Id */
+      term_id?: string | null;
+      /** Property Set */
+      property_set?: string | null;
+      /** Property Code */
+      property_code?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** Notes */
+      notes?: string | null;
+    };
+    /** LexiconExecutionProfile */
+    LexiconExecutionProfile: {
+      /** Rule Id */
+      rule_id: string;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Entry Node Id */
+      entry_node_id?: string | null;
+      /** Node Count */
+      node_count: number;
+      /** Complete */
+      complete: boolean;
+      /** Open */
+      open: boolean;
+      /** Broken */
+      broken: boolean;
+      /** Target Classes */
+      target_classes?: string[];
+      /** Property Paths */
+      property_paths?: string[];
+      /** Relation Paths */
+      relation_paths?: string[];
+      /** Targets */
+      targets?: components['schemas']['LexiconExecutionTarget'][];
+      /** Nodes */
+      nodes?: components['schemas']['LexiconExecutionProfileNode'][];
+      /** Warnings */
+      warnings?: string[];
+    };
+    /** LexiconExecutionProfileNode */
+    LexiconExecutionProfileNode: {
+      /** Node Id */
+      node_id: string;
+      /** Element Type */
+      element_type?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Target Class */
+      target_class?: string | null;
+      /** Property Path */
+      property_path?: string | null;
+      /** Operator */
+      operator?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** Branches */
+      branches?: components['schemas']['LexiconBranchReference'][];
+    };
+    /** LexiconExecutionTarget */
+    LexiconExecutionTarget: {
+      /** Target Class */
+      target_class: string;
+      /** Node Ids */
+      node_ids?: string[];
+      /** Property Requirements */
+      property_requirements?: components['schemas']['LexiconPropertyRequirement'][];
+      /** Relation Requirements */
+      relation_requirements?: string[];
+    };
+    /** LexiconGraphEvidenceSubjectSummary */
+    LexiconGraphEvidenceSubjectSummary: {
+      /** Source Object Ref */
+      source_object_ref: string;
+      /** Class Term Ids */
+      class_term_ids?: string[];
+      /** Property Term Ids */
+      property_term_ids?: string[];
+      /** Property Set Term Ids */
+      property_set_term_ids?: string[];
+    };
+    /** LexiconGraphEvidenceSummaryRequest */
+    LexiconGraphEvidenceSummaryRequest: {
+      /** Graph Id */
+      graph_id: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+    };
+    /** LexiconGraphEvidenceSummaryResponse */
+    LexiconGraphEvidenceSummaryResponse: {
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Triple Count */
+      triple_count: number;
+      /** Object Count */
+      object_count: number;
+      /** Class Term Ids */
+      class_term_ids?: string[];
+      /** Property Term Ids */
+      property_term_ids?: string[];
+      /** Property Set Term Ids */
+      property_set_term_ids?: string[];
+      /** Subjects */
+      subjects?: components['schemas']['LexiconGraphEvidenceSubjectSummary'][];
+    };
+    /** LexiconHandshake */
+    LexiconHandshake: {
+      /** Id */
+      id: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      profile: components['schemas']['LexiconExecutionProfile'];
+      accepted_payload: components['schemas']['LexiconHandshakeAcceptedPayload'];
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+    };
+    /** LexiconHandshakeAcceptRequest */
+    LexiconHandshakeAcceptRequest: {
+      accepted_payload: components['schemas']['LexiconHandshakeAcceptedPayload'];
+    };
+    /** LexiconHandshakeAcceptedPayload */
+    LexiconHandshakeAcceptedPayload: {
+      /** Mapping Ids */
+      mapping_ids?: string[];
+      /** Targets */
+      targets?: components['schemas']['LexiconAcceptedTarget'][];
+    };
+    /** LexiconHandshakeConformityRequest */
+    LexiconHandshakeConformityRequest: {
+      /**
+       * Graph Id
+       * @default lexicon-handshake-conformity
+       */
+      graph_id: string;
+      /** Instance Base Uri */
+      instance_base_uri?: string | null;
+    };
+    /** LexiconHandshakeCreateRequest */
+    LexiconHandshakeCreateRequest: {
+      /**
+       * Ontology Family
+       * @default fbo
+       */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      /** Rule Id */
+      rule_id?: string | null;
+      rule?: components['schemas']['RuleDraft'] | null;
+      accepted_payload?: components['schemas']['LexiconHandshakeAcceptedPayload'];
+    };
+    /** LexiconHandshakeReconstructionRequest */
+    LexiconHandshakeReconstructionRequest: {
+      /**
+       * Graph Id
+       * @default lexicon-handshake-reconstruction
+       */
+      graph_id: string;
+      /** Instance Base Uri */
+      instance_base_uri?: string | null;
+    };
+    /** LexiconHandshakeResponse */
+    LexiconHandshakeResponse: {
+      handshake: components['schemas']['LexiconHandshake'];
+    };
+    /** LexiconHealthResponse */
+    LexiconHealthResponse: {
+      /** Status */
+      status: string;
+      /** Ontologies Connected */
+      ontologies_connected: boolean;
+    };
+    /** LexiconMappedTermReference */
+    LexiconMappedTermReference: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri?: string | null;
+    };
+    /** LexiconMapping */
+    LexiconMapping: {
+      /** Mapping Kind */
+      mapping_kind: string;
+      source_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      target_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      source_pattern?: components['schemas']['LexiconSourcePattern-Output'] | null;
+      /** Target Assertions */
+      target_assertions?: components['schemas']['LexiconTargetAssertion'][];
+      /** Relationship */
+      relationship?: string | null;
+      /** Name */
+      name: string;
+      /** Notes */
+      notes?: string | null;
+      /** Id */
+      id: string;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+    };
+    /** LexiconMappingCreateRequest */
+    LexiconMappingCreateRequest: {
+      /** Mapping Kind */
+      mapping_kind: string;
+      source_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      target_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      source_pattern?: components['schemas']['LexiconSourcePattern-Input'] | null;
+      /** Target Assertions */
+      target_assertions?: components['schemas']['LexiconTargetAssertion'][];
+      /** Relationship */
+      relationship?: string | null;
+      /** Name */
+      name?: string | null;
+      /** Notes */
+      notes?: string | null;
+    };
+    /** LexiconMappingDeleteResponse */
+    LexiconMappingDeleteResponse: {
+      /** Deleted */
+      deleted: boolean;
+      /** Mapping Id */
+      mapping_id: string;
+    };
+    /** LexiconMappingEvaluateRequest */
+    LexiconMappingEvaluateRequest: {
+      /** Graph Id */
+      graph_id: string;
+      /** Mapping Id */
+      mapping_id?: string | null;
+      mapping?: components['schemas']['LexiconMappingValidationRequest'] | null;
+    };
+    /** LexiconMappingEvaluateResponse */
+    LexiconMappingEvaluateResponse: {
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Mapping Kind */
+      mapping_kind: string;
+      /** Matched */
+      matched: boolean;
+      /** Matched Source Objects */
+      matched_source_objects?: string[];
+      /** Missing Conditions */
+      missing_conditions?: string[];
+      clause_evaluation?: components['schemas']['LexiconMappingEvaluationClauseResult'] | null;
+      /** Warnings */
+      warnings?: string[];
+    };
+    /** LexiconMappingEvaluationClauseResult */
+    LexiconMappingEvaluationClauseResult: {
+      /** Clause Type */
+      clause_type: string;
+      /** Matched */
+      matched: boolean;
+      /** Matched Source Objects */
+      matched_source_objects?: string[];
+      /** Missing Conditions */
+      missing_conditions?: string[];
+      /** Children */
+      children?: components['schemas']['LexiconMappingEvaluationClauseResult'][];
+    };
+    /** LexiconMappingListResponse */
+    LexiconMappingListResponse: {
+      /** Count */
+      count: number;
+      /** Mappings */
+      mappings?: components['schemas']['LexiconMappingSummary'][];
+    };
+    /** LexiconMappingResponse */
+    LexiconMappingResponse: {
+      mapping: components['schemas']['LexiconMapping'];
+    };
+    /** LexiconMappingSummary */
+    LexiconMappingSummary: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Mapping Kind */
+      mapping_kind: string;
+      /** Relationship */
+      relationship?: string | null;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      /** Source Term Count */
+      source_term_count: number;
+      /** Target Assertion Count */
+      target_assertion_count: number;
+    };
+    /** LexiconMappingValidationRequest */
+    LexiconMappingValidationRequest: {
+      /** Mapping Kind */
+      mapping_kind: string;
+      source_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      target_term?: components['schemas']['LexiconMappedTermReference'] | null;
+      source_pattern?: components['schemas']['LexiconSourcePattern-Input'] | null;
+      /** Target Assertions */
+      target_assertions?: components['schemas']['LexiconTargetAssertion'][];
+      /** Relationship */
+      relationship?: string | null;
+    };
+    /** LexiconMappingValidationResponse */
+    LexiconMappingValidationResponse: {
+      /** Valid */
+      valid: boolean;
+      /** Mapping Kind */
+      mapping_kind: string;
+      /** Source Kind */
+      source_kind?: string | null;
+      /** Target Kind */
+      target_kind?: string | null;
+      /** Compatible */
+      compatible: boolean;
+      /** Warnings */
+      warnings?: string[];
+      /** Errors */
+      errors?: string[];
+    };
+    /** LexiconNeededProperty */
+    LexiconNeededProperty: {
+      /** Target Class */
+      target_class: string;
+      /** Property Path */
+      property_path: string;
+      /** Node Ids */
+      node_ids?: string[];
+    };
+    /** LexiconNextNeededResponse */
+    LexiconNextNeededResponse: {
+      /** Handshake Id */
+      handshake_id: string;
+      /** Complete */
+      complete: boolean;
+      /** Remaining Target Classes */
+      remaining_target_classes?: string[];
+      /** Remaining Properties */
+      remaining_properties?: components['schemas']['LexiconNeededProperty'][];
+    };
+    /** LexiconProfileDeleteResponse */
+    LexiconProfileDeleteResponse: {
+      /** Deleted */
+      deleted: boolean;
+      /** Profile Id */
+      profile_id: string;
+    };
+    /** LexiconProfileDeriveRequest */
+    LexiconProfileDeriveRequest: {
+      /**
+       * Ontology Family
+       * @default fbo
+       */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      rule?: components['schemas']['RuleDraft'] | null;
+      /** Rules */
+      rules?: components['schemas']['RuleDraft'][];
+    };
+    /** LexiconProfileDeriveResponse */
+    LexiconProfileDeriveResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Rule Profiles */
+      rule_profiles?: components['schemas']['LexiconExecutionProfile'][];
+      profile: components['schemas']['LexiconExecutionProfile'];
+    };
+    /** LexiconProfileGraphAssociation */
+    LexiconProfileGraphAssociation: {
+      /** Source Object Ref */
+      source_object_ref: string;
+      /** Matched Target Classes */
+      matched_target_classes?: string[];
+      /** Matched Properties */
+      matched_properties?: string[];
+    };
+    /** LexiconProfileGraphCoverageRequest */
+    LexiconProfileGraphCoverageRequest: {
+      /** Graph Id */
+      graph_id: string;
+    };
+    /** LexiconProfileGraphCoverageResponse */
+    LexiconProfileGraphCoverageResponse: {
+      /** Profile Id */
+      profile_id: string;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Complete */
+      complete: boolean;
+      /** Covered Target Classes */
+      covered_target_classes?: string[];
+      /** Missing Target Classes */
+      missing_target_classes?: string[];
+      /** Covered Properties */
+      covered_properties?: components['schemas']['LexiconNeededProperty'][];
+      /** Missing Properties */
+      missing_properties?: components['schemas']['LexiconNeededProperty'][];
+      /** Associations */
+      associations?: components['schemas']['LexiconProfileGraphAssociation'][];
+    };
+    /** LexiconProfileListResponse */
+    LexiconProfileListResponse: {
+      /** Count */
+      count: number;
+      /** Profiles */
+      profiles?: components['schemas']['LexiconProfileSummaryItem'][];
+    };
+    /** LexiconProfileMappingCandidate */
+    LexiconProfileMappingCandidate: {
+      /** Mapping Id */
+      mapping_id: string;
+      /** Name */
+      name: string;
+      /** Mapping Kind */
+      mapping_kind: string;
+      /** Relevance */
+      relevance: string;
+      /** Matched Terms */
+      matched_terms?: string[];
+    };
+    /** LexiconProfileMappingCandidatesResponse */
+    LexiconProfileMappingCandidatesResponse: {
+      /** Profile Id */
+      profile_id: string;
+      /** Count */
+      count: number;
+      /** Mappings */
+      mappings?: components['schemas']['LexiconProfileMappingCandidate'][];
+    };
+    /** LexiconProfileResponse */
+    LexiconProfileResponse: {
+      profile_record: components['schemas']['LexiconStoredProfile'];
+    };
+    /** LexiconProfileRulesCoverageRequest */
+    LexiconProfileRulesCoverageRequest: {
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      rule?: components['schemas']['RuleDraft'] | null;
+      /** Rules */
+      rules?: components['schemas']['RuleDraft'][];
+    };
+    /** LexiconProfileRulesCoverageResponse */
+    LexiconProfileRulesCoverageResponse: {
+      /** Profile Id */
+      profile_id: string;
+      /** Checked Rule Ids */
+      checked_rule_ids?: string[];
+      /** Fully Supported Rule Ids */
+      fully_supported_rule_ids?: string[];
+      /** Partially Supported Rules */
+      partially_supported_rules?: components['schemas']['LexiconRuleCoverageItem'][];
+      /** Unsupported Rule Ids */
+      unsupported_rule_ids?: string[];
+    };
+    /** LexiconProfileSummaryItem */
+    LexiconProfileSummaryItem: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Keywords */
+      keywords?: string[];
+      /** Target Count */
+      target_count: number;
+      /** Property Requirement Count */
+      property_requirement_count: number;
+      /** Updated At */
+      updated_at: string;
+    };
+    /** LexiconProfileSummaryResponse */
+    LexiconProfileSummaryResponse: {
+      /** Rule Id */
+      rule_id: string;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      /** Entry Node Id */
+      entry_node_id?: string | null;
+      /** Node Count */
+      node_count: number;
+      /** Target Count */
+      target_count: number;
+      /** Property Requirement Count */
+      property_requirement_count: number;
+      /** Complete */
+      complete: boolean;
+      /** Open */
+      open: boolean;
+      /** Broken */
+      broken: boolean;
+      /** Publish Ready */
+      publish_ready: boolean;
+      /** Target Classes */
+      target_classes?: string[];
+      /** Property Paths */
+      property_paths?: string[];
+      /** Warnings */
+      warnings?: string[];
+    };
+    /** LexiconPropertyRequirement */
+    LexiconPropertyRequirement: {
+      /** Property Path */
+      property_path: string;
+      /** Node Ids */
+      node_ids?: string[];
+      /** Operators */
+      operators?: string[];
+      /** Sample Values */
+      sample_values?: string[];
+    };
+    /** LexiconReconstructionRequest */
+    LexiconReconstructionRequest: {
+      /**
+       * Ontology Family
+       * @default fbo
+       */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /**
+       * Graph Id
+       * @default lexicon-reconstruction
+       */
+      graph_id: string;
+      /** Instance Base Uri */
+      instance_base_uri?: string | null;
+      /** Entities */
+      entities?: components['schemas']['LexiconEntityInput'][];
+    };
+    /** LexiconReconstructionResponse */
+    LexiconReconstructionResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Graph Id */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Ontology Uri */
+      ontology_uri?: string | null;
+      /** Version Iri */
+      version_iri?: string | null;
+      /** Triple Count */
+      triple_count: number;
+      /** Ttl */
+      ttl: string;
+    };
+    /** LexiconRuleCoverageItem */
+    LexiconRuleCoverageItem: {
+      /** Rule Id */
+      rule_id: string;
+      /** Supported */
+      supported: boolean;
+      /** Complete */
+      complete: boolean;
+      /** Missing Target Classes */
+      missing_target_classes?: string[];
+      /** Missing Properties */
+      missing_properties?: components['schemas']['LexiconNeededProperty'][];
+    };
+    /** LexiconRuleOntologySimilarityRequest */
+    LexiconRuleOntologySimilarityRequest: {
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      rule?: components['schemas']['RuleDraft'] | null;
+      /** Rules */
+      rules?: components['schemas']['RuleDraft'][];
+      /**
+       * Limit Per Term
+       * @default 3
+       */
+      limit_per_term: number;
+      /**
+       * Compact Terms
+       * @default false
+       */
+      compact_terms: boolean;
+    };
+    /** LexiconRuleOntologySimilarityResponse */
+    LexiconRuleOntologySimilarityResponse: {
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Limit Per Term */
+      limit_per_term: number;
+      /**
+       * Compact Terms
+       * @default false
+       */
+      compact_terms: boolean;
+      /** Results */
+      results?: components['schemas']['LexiconRuleOntologySimilarityRuleResult'][];
+      /** Rule Ontology Summaries */
+      rule_ontology_summaries?: components['schemas']['LexiconRuleOntologySimilaritySummary'][];
+      stats: components['schemas']['LexiconRuleOntologySimilarityStats'];
+    };
+    /** LexiconRuleOntologySimilarityRuleResult */
+    LexiconRuleOntologySimilarityRuleResult: {
+      /** Rule Id */
+      rule_id: string;
+      /** Target Classes */
+      target_classes?: components['schemas']['LexiconRuleSimilarityTermResult'][];
+      /** Property Paths */
+      property_paths?: components['schemas']['LexiconRuleSimilarityTermResult'][];
+    };
+    /** LexiconRuleOntologySimilarityStats */
+    LexiconRuleOntologySimilarityStats: {
+      /** Rule Count */
+      rule_count: number;
+      /** Ontology Count */
+      ontology_count: number;
+      /** Total Target Classes */
+      total_target_classes: number;
+      /** Total Property Paths */
+      total_property_paths: number;
+      /** Total Source Terms */
+      total_source_terms: number;
+      /** Total Matches */
+      total_matches: number;
+      /** Rule Ontology Pairs */
+      rule_ontology_pairs: number;
+    };
+    /** LexiconRuleOntologySimilaritySummary */
+    LexiconRuleOntologySimilaritySummary: {
+      /** Rule Id */
+      rule_id: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Source Term Count */
+      source_term_count: number;
+      /** Matched Source Terms */
+      matched_source_terms: number;
+      /** Matched Target Classes */
+      matched_target_classes: number;
+      /** Matched Property Paths */
+      matched_property_paths: number;
+      /** Best Score */
+      best_score: number;
+      /** Average Top Score */
+      average_top_score: number;
+    };
+    /** LexiconRuleSimilarityMatch */
+    LexiconRuleSimilarityMatch: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri: string;
+      /** Kind */
+      kind: string;
+      /** Label */
+      label?: string | null;
+      /** Value */
+      value: string;
+      /** Full Iri */
+      full_iri: string;
+      /** Namespace */
+      namespace: string;
+      /** Local Name */
+      local_name: string;
+      /** Score */
+      score: number;
+      /** Notes */
+      notes?: string[];
+    };
+    /** LexiconRuleSimilaritySourceTerm */
+    LexiconRuleSimilaritySourceTerm: {
+      /** Term Kind */
+      term_kind: string;
+      /** Value */
+      value: string;
+      /** Full Iri */
+      full_iri: string;
+      /** Namespace */
+      namespace: string;
+      /** Local Name */
+      local_name: string;
+      /** Node Ids */
+      node_ids?: string[];
+    };
+    /** LexiconRuleSimilarityTermResult */
+    LexiconRuleSimilarityTermResult: {
+      source_term: components['schemas']['LexiconRuleSimilaritySourceTerm'];
+      /** Match Count */
+      match_count: number;
+      /** Matches */
+      matches?: components['schemas']['LexiconRuleSimilarityMatch'][];
+    };
+    /** LexiconSelectedOntology */
+    LexiconSelectedOntology: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri?: string | null;
+      /** Canonical Country Uri */
+      canonical_country_uri?: string | null;
+    };
+    /** LexiconSimilarityComponentScore */
+    LexiconSimilarityComponentScore: {
+      /** Name */
+      name: string;
+      /** Score */
+      score: number;
+      /** Note */
+      note?: string | null;
+    };
+    /** LexiconSourceEntityPattern */
+    LexiconSourceEntityPattern: {
+      /** All Of */
+      all_of?: components['schemas']['LexiconSourceTermCondition'][];
+      /** Any Of */
+      any_of?: components['schemas']['LexiconSourceTermCondition'][];
+    };
+    /** LexiconSourcePattern */
+    'LexiconSourcePattern-Input': {
+      /** All Of */
+      all_of?: components['schemas']['LexiconSourcePatternClause-Input'][];
+      /** Any Of */
+      any_of?: components['schemas']['LexiconSourcePatternClause-Input'][];
+    };
+    /** LexiconSourcePattern */
+    'LexiconSourcePattern-Output': {
+      /** All Of */
+      all_of?: components['schemas']['LexiconSourcePatternClause-Output'][];
+      /** Any Of */
+      any_of?: components['schemas']['LexiconSourcePatternClause-Output'][];
+    };
+    /** LexiconSourcePatternClause */
+    'LexiconSourcePatternClause-Input': {
+      term?: components['schemas']['LexiconSourceTermCondition'] | null;
+      entity?: components['schemas']['LexiconSourceEntityPattern'] | null;
+      /** All Of */
+      all_of?: components['schemas']['LexiconSourcePatternClause-Input'][];
+      /** Any Of */
+      any_of?: components['schemas']['LexiconSourcePatternClause-Input'][];
+    };
+    /** LexiconSourcePatternClause */
+    'LexiconSourcePatternClause-Output': {
+      term?: components['schemas']['LexiconSourceTermCondition'] | null;
+      entity?: components['schemas']['LexiconSourceEntityPattern'] | null;
+      /** All Of */
+      all_of?: components['schemas']['LexiconSourcePatternClause-Output'][];
+      /** Any Of */
+      any_of?: components['schemas']['LexiconSourcePatternClause-Output'][];
+    };
+    /** LexiconSourceTermCondition */
+    LexiconSourceTermCondition: {
+      /** Term Kind */
+      term_kind: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri?: string | null;
+    };
+    /** LexiconStoredProfile */
+    LexiconStoredProfile: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      canonical_target_ontology?: components['schemas']['LexiconSelectedOntology'] | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Keywords */
+      keywords?: string[];
+      profile: components['schemas']['LexiconExecutionProfile'];
+      /** Rule Profiles */
+      rule_profiles?: components['schemas']['LexiconExecutionProfile'][];
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+    };
+    /** LexiconTargetAssertion */
+    LexiconTargetAssertion: {
+      /** Assertion Kind */
+      assertion_kind: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default latest
+       */
+      version: string;
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** Datatype Uri */
+      datatype_uri?: string | null;
+      /** Language */
+      language?: string | null;
+    };
+    /** OntologyDeleteResponse */
+    OntologyDeleteResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Deleted */
+      deleted: boolean;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** OntologyDictionaryCandidate */
+    OntologyDictionaryCandidate: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Source Resource Filename */
+      source_resource_filename?: string | null;
+      /** Source Dictionary Name */
+      source_dictionary_name?: string | null;
+      /** Source Dictionary Code */
+      source_dictionary_code?: string | null;
+      /** Source Dictionary Version */
+      source_dictionary_version?: string | null;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      last_validation_report?: components['schemas']['OntologyDictionaryValidationReport'] | null;
+      /** Dictionary Json */
+      dictionary_json: {
+        [key: string]: unknown;
+      };
+    };
+    /** OntologyDictionaryCandidateCreateRequest */
+    OntologyDictionaryCandidateCreateRequest: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @description Release id in YYYY.MM or YYYY.MM.DD form
+       */
+      version: string;
+      /** Name */
+      name?: string | null;
+      /**
+       * Dictionary Json
+       * @description Inline candidate JSON payload to store before validation and conversion
+       */
+      dictionary_json?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Source Resource Filename
+       * @description Optional local JSON resource filename to load into the candidate
+       */
+      source_resource_filename?: string | null;
+    };
+    /** OntologyDictionaryCandidateListResponse */
+    OntologyDictionaryCandidateListResponse: {
+      /** Count */
+      count: number;
+      /** Candidates */
+      candidates?: components['schemas']['OntologyDictionaryCandidateSummary'][];
+    };
+    /** OntologyDictionaryCandidatePublishRequest */
+    OntologyDictionaryCandidatePublishRequest: {
+      /** @default draft */
+      status: components['schemas']['OntologyReleaseStatus'];
+      /**
+       * Issued At
+       * Format: date
+       */
+      issued_at: string;
+      /**
+       * Default Version
+       * @default false
+       */
+      default_version: boolean;
+      /**
+       * Output Resource Filename
+       * @description Optional TTL resource filename to save before publish
+       */
+      output_resource_filename?: string | null;
+    };
+    /** OntologyDictionaryCandidateResponse */
+    OntologyDictionaryCandidateResponse: {
+      candidate: components['schemas']['OntologyDictionaryCandidate'];
+    };
+    /** OntologyDictionaryCandidateSummary */
+    OntologyDictionaryCandidateSummary: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Source Resource Filename */
+      source_resource_filename?: string | null;
+      /** Source Dictionary Name */
+      source_dictionary_name?: string | null;
+      /** Source Dictionary Code */
+      source_dictionary_code?: string | null;
+      /** Source Dictionary Version */
+      source_dictionary_version?: string | null;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      last_validation_report?: components['schemas']['OntologyDictionaryValidationReport'] | null;
+    };
+    /** OntologyDictionaryCandidateSummaryResponse */
+    OntologyDictionaryCandidateSummaryResponse: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Source Dictionary Name */
+      source_dictionary_name?: string | null;
+      /** Source Dictionary Code */
+      source_dictionary_code?: string | null;
+      /** Source Dictionary Version */
+      source_dictionary_version?: string | null;
+      /** Class Count */
+      class_count?: number | null;
+      /** Subclass Count */
+      subclass_count?: number | null;
+      /** Property Count */
+      property_count?: number | null;
+      /** Datatype Property Count */
+      datatype_property_count?: number | null;
+      /** Object Property Count */
+      object_property_count?: number | null;
+      /** Class Property Link Count */
+      class_property_link_count?: number | null;
+      /** Valid */
+      valid?: boolean | null;
+      /** Completeness Ok */
+      completeness_ok?: boolean | null;
+      /** Ttl Form Ok */
+      ttl_form_ok?: boolean | null;
+      /** Publish Ready */
+      publish_ready: boolean;
+      /** Warnings */
+      warnings?: string[];
+    };
+    /** OntologyDictionaryConversionRequest */
+    OntologyDictionaryConversionRequest: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @description Release id in YYYY.MM or YYYY.MM.DD form
+       */
+      version: string;
+      /**
+       * Dictionary Json
+       * @description Inline bSDD or dictionary JSON payload to convert into ontology TTL
+       */
+      dictionary_json?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Source Resource Filename
+       * @description Optional local JSON resource filename, for example rir-1.0.json or ifc-4.3.json
+       */
+      source_resource_filename?: string | null;
+      /**
+       * Output Resource Filename
+       * @description Optional local TTL resource filename to save after conversion
+       */
+      output_resource_filename?: string | null;
+      /**
+       * Publish
+       * @default false
+       */
+      publish: boolean;
+      /** @default draft */
+      status: components['schemas']['OntologyReleaseStatus'];
+      /** Issued At */
+      issued_at?: string | null;
+      /**
+       * Default Version
+       * @default false
+       */
+      default_version: boolean;
+    };
+    /** OntologyDictionaryConversionResponse */
+    OntologyDictionaryConversionResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Source Dictionary Name */
+      source_dictionary_name?: string | null;
+      /** Source Dictionary Code */
+      source_dictionary_code?: string | null;
+      /** Source Dictionary Version */
+      source_dictionary_version?: string | null;
+      /** Source Resource Filename */
+      source_resource_filename?: string | null;
+      /** Output Resource Filename */
+      output_resource_filename?: string | null;
+      /** Ontology Uri */
+      ontology_uri: string;
+      /** Version Iri */
+      version_iri: string;
+      /** Class Count */
+      class_count: number;
+      /** Property Count */
+      property_count: number;
+      /** Datatype Property Count */
+      datatype_property_count: number;
+      /** Object Property Count */
+      object_property_count: number;
+      /**
+       * Subclass Count
+       * @default 0
+       */
+      subclass_count: number;
+      /**
+       * Class Property Link Count
+       * @default 0
+       */
+      class_property_link_count: number;
+      /** Ttl */
+      ttl: string;
+      validation_report?: components['schemas']['OntologyDictionaryValidationReport'] | null;
+      /**
+       * Published
+       * @default false
+       */
+      published: boolean;
+      publish_result?: components['schemas']['OntologyPublishResponse'] | null;
+    };
+    /** OntologyDictionaryFieldIssue */
+    OntologyDictionaryFieldIssue: {
+      /** Item Code */
+      item_code: string;
+      /** Missing Fields */
+      missing_fields?: string[];
+    };
+    /** OntologyDictionaryLinkIssue */
+    OntologyDictionaryLinkIssue: {
+      /** Class Code */
+      class_code: string;
+      /** Class Property Code */
+      class_property_code?: string | null;
+      /** Owned Uri */
+      owned_uri?: string | null;
+      /** Reason */
+      reason: string;
+      /** Candidate Property Codes */
+      candidate_property_codes?: string[];
+    };
+    /** OntologyDictionaryValidationReport */
+    OntologyDictionaryValidationReport: {
+      /** Valid */
+      valid: boolean;
+      /** Shape Ok */
+      shape_ok: boolean;
+      /** Completeness Ok */
+      completeness_ok: boolean;
+      /** Ttl Form Ok */
+      ttl_form_ok: boolean;
+      /** Source Dictionary Name */
+      source_dictionary_name?: string | null;
+      /** Source Dictionary Code */
+      source_dictionary_code?: string | null;
+      /** Source Dictionary Version */
+      source_dictionary_version?: string | null;
+      /** Class Count */
+      class_count: number;
+      /** Subclass Count */
+      subclass_count: number;
+      /** Property Count */
+      property_count: number;
+      /** Datatype Property Count */
+      datatype_property_count: number;
+      /** Object Property Count */
+      object_property_count: number;
+      /** Class Property Link Count */
+      class_property_link_count: number;
+      /** Resolved Links By Owned Uri */
+      resolved_links_by_owned_uri: number;
+      /** Resolved Links By Code */
+      resolved_links_by_code: number;
+      /** Resolved Links By Name */
+      resolved_links_by_name: number;
+      /** Unresolved Link Count */
+      unresolved_link_count: number;
+      /** Ambiguous Link Count */
+      ambiguous_link_count: number;
+      /** Classes Missing Required Fields */
+      classes_missing_required_fields?: components['schemas']['OntologyDictionaryFieldIssue'][];
+      /** Properties Missing Required Fields */
+      properties_missing_required_fields?: components['schemas']['OntologyDictionaryFieldIssue'][];
+      /** Unresolved Class Property Links */
+      unresolved_class_property_links?: components['schemas']['OntologyDictionaryLinkIssue'][];
+      /** Ambiguous Class Property Links */
+      ambiguous_class_property_links?: components['schemas']['OntologyDictionaryLinkIssue'][];
+      /** Ttl Has Ontology */
+      ttl_has_ontology: boolean;
+      /** Ttl Has Classes */
+      ttl_has_classes: boolean;
+      /** Ttl Has Properties */
+      ttl_has_properties: boolean;
+      /** Ttl Has Class Property Links */
+      ttl_has_class_property_links: boolean;
+      /** Issues */
+      issues?: string[];
+    };
+    /** OntologyHealthResponse */
+    OntologyHealthResponse: {
+      /** Status */
+      status: string;
+      /** Storage Connected */
+      storage_connected: boolean;
+      /** Dataset */
+      dataset: string;
+      /** Storage Backend */
+      storage_backend?: string | null;
+      /** Storage Host */
+      storage_host?: string | null;
+      /** Resource Directories */
+      resource_directories?: string[];
+    };
+    /** OntologyPublishRequest */
+    OntologyPublishRequest: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @description Release id in YYYY.MM or YYYY.MM.DD form
+       */
+      version: string;
+      status: components['schemas']['OntologyReleaseStatus'];
+      /**
+       * Issued At
+       * Format: date
+       */
+      issued_at: string;
+      /**
+       * Ttl
+       * @description Ontology Turtle payload
+       */
+      ttl?: string | null;
+      /**
+       * Resource Filename
+       * @description Optional local resource filename, for example fbo-dk.ttl
+       */
+      resource_filename?: string | null;
+      /**
+       * Default Version
+       * @default false
+       */
+      default_version: boolean;
+    };
+    /** OntologyPublishResponse */
+    OntologyPublishResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Published */
+      published: boolean;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      status: components['schemas']['OntologyReleaseStatus'];
+      /** Graph Uri */
+      graph_uri: string;
+      /** Ontology Uri */
+      ontology_uri?: string | null;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Default Version */
+      default_version: string;
+      /** Overwritten */
+      overwritten: boolean;
+      /** Triple Count */
+      triple_count: number;
+      /** Byte Size */
+      byte_size: number;
+      /** Resource Filename */
+      resource_filename?: string | null;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /**
+     * OntologyReleaseStatus
+     * @enum {string}
+     */
+    OntologyReleaseStatus: 'draft' | 'candidate' | 'stable' | 'deprecated' | 'withdrawn';
+    /** OntologySummaryResponse */
+    OntologySummaryResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Latest Version */
+      latest_version?: string | null;
+      /** Latest Stable Version */
+      latest_stable_version?: string | null;
+      /** Default Version */
+      default_version?: string | null;
+      /** Available Versions Url */
+      available_versions_url: string;
+      /** Latest Url */
+      latest_url: string;
+      /** Stable Url */
+      stable_url: string;
+    };
+    /** OntologyVersionFetchResponse */
+    OntologyVersionFetchResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      version: components['schemas']['OntologyVersionMetadata'];
+      /** Ttl */
+      ttl: string;
+    };
+    /** OntologyVersionListResponse */
+    OntologyVersionListResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Canonical Family Uri */
+      canonical_family_uri: string;
+      /** Canonical Country Uri */
+      canonical_country_uri: string;
+      /** Versions */
+      versions?: components['schemas']['OntologyVersionMetadata'][];
+    };
+    /** OntologyVersionMetadata */
+    OntologyVersionMetadata: {
+      /** Version */
+      version: string;
+      status: components['schemas']['OntologyReleaseStatus'];
+      /**
+       * Issued At
+       * Format: date
+       */
+      issued_at: string;
+      /**
+       * Is Latest
+       * @default false
+       */
+      is_latest: boolean;
+      /**
+       * Is Stable
+       * @default false
+       */
+      is_stable: boolean;
+      /**
+       * Is Default
+       * @default false
+       */
+      is_default: boolean;
+      /** Url */
+      url: string;
+      /** Ttl Url */
+      ttl_url: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Ontology Uri */
+      ontology_uri?: string | null;
+      /** Version Iri */
+      version_iri?: string | null;
+      /** Label */
+      label?: string | null;
+      /** Description */
+      description?: string | null;
+      /** Triple Count */
+      triple_count: number;
+      /**
+       * Class Count
+       * @default 0
+       */
+      class_count: number;
+      /**
+       * Property Count
+       * @default 0
+       */
+      property_count: number;
+      /**
+       * Property Set Count
+       * @default 0
+       */
+      property_set_count: number;
+      /**
+       * Subclass Count
+       * @default 0
+       */
+      subclass_count: number;
+      /**
+       * Class Property Link Count
+       * @default 0
+       */
+      class_property_link_count: number;
+      /** Byte Size */
+      byte_size: number;
+      /** Sha256 */
+      sha256: string;
+      /** Imports */
+      imports?: string[];
+      /** Resource Filename */
+      resource_filename?: string | null;
+      /**
+       * Published At
+       * Format: date-time
+       */
+      published_at: string;
+    };
+    /** OntologyVersionSummaryResponse */
+    OntologyVersionSummaryResponse: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Ontology Uri */
+      ontology_uri?: string | null;
+      /** Version Iri */
+      version_iri?: string | null;
+      /** Title */
+      title: string;
+      /** Description */
+      description?: string | null;
+      status: components['schemas']['OntologyReleaseStatus'];
+      /** Class Count */
+      class_count: number;
+      /** Property Count */
+      property_count: number;
+      /** Property Set Count */
+      property_set_count: number;
+      /** Subclass Count */
+      subclass_count: number;
+      /** Class Property Link Count */
+      class_property_link_count: number;
+      /** Publish Ready */
+      publish_ready: boolean;
+      /** Warnings */
+      warnings?: string[];
+    };
     /** RuleAssembleCompileResponse */
     RuleAssembleCompileResponse: {
       /** Rule */
-      rule?: Record<string, never> | null;
+      rule?: {
+        [key: string]: unknown;
+      } | null;
       /** Rule Id */
       rule_id: string;
       /**
@@ -1557,7 +4492,9 @@ export interface components {
     /** RuleAssembleResponse */
     RuleAssembleResponse: {
       /** Rule */
-      rule?: Record<string, never> | null;
+      rule?: {
+        [key: string]: unknown;
+      } | null;
       /**
        * Element Count
        * @default 0
@@ -1591,7 +4528,9 @@ export interface components {
       /** Missing Nodes */
       missing_nodes?: string[];
       /** Open Branches */
-      open_branches?: Record<string, never>[];
+      open_branches?: {
+        [key: string]: unknown;
+      }[];
       /** Errors */
       errors?: string[];
       /**
@@ -1608,6 +4547,199 @@ export interface components {
        * @default false
        */
       fallback: boolean;
+    };
+    /** RuleBuilderBulkSavedElement */
+    RuleBuilderBulkSavedElement: {
+      /** Source Id */
+      source_id: string;
+      /** Element Id */
+      element_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+    };
+    /** RuleBuilderCanvasEdge */
+    RuleBuilderCanvasEdge: {
+      /** Id */
+      id?: string | null;
+      /** Source */
+      source: string;
+      /** Source Handle */
+      source_handle?: string | null;
+      /** Target */
+      target: string;
+      /** Target Handle */
+      target_handle?: string | null;
+    };
+    /** RuleBuilderCanvasNode */
+    RuleBuilderCanvasNode: {
+      /** Canvas Node Id */
+      canvas_node_id: string;
+      position: components['schemas']['RuleBuilderCanvasPosition'];
+      rule: components['schemas']['RuleElementPayload'];
+    };
+    /** RuleBuilderCanvasPosition */
+    RuleBuilderCanvasPosition: {
+      /** X */
+      x: number;
+      /** Y */
+      y: number;
+    };
+    /** RuleBuilderExportRuleElementsResponse */
+    RuleBuilderExportRuleElementsResponse: {
+      /**
+       * Saved
+       * @default true
+       */
+      saved: boolean;
+      /** Workspace Id */
+      workspace_id: string;
+      /** Group Id */
+      group_id: string;
+      /** Group Name */
+      group_name: string;
+      /** Entry Node Id */
+      entry_node_id: string;
+      /** Entry Node Label */
+      entry_node_label?: string | null;
+      /**
+       * Created Count
+       * @default 0
+       */
+      created_count: number;
+      /** Elements */
+      elements?: components['schemas']['RuleBuilderBulkSavedElement'][];
+      /** Duplicate Rule Element Ids */
+      duplicate_rule_element_ids?: string[];
+    };
+    /** RuleBuilderViewport */
+    RuleBuilderViewport: {
+      /** X */
+      x: number;
+      /** Y */
+      y: number;
+      /** Zoom */
+      zoom: number;
+    };
+    /** RuleBuilderWorkspace */
+    RuleBuilderWorkspace: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Entry Node Id */
+      entry_node_id: string;
+      /** Entry Node Label */
+      entry_node_label?: string | null;
+      viewport: components['schemas']['RuleBuilderViewport'];
+      /** Nodes */
+      nodes?: components['schemas']['RuleBuilderCanvasNode'][];
+      /** Edges */
+      edges?: components['schemas']['RuleBuilderCanvasEdge'][];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** RuleBuilderWorkspaceBatchDeleteRequest */
+    RuleBuilderWorkspaceBatchDeleteRequest: {
+      /** Workspace Ids */
+      workspace_ids?: string[];
+    };
+    /** RuleBuilderWorkspaceBatchDeleteResponse */
+    RuleBuilderWorkspaceBatchDeleteResponse: {
+      /** Deleted Ids */
+      deleted_ids?: string[];
+      /** Not Found Ids */
+      not_found_ids?: string[];
+    };
+    /** RuleBuilderWorkspaceCreateRequest */
+    RuleBuilderWorkspaceCreateRequest: {
+      /** Name */
+      name?: string | null;
+      /** Entry Node Id */
+      entry_node_id: string;
+      /** Entry Node Label */
+      entry_node_label?: string | null;
+      viewport: components['schemas']['RuleBuilderViewport'];
+      /** Nodes */
+      nodes?: components['schemas']['RuleBuilderCanvasNode'][];
+      /** Edges */
+      edges?: components['schemas']['RuleBuilderCanvasEdge'][];
+    };
+    /** RuleBuilderWorkspaceDeleteResponse */
+    RuleBuilderWorkspaceDeleteResponse: {
+      /** Deleted */
+      deleted: boolean;
+      /** Workspace Id */
+      workspace_id: string;
+    };
+    /** RuleBuilderWorkspaceFromRuleRequest */
+    RuleBuilderWorkspaceFromRuleRequest: {
+      /** Name */
+      name?: string | null;
+      viewport?: components['schemas']['RuleBuilderViewport'] | null;
+    };
+    /** RuleBuilderWorkspaceListResponse */
+    RuleBuilderWorkspaceListResponse: {
+      /** Count */
+      count: number;
+      /** Workspaces */
+      workspaces?: components['schemas']['RuleBuilderWorkspaceSummary'][];
+    };
+    /** RuleBuilderWorkspaceResponse */
+    RuleBuilderWorkspaceResponse: {
+      workspace: components['schemas']['RuleBuilderWorkspace'];
+    };
+    /** RuleBuilderWorkspaceSummary */
+    RuleBuilderWorkspaceSummary: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Entry Node Id */
+      entry_node_id: string;
+      /** Entry Node Label */
+      entry_node_label?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /**
+       * Node Count
+       * @default 0
+       */
+      node_count: number;
+      /**
+       * Edge Count
+       * @default 0
+       */
+      edge_count: number;
+    };
+    /** RuleBuilderWorkspaceUpdateRequest */
+    RuleBuilderWorkspaceUpdateRequest: {
+      /** Name */
+      name?: string | null;
+      /** Entry Node Id */
+      entry_node_id: string;
+      /** Entry Node Label */
+      entry_node_label?: string | null;
+      viewport: components['schemas']['RuleBuilderViewport'];
+      /** Nodes */
+      nodes?: components['schemas']['RuleBuilderCanvasNode'][];
+      /** Edges */
+      edges?: components['schemas']['RuleBuilderCanvasEdge'][];
     };
     /** RuleCompileRequest */
     RuleCompileRequest: {
@@ -1655,7 +4787,9 @@ export interface components {
       /** Missing Nodes */
       missing_nodes: string[];
       /** Open Branches */
-      open_branches: Record<string, never>[];
+      open_branches: {
+        [key: string]: unknown;
+      }[];
       /** Errors */
       errors: string[];
     };
@@ -1678,7 +4812,9 @@ export interface components {
       /** Previous Target Id */
       previous_target_id?: string | null;
       /** Rule */
-      rule: Record<string, never>;
+      rule: {
+        [key: string]: unknown;
+      };
     };
     /** RuleDecompileRequest */
     RuleDecompileRequest: {
@@ -1688,7 +4824,9 @@ export interface components {
     /** RuleDecompileResponse */
     RuleDecompileResponse: {
       /** Rule */
-      rule?: Record<string, never> | null;
+      rule?: {
+        [key: string]: unknown;
+      } | null;
       /**
        * Success
        * @default true
@@ -1745,7 +4883,9 @@ export interface components {
       /** Previous Target Id */
       previous_target_id?: string | null;
       /** Rule */
-      rule: Record<string, never>;
+      rule: {
+        [key: string]: unknown;
+      };
     };
     /** RuleDraft */
     RuleDraft: {
@@ -1794,7 +4934,9 @@ export interface components {
        */
       preserve_paths: boolean;
       /** Overrides */
-      overrides?: Record<string, never>;
+      overrides?: {
+        [key: string]: unknown;
+      };
     };
     /** RuleElementDeriveResponse */
     RuleElementDeriveResponse: {
@@ -1815,7 +4957,9 @@ export interface components {
        */
       ttl: string;
       /** Rule Element */
-      rule_element?: Record<string, never> | null;
+      rule_element?: {
+        [key: string]: unknown;
+      } | null;
       /**
        * Success
        * @default true
@@ -1857,7 +5001,9 @@ export interface components {
       /** Label */
       label?: string | null;
       /** Config */
-      config?: Record<string, never>;
+      config?: {
+        [key: string]: unknown;
+      };
       /** Graph Uri */
       graph_uri?: string | null;
     };
@@ -1923,7 +5069,9 @@ export interface components {
       /** Label */
       label?: string | null;
       /** Config */
-      config?: Record<string, never>;
+      config?: {
+        [key: string]: unknown;
+      };
     };
     /** RuleElementPublishRequest */
     RuleElementPublishRequest: {
@@ -1951,7 +5099,9 @@ export interface components {
       /** Label */
       label?: string | null;
       /** Config */
-      config?: Record<string, never>;
+      config?: {
+        [key: string]: unknown;
+      };
     };
     /** RuleElementPublishResponse */
     RuleElementPublishResponse: {
@@ -1993,7 +5143,9 @@ export interface components {
        */
       ttl: string;
       /** Rule */
-      rule?: Record<string, never> | null;
+      rule?: {
+        [key: string]: unknown;
+      } | null;
       /**
        * Success
        * @default true
@@ -2037,7 +5189,9 @@ export interface components {
       /** Created Node Ids */
       created_node_ids: string[];
       /** Rule */
-      rule: Record<string, never>;
+      rule: {
+        [key: string]: unknown;
+      };
     };
     /** RuleLinkRequest */
     RuleLinkRequest: {
@@ -2123,6 +5277,156 @@ export interface components {
        */
       fallback: boolean;
     };
+    /** RuleTermDescriptor */
+    RuleTermDescriptor: {
+      /** Value */
+      value: string;
+      /** Full Iri */
+      full_iri: string;
+      /** Namespace */
+      namespace: string;
+      /** Local Name */
+      local_name: string;
+    };
+    /** RuleTermLocalNameGroup */
+    RuleTermLocalNameGroup: {
+      /** Local Name */
+      local_name: string;
+      /** Count */
+      count: number;
+      /** Full Iris */
+      full_iris?: string[];
+      /** Namespaces */
+      namespaces?: string[];
+    };
+    /** RuleTermPairDescriptor */
+    RuleTermPairDescriptor: {
+      /** Value */
+      value: string;
+      /** Full Pair */
+      full_pair: string;
+      /** Compact Pair */
+      compact_pair: string;
+      target_class: components['schemas']['RuleTermDescriptor'];
+      property_path: components['schemas']['RuleTermDescriptor'];
+    };
+    /** RuleTermStats */
+    RuleTermStats: {
+      /** Rule Count */
+      rule_count: number;
+      /** Element Count */
+      element_count: number;
+      /** Rules With Target Classes */
+      rules_with_target_classes: number;
+      /** Rules With Property Paths */
+      rules_with_property_paths: number;
+      /** Rules With Both */
+      rules_with_both: number;
+      /** Elements With Target Class */
+      elements_with_target_class: number;
+      /** Elements With Property Path */
+      elements_with_property_path: number;
+      /** Elements With Both */
+      elements_with_both: number;
+      /** Unique Target Classes */
+      unique_target_classes: number;
+      /** Unique Target Class Namespaces */
+      unique_target_class_namespaces: number;
+      /** Unique Target Class Local Names */
+      unique_target_class_local_names: number;
+      /** Unique Property Paths */
+      unique_property_paths: number;
+      /** Unique Property Path Namespaces */
+      unique_property_path_namespaces: number;
+      /** Unique Property Path Local Names */
+      unique_property_path_local_names: number;
+      /** Unique Target Property Pairs */
+      unique_target_property_pairs: number;
+      /** Target Class Local Name Collisions */
+      target_class_local_name_collisions: number;
+      /** Property Path Local Name Collisions */
+      property_path_local_name_collisions: number;
+    };
+    /** RuleTermsAggregateRequest */
+    RuleTermsAggregateRequest: {
+      /** Rule Ids */
+      rule_ids?: string[];
+      /**
+       * Compact Terms
+       * @default false
+       */
+      compact_terms: boolean;
+    };
+    /** RuleTermsAggregateResponse */
+    RuleTermsAggregateResponse: {
+      /** Rule Ids */
+      rule_ids?: string[];
+      /**
+       * Compact Terms
+       * @default false
+       */
+      compact_terms: boolean;
+      /** Target Classes */
+      target_classes?: components['schemas']['RuleTermDescriptor'][];
+      /** Property Paths */
+      property_paths?: components['schemas']['RuleTermDescriptor'][];
+      /** Target Property Pairs */
+      target_property_pairs?: components['schemas']['RuleTermPairDescriptor'][];
+      /** Target Class Local Name Groups */
+      target_class_local_name_groups?: components['schemas']['RuleTermLocalNameGroup'][];
+      /** Property Path Local Name Groups */
+      property_path_local_name_groups?: components['schemas']['RuleTermLocalNameGroup'][];
+      stats: components['schemas']['RuleTermStats'];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
+    /** RuleTermsResponse */
+    RuleTermsResponse: {
+      /** Rule Id */
+      rule_id: string;
+      /**
+       * Compact Terms
+       * @default false
+       */
+      compact_terms: boolean;
+      /** Target Classes */
+      target_classes?: components['schemas']['RuleTermDescriptor'][];
+      /** Property Paths */
+      property_paths?: components['schemas']['RuleTermDescriptor'][];
+      /** Target Property Pairs */
+      target_property_pairs?: components['schemas']['RuleTermPairDescriptor'][];
+      /** Target Class Local Name Groups */
+      target_class_local_name_groups?: components['schemas']['RuleTermLocalNameGroup'][];
+      /** Property Path Local Name Groups */
+      property_path_local_name_groups?: components['schemas']['RuleTermLocalNameGroup'][];
+      stats: components['schemas']['RuleTermStats'];
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Error */
+      error?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Fallback
+       * @default false
+       */
+      fallback: boolean;
+    };
     /** RuleTtlResponse */
     RuleTtlResponse: {
       /** Graph Uri */
@@ -2188,6 +5492,10 @@ export interface components {
       msg: string;
       /** Error Type */
       type: string;
+      /** Input */
+      input?: unknown;
+      /** Context */
+      ctx?: Record<string, never>;
     };
   };
   responses: never;
@@ -2214,6 +5522,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['User'];
+        };
+      };
+    };
+  };
+  build_info_build_info_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['BuildInfo'];
         };
       };
     };
@@ -2373,6 +5701,2433 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['GraphSchemaExtractResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_models_ifc_models_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  upload_model_ifc_models_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_model_ifc_models_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_model_ifc_models__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  download_model_ifc_models__id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ids_files_ids_files_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  upload_ids_ids_files_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_ids_ids_files_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ids_ids_files__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  download_ids_ids_files__id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  lexicon_health_lexicon_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconHealthResponse'];
+        };
+      };
+    };
+  };
+  list_catalog_terms_lexicon_catalog__ontology_family___country___version__terms_get: {
+    parameters: {
+      query?: {
+        kind?: string | null;
+        search?: string | null;
+        limit?: number;
+        cursor?: string | null;
+        parent_term_id?: string | null;
+        property_of?: string | null;
+        is_predefined_type?: boolean | null;
+      };
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_catalog_term_lexicon_catalog__ontology_family___country___version__terms__term_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogTermResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  resolve_catalog_terms_lexicon_catalog_resolve_terms_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconCatalogResolveRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogResolveResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  compare_catalog_terms_lexicon_catalog_compare_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconCatalogCompareRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogCompareResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  score_catalog_similarity_lexicon_catalog_similarity_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconCatalogSimilarityRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogSimilarityResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  score_catalog_similarity_matrix_lexicon_catalog_similarity_matrix_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconCatalogSimilarityMatrixRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogSimilarityMatrixResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  score_rule_ontology_similarity_lexicon_catalog_rule_ontology_similarity_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconRuleOntologySimilarityRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconRuleOntologySimilarityResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_class_properties_lexicon_catalog__ontology_family___country___version__classes__term_id__properties_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_class_property_sets_lexicon_catalog__ontology_family___country___version__classes__term_id__property_sets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_class_children_lexicon_catalog__ontology_family___country___version__classes__term_id__children_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_class_parents_lexicon_catalog__ontology_family___country___version__classes__term_id__parents_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_property_set_properties_lexicon_catalog__ontology_family___country___version__property_sets__term_id__properties_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_property_classes_lexicon_catalog__ontology_family___country___version__properties__term_id__classes_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_property_property_sets_lexicon_catalog__ontology_family___country___version__properties__term_id__property_sets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_related_properties_lexicon_catalog__ontology_family___country___version__properties__term_id__related_properties_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+        term_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconCatalogRelatedTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  summarize_graph_evidence_lexicon_graphs_evidence_summary_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconGraphEvidenceSummaryRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconGraphEvidenceSummaryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  validate_mapping_lexicon_mappings_validate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconMappingValidationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingValidationResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  evaluate_mapping_lexicon_mappings_evaluate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconMappingEvaluateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingEvaluateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_mappings_lexicon_mappings_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingListResponse'];
+        };
+      };
+    };
+  };
+  create_mapping_lexicon_mappings_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconMappingCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_mapping_lexicon_mappings__mapping_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mapping_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_mapping_lexicon_mappings__mapping_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        mapping_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconMappingDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_handshake_lexicon_handshakes_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconHandshakeCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconHandshakeResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_handshake_lexicon_handshakes__handshake_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        handshake_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconHandshakeResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  accept_handshake_payload_lexicon_handshakes__handshake_id__accept_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        handshake_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconHandshakeAcceptRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconHandshakeResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_handshake_next_needed_lexicon_handshakes__handshake_id__next_needed_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        handshake_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconNextNeededResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reconstruct_handshake_graph_lexicon_handshakes__handshake_id__reconstruction_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        handshake_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconHandshakeReconstructionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconReconstructionResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_handshake_conformity_lexicon_handshakes__handshake_id__conformity_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        handshake_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconHandshakeConformityRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconConformityCheckResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  derive_execution_profile_lexicon_profiles_derive_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconProfileDeriveRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileDeriveResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  summarize_execution_profile_lexicon_profiles_summary_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconProfileDeriveRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileSummaryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_profiles_lexicon_profiles_get: {
+    parameters: {
+      query?: {
+        search?: string | null;
+        ontology_family?: string | null;
+        country?: string | null;
+        rule_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileListResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_profile_lexicon_profiles_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileResponse'];
+        };
+      };
+    };
+  };
+  get_profile_lexicon_profiles__profile_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_profile_lexicon_profiles__profile_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_profile_lexicon_profiles__profile_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  profile_rules_coverage_lexicon_profiles__profile_id__rules_coverage_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconProfileRulesCoverageRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileRulesCoverageResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  profile_graph_coverage_lexicon_profiles__profile_id__graph_coverage_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconProfileGraphCoverageRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileGraphCoverageResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  profile_mapping_candidates_lexicon_profiles__profile_id__mappings_candidates_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconProfileMappingCandidatesResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reconstruct_canonical_graph_lexicon_reconstruction_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconReconstructionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconReconstructionResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  check_lexicon_conformity_lexicon_conformity_check_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconConformityCheckRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconConformityCheckResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ontologies_health_ontologies_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyHealthResponse'];
+        };
+      };
+    };
+  };
+  publish_ontology_ontologies_publish_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OntologyPublishRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyPublishResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  convert_dictionary_json_to_ttl_ontologies_conversions_dictionary_json_to_ttl_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OntologyDictionaryConversionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryConversionResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_dictionary_candidates_ontologies_candidates_dictionaries_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryCandidateListResponse'];
+        };
+      };
+    };
+  };
+  create_dictionary_candidate_ontologies_candidates_dictionaries_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OntologyDictionaryCandidateCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryCandidateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryCandidateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_dictionary_candidate_summary_ontologies_candidates_dictionaries__candidate_id__summary_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryCandidateSummaryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  download_dictionary_candidate_json_ontologies_candidates_dictionaries__candidate_id__json_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  validate_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__validate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryValidationReport'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  convert_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__convert_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryConversionResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  publish_dictionary_candidate_ontologies_candidates_dictionaries__candidate_id__publish_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        candidate_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['OntologyDictionaryCandidatePublishRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDictionaryConversionResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_ontology_version_ontologies__ontology_family___country__versions__version__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyVersionFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_ontology_version_ontologies__ontology_family___country__versions__version__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ontology_summary_ontologies__ontology_family___country__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySummaryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_ontology_versions_ontologies__ontology_family___country__versions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyVersionListResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_latest_ontology_version_ontologies__ontology_family___country__versions_latest_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyVersionFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_stable_ontology_version_ontologies__ontology_family___country__versions_stable_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyVersionFetchResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_ontology_version_summary_ontologies__ontology_family___country__versions__version__summary_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyVersionSummaryResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  fetch_ontology_ttl_ontologies__ontology_family___country__versions__version__ttl_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        ontology_family: string;
+        country: string;
+        version: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Raw ontology Turtle */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/plain': string;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_workspaces_rulebuilder_workspaces_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceListResponse'];
+        };
+      };
+    };
+  };
+  create_workspace_rulebuilder_workspaces_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleBuilderWorkspaceCreateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  create_workspace_from_rule_rulebuilder_rules__rule_id__workspace_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        rule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleBuilderWorkspaceFromRuleRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_workspace_rulebuilder_workspaces__workspace_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_workspace_rulebuilder_workspaces__workspace_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleBuilderWorkspaceUpdateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_workspace_rulebuilder_workspaces__workspace_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_workspaces_rulebuilder_workspaces_delete_batch_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleBuilderWorkspaceBatchDeleteRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderWorkspaceBatchDeleteResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  export_workspace_rule_elements_rulebuilder_workspaces__workspace_id__export_rule_elements_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workspace_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleBuilderExportRuleElementsResponse'];
         };
       };
       /** @description Validation Error */
@@ -3036,6 +8791,73 @@ export interface operations {
       };
     };
   };
+  get_rule_terms_rules__rule_id__terms_get: {
+    parameters: {
+      query?: {
+        /** @description When true, the primary `value` fields use the local name after # or the final path segment. */
+        compact_terms?: boolean;
+      };
+      header?: never;
+      path: {
+        rule_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleTermsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  aggregate_rule_terms_rules_terms_aggregate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RuleTermsAggregateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['RuleTermsAggregateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   get_rule_ttl_rules__rule_id__ttl_get: {
     parameters: {
       query?: never;
@@ -3349,334 +9171,6 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
-      };
-    };
-  };
-  get_models_ifc_models_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  upload_model_ifc_models_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_upload_model_ifc_models_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_model_ifc_models__id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  download_model_ifc_models__id__download_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_ids_files_ids_files_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  upload_ids_ids_files_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': components['schemas']['Body_upload_ids_ids_files_post'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_ids_ids_files__id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  download_ids_ids_files__id__download_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  async_check_model_with_ids_async_check_model_with_ids_post: {
-    parameters: {
-      query: {
-        model_id: string;
-        ids_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_async_check_result_async_check_result__check_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        check_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  sync_check_model_with_ids_ifc_models__model_id__check_get: {
-    parameters: {
-      query: {
-        ids_id: string;
-        /** @description Timeout in seconds */
-        timeout?: number;
-      };
-      header?: never;
-      path: {
-        model_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
       };
     };
   };

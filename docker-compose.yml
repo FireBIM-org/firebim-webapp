@@ -28,8 +28,8 @@ services:
       # NEXT_PUBLIC_API_HOST is empty: browser calls go through the
       # Next.js proxy route (/api/proxy/…), not directly to the backend.
       - NEXT_PUBLIC_API_HOST=
-      # Server-side proxy target — reachable via host-gateway.
-      - API_BACKEND_URL=http://localhost:8000
+      # Server-side proxy target — uses the API service on the shared Docker network.
+      - API_BACKEND_URL=http://api:8000
 
       # ── NextAuth ───────────────────────────────────────────────
       - NEXTAUTH_URL=http://localhost:3000
@@ -56,3 +56,4 @@ services:
 networks:
   firebim-api-server_default:
     external: true
+    name: ${FIREBIM_API_NETWORK:-firebim_api_server_lexicon_default}
