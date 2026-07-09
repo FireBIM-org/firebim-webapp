@@ -67,6 +67,7 @@ export interface IFCModelData {
     globalId: string;
     name?: string;
     attributes: Record<string, any>;
+    parentId?: string;
   }[];
   properties: {
     entity_id: string;
@@ -75,10 +76,12 @@ export interface IFCModelData {
     value: string;
     value_type: string;
   }[];
-  relationships: {
-    type: string;
-    relating_id: string;
-    related_id: string;
+  quantities: {
+    entity_id: string;
+    quantity_set_name: string;
+    quantity_name: string;
+    value: string;
+    value_type: string;
   }[];
 }
 
@@ -164,8 +167,15 @@ export class ApiClient {
     return response.data;
   }
 
+  async deleteModel(id: string): Promise<void> {
+    await this.axiosInstance.delete(`/api/proxy/ifc-models/${id}`);
+  }
+
   async uploadModelData(id: string, data: IFCModelData): Promise<{ message: string }> {
-    const response = await this.axiosInstance.post(`/api/proxy/ifc-models/${id}/sql-data`, data);
+    const response = await this.axiosInstance.post(
+      `/api/proxy/ifc-models/${id}/data-payload`,
+      data,
+    );
     return response.data;
   }
 
@@ -216,6 +226,24 @@ export class ApiClient {
     const response = await this.axiosInstance.get(`/api/proxy/ifc-models/${modelId}/check`, {
       params: { ids_id: idsId, timeout },
     });
+    return response.data;
+  }
+
+  // Lexicon endpoints
+  async getProfiles(): Promise<components['schemas']['LexiconProfileListResponse']> {
+    const response = await this.axiosInstance.get('/api/proxy/lexicon/profiles');
+    return response.data;
+  }
+
+  async getProfile(id: string): Promise<components['schemas']['LexiconProfileResponse']> {
+    const response = await this.axiosInstance.get(`/api/proxy/lexicon/profiles/${id}`);
+    return response.data;
+  }
+
+  async deriveLexiconProfile(
+    request: components['schemas']['LexiconProfileDeriveRequest'],
+  ): Promise<components['schemas']['LexiconProfileDeriveResponse']> {
+    const response = await this.axiosInstance.post('/api/proxy/lexicon/profiles/derive', request);
     return response.data;
   }
 }

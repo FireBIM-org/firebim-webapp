@@ -176,6 +176,7 @@ export function GraphToolbar() {
             ) : (
               available_graphs.map((graph: BuildingGraphData) => (
                 <option key={graph.id} value={graph.id}>
+                  {graph.source === 'ontop' ? '[Ontop] ' : ''}
                   {graph.label}
                   {graph.triple_count ? ` - ${graph.triple_count} triples` : ''}
                 </option>
