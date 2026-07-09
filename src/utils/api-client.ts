@@ -60,6 +60,31 @@ export interface AsyncCheckResult {
   error?: string;
 }
 
+export interface IFCModelData {
+  entities: {
+    id: string;
+    type: string;
+    globalId: string;
+    name?: string;
+    attributes: Record<string, any>;
+    parentId?: string;
+  }[];
+  properties: {
+    entity_id: string;
+    property_set_name: string;
+    property_name: string;
+    value: string;
+    value_type: string;
+  }[];
+  quantities: {
+    entity_id: string;
+    quantity_set_name: string;
+    quantity_name: string;
+    value: string;
+    value_type: string;
+  }[];
+}
+
 // Module-level guard: prevents concurrent / repeated signIn() calls when
 // multiple in-flight requests all receive a 401 at the same time.
 let isSigningIn = false;
@@ -142,6 +167,18 @@ export class ApiClient {
     return response.data;
   }
 
+  async deleteModel(id: string): Promise<void> {
+    await this.axiosInstance.delete(`/api/proxy/ifc-models/${id}`);
+  }
+
+  async uploadModelData(id: string, data: IFCModelData): Promise<{ message: string }> {
+    const response = await this.axiosInstance.post(
+      `/api/proxy/ifc-models/${id}/data-payload`,
+      data,
+    );
+    return response.data;
+  }
+
   // IDS Files endpoints
   async getIdsFiles(): Promise<IDSFile[]> {
     const response = await this.axiosInstance.get('/api/proxy/ids-files');
@@ -189,6 +226,24 @@ export class ApiClient {
     const response = await this.axiosInstance.get(`/api/proxy/ifc-models/${modelId}/check`, {
       params: { ids_id: idsId, timeout },
     });
+    return response.data;
+  }
+
+  // Lexicon endpoints
+  async getProfiles(): Promise<components['schemas']['LexiconProfileListResponse']> {
+    const response = await this.axiosInstance.get('/api/proxy/lexicon/profiles');
+    return response.data;
+  }
+
+  async getProfile(id: string): Promise<components['schemas']['LexiconProfileResponse']> {
+    const response = await this.axiosInstance.get(`/api/proxy/lexicon/profiles/${id}`);
+    return response.data;
+  }
+
+  async deriveLexiconProfile(
+    request: components['schemas']['LexiconProfileDeriveRequest'],
+  ): Promise<components['schemas']['LexiconProfileDeriveResponse']> {
+    const response = await this.axiosInstance.post('/api/proxy/lexicon/profiles/derive', request);
     return response.data;
   }
 }

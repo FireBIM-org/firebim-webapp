@@ -43,7 +43,9 @@ type GraphFetchApiResponse = {
   success?: boolean;
   graph_id: string;
   graph_uri: string;
-  ttl: string;
+  ttl?: string | null;
+  nodes?: any[];
+  edges?: any[];
   label?: string | null;
   source?: string | null;
   triple_count?: number | null;
@@ -316,6 +318,24 @@ export function parseBuildingGraphTtl(
   payload: GraphFetchApiResponse,
   ontology_catalog: BuildingGraphData['ontology_catalog'],
 ): BuildingGraphData {
+  if (payload.nodes && payload.nodes.length > 0) {
+    return {
+      id: payload.graph_id,
+      label: payload.label ?? payload.graph_id,
+      graph_uri: payload.graph_uri,
+      source: payload.source ?? 'api',
+      triple_count: payload.triple_count ?? null,
+      ttl: payload.ttl ?? null,
+      nodes: payload.nodes,
+      edges: payload.edges ?? [],
+      ontology_catalog,
+    };
+  }
+
+  if (!payload.ttl) {
+    throw new Error('Graph payload must include either ttl or nodes/edges');
+  }
+
   const prefixes = Object.fromEntries(
     Array.from(payload.ttl.matchAll(/PREFIX\s+([A-Za-z][\w-]*):\s*<([^>]+)>/g)).map((match) => [
       match[1],
