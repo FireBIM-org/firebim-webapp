@@ -55,19 +55,17 @@ export function GraphToolbar() {
     try {
       setGraphError(null);
       const graphs = await listStoredBuildingGraphs();
-      const nextGraphs = graphs.map(
-        (graph): BuildingGraphData => ({
-          id: graph.graph_id,
-          label: graph.label ?? graph.graph_id,
-          graph_uri: graph.graph_uri ?? null,
-          source: graph.source ?? 'api',
-          triple_count: graph.triple_count ?? null,
-          ttl: null,
-          nodes: [],
-          edges: [],
-          ontology_catalog: cloneDefaultOntologyCatalog(),
-        }),
-      );
+      const nextGraphs = graphs.map((graph): BuildingGraphData => ({
+        id: graph.graph_id,
+        label: graph.label ?? graph.graph_id,
+        graph_uri: graph.graph_uri ?? null,
+        source: graph.source ?? 'api',
+        triple_count: graph.triple_count ?? null,
+        ttl: null,
+        nodes: [],
+        edges: [],
+        ontology_catalog: cloneDefaultOntologyCatalog(),
+      }));
 
       setAvailableGraphs(nextGraphs);
 
