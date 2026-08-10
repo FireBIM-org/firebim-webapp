@@ -28,8 +28,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
       '@ifc-lite/geometry':
-        specifier: ^1.18.5
-        version: 1.18.5
+        specifier: ^3.6.0
+        version: 3.8.0
       '@ifc-lite/parser':
         specifier: ^2.4.1
         version: 2.4.1
@@ -265,14 +265,6 @@ packages:
 
   '@ifc-lite/encoding@1.16.0':
     resolution: {integrity: sha512-IUTJTTYjDrfmkNjA43vCTY1d2Kcmdh2Ide2yLeMRkeEMPAhwf/ElPmaL0xQxUbWcbneWevEG4cvN1sjAr58XAQ==}
-
-  '@ifc-lite/geometry@1.18.5':
-    resolution: {integrity: sha512-LVZ2D2gsLipyANCD2jBtBc3fSHmQ9KnTTdO4oW3Ws5o49oDP9cqFWOkANr2SekKpgE0hNfTQ1+o6zhKfIHI5Rw==}
-    peerDependencies:
-      '@ifc-lite/wasm-threaded': '*'
-    peerDependenciesMeta:
-      '@ifc-lite/wasm-threaded':
-        optional: true
 
   '@ifc-lite/geometry@3.8.0':
     resolution: {integrity: sha512-Q1g45i39KW8gYTmHAUpeC/ObN5Zmhek9TiXXp0tgd316yWlAaEqJxkZZjtsvlQS30WbKDVwd75JMCNRxpXcV1Q==}
@@ -1052,9 +1044,6 @@ packages:
 
   '@tanstack/virtual-core@3.13.23':
     resolution: {integrity: sha512-zSz2Z2HNyLjCplANTDyl3BcdQJc2k1+yyFoKhNRmCr7V7dY8o8q5m8uFTI1/Pg1kL+Hgrz6u3Xo6eFUB7l66cg==}
-
-  '@tauri-apps/api@2.11.0':
-    resolution: {integrity: sha512-7CinYODhky9lmO23xHnUFv0Xt43fbtWMyxZcLcRBlFkcgXKuEirBvHpmtJ89YMhyeGcq20Wuc47Fa4XjyniywA==}
 
   '@tauri-apps/api@2.11.1':
     resolution: {integrity: sha512-M2FPuYND2m+wh5hfW9ZpSdxMPdEJovPBWwoHJmwUpysTYNHaOkVFN419m/K0LIgjb/7KU2vBgsUepJWugQCvAA==}
@@ -2105,13 +2094,6 @@ snapshots:
 
   '@ifc-lite/encoding@1.16.0': {}
 
-  '@ifc-lite/geometry@1.18.5':
-    dependencies:
-      '@ifc-lite/data': 1.17.0
-      '@ifc-lite/wasm': 1.16.10
-    optionalDependencies:
-      '@tauri-apps/api': 2.11.0
-
   '@ifc-lite/geometry@3.8.0':
     dependencies:
       '@ifc-lite/data': 3.2.3
@@ -2643,9 +2625,6 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
 
   '@tanstack/virtual-core@3.13.23': {}
-
-  '@tauri-apps/api@2.11.0':
-    optional: true
 
   '@tauri-apps/api@2.11.1':
     optional: true
