@@ -1,6 +1,10 @@
 overrides:
   form-data@>=4.0.0 <4.0.6: '>=4.0.6'
-  js-yaml@>=4.0.0 <=4.1.1: '>=4.2.0'
+  # keep js-yaml on 4.x: @redocly/openapi-core (openapi-typescript) breaks on 5.x, and 5.0.0-5.2.1 has a HIGH advisory
+  js-yaml@>=4.0.0 <=4.1.1: '>=4.2.0 <5'
+  js-yaml@>=5.0.0 <5.2.2: '>=4.3.2 <5'
+  brace-expansion@>=2.0.0 <2.1.4: '>=2.1.4 <3'
+  sharp@<0.35.0: '>=0.35.0'
   postcss@<8.5.10: '>=8.5.10'
   uuid@<11.1.1: '>=11.1.1'
   vite@>=8.0.0 <=8.0.15: '>=8.0.16'
