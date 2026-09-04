@@ -7,6 +7,12 @@ const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
 // Define User type based on the API schema
 export type User = components['schemas']['User'];
 
+// Ontology registry sync (public firebim.org registry -> this API's ontology store)
+export type OntologySyncRequest = components['schemas']['OntologySyncRequest'];
+export type OntologySyncResponse = components['schemas']['OntologySyncResponse'];
+export type OntologySyncItem = components['schemas']['OntologySyncItem'];
+export type OntologySyncSource = components['schemas']['OntologySyncSourceResponse'];
+
 // Define IFC Model and IDS File interfaces
 export interface IFCModel {
   id: string;
@@ -193,6 +199,24 @@ export class ApiClient {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+    });
+    return response.data;
+  }
+
+  // Ontology registry sync endpoints
+  async getOntologySyncSource(): Promise<OntologySyncSource> {
+    const response = await this.axiosInstance.get('/api/proxy/ontologies/sync/source');
+    return response.data;
+  }
+
+  async previewOntologySync(body: OntologySyncRequest): Promise<OntologySyncResponse> {
+    const response = await this.axiosInstance.post('/api/proxy/ontologies/sync/preview', body);
+    return response.data;
+  }
+
+  async runOntologySync(body: OntologySyncRequest): Promise<OntologySyncResponse> {
+    const response = await this.axiosInstance.post('/api/proxy/ontologies/sync', body, {
+      timeout: 15 * 60 * 1000,
     });
     return response.data;
   }

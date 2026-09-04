@@ -162,7 +162,11 @@ export interface paths {
     get: operations['get_model_ifc_models__id__get'];
     put?: never;
     post?: never;
-    delete?: never;
+    /**
+     * Delete Model
+     * @description Delete an IFC model, its related data in DB, and its files in S3.
+     */
+    delete: operations['delete_model_ifc_models__id__delete'];
     options?: never;
     head?: never;
     patch?: never;
@@ -182,6 +186,26 @@ export interface paths {
     get: operations['download_model_ifc_models__id__download_get'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}/data-payload': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Upload Data Payload
+     * @description Bulk upload IFC model data (entities, properties, relationships) into SQL tables.
+     */
+    post: operations['upload_data_payload_ifc_models__id__data_payload_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -897,6 +921,69 @@ export interface paths {
     put?: never;
     /** Publish Ontology */
     post: operations['publish_ontology_ontologies_publish_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/sync/source': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Sync Source
+     * @description The public registry this API syncs from by default (no credentials needed to read it).
+     */
+    get: operations['get_sync_source_ontologies_sync_source_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/sync/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Preview Ontology Sync
+     * @description Fetch a registry index and report what a sync would publish, update or skip. Publishes nothing.
+     */
+    post: operations['preview_ontology_sync_ontologies_sync_preview_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/sync': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Sync Ontologies
+     * @description Pull ontology releases from a public registry (default: firebim.org) into this API.
+     *
+     *     New versions are published; existing versions are left untouched unless ``overwrite`` is set.
+     *     Use ``selections`` to sync specific ``family/country/version`` items, or ``dry_run`` to preview.
+     */
+    post: operations['sync_ontologies_ontologies_sync_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -2366,7 +2453,15 @@ export interface components {
       /** Graph Uri */
       graph_uri: string;
       /** Ttl */
-      ttl: string;
+      ttl?: string | null;
+      /** Nodes */
+      nodes?: {
+        [key: string]: unknown;
+      }[];
+      /** Edges */
+      edges?: {
+        [key: string]: unknown;
+      }[];
     };
     /** GraphListItem */
     GraphListItem: {
@@ -2374,6 +2469,10 @@ export interface components {
       graph_uri: string;
       /** Triple Count */
       triple_count?: number | null;
+      /** Label */
+      label?: string | null;
+      /** Source */
+      source?: string | null;
     };
     /** GraphListResponse */
     GraphListResponse: {
@@ -2505,6 +2604,70 @@ export interface components {
     HTTPValidationError: {
       /** Detail */
       detail?: components['schemas']['ValidationError'][];
+    };
+    /** IfcEntityCreate */
+    IfcEntityCreate: {
+      /** Id */
+      id: string;
+      /** Type */
+      type: string;
+      /** Globalid */
+      globalId: string;
+      /** Name */
+      name?: string | null;
+      /**
+       * Attributes
+       * @default {}
+       */
+      attributes: {
+        [key: string]: unknown;
+      };
+      /** Parentid */
+      parentId?: string | null;
+    };
+    /** IfcPropertyCreate */
+    IfcPropertyCreate: {
+      /** Entity Id */
+      entity_id: string;
+      /** Property Set Name */
+      property_set_name: string;
+      /** Property Name */
+      property_name: string;
+      /** Value */
+      value: string;
+      /** Value Type */
+      value_type: string;
+    };
+    /** IfcQuantityCreate */
+    IfcQuantityCreate: {
+      /** Entity Id */
+      entity_id: string;
+      /** Quantity Set Name */
+      quantity_set_name: string;
+      /** Quantity Name */
+      quantity_name: string;
+      /** Value */
+      value: string;
+      /** Value Type */
+      value_type: string;
+    };
+    /** IfcSqlDataUpload */
+    IfcSqlDataUpload: {
+      /**
+       * Entities
+       * @default []
+       */
+      entities: components['schemas']['IfcEntityCreate'][];
+      /**
+       * Properties
+       * @default []
+       */
+      properties: components['schemas']['IfcPropertyCreate'][];
+      /**
+       * Quantities
+       * @default []
+       */
+      quantities: components['schemas']['IfcQuantityCreate'][];
     };
     /** LexiconAcceptedTarget */
     LexiconAcceptedTarget: {
@@ -4284,6 +4447,186 @@ export interface components {
       /** Stable Url */
       stable_url: string;
     };
+    /**
+     * OntologySyncAction
+     * @enum {string}
+     */
+    OntologySyncAction: 'publish' | 'update' | 'current' | 'skip' | 'failed';
+    /** OntologySyncItem */
+    OntologySyncItem: {
+      /**
+       * Id
+       * @description '<family>/<country>/<version>'
+       */
+      id: string;
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      status: components['schemas']['OntologyReleaseStatus'];
+      /**
+       * Issued At
+       * Format: date
+       */
+      issued_at: string;
+      /**
+       * Kind
+       * @default ontology
+       */
+      kind: string;
+      /**
+       * Visibility
+       * @default public
+       */
+      visibility: string;
+      /** Title */
+      title?: string | null;
+      /** Ttl Url */
+      ttl_url: string;
+      /** Remote Sha256 */
+      remote_sha256?: string | null;
+      /** Remote Byte Size */
+      remote_byte_size?: number | null;
+      /**
+       * Is Latest
+       * @default false
+       */
+      is_latest: boolean;
+      /**
+       * Is Stable
+       * @default false
+       */
+      is_stable: boolean;
+      /**
+       * Is Default
+       * @default false
+       */
+      is_default: boolean;
+      /**
+       * Local Exists
+       * @default false
+       */
+      local_exists: boolean;
+      /** Local Sha256 */
+      local_sha256?: string | null;
+      local_status?: components['schemas']['OntologyReleaseStatus'] | null;
+      action: components['schemas']['OntologySyncAction'];
+      /** Reason */
+      reason: string;
+      /**
+       * Published
+       * @default false
+       */
+      published: boolean;
+      /** Error */
+      error?: string | null;
+    };
+    /** OntologySyncRequest */
+    OntologySyncRequest: {
+      /**
+       * Source Url
+       * @description URL of a registry index (default: the public firebim.org registry). Any registry serving the same JSON format is accepted.
+       */
+      source_url?: string | null;
+      /**
+       * Families
+       * @description Only sync these ontology families, e.g. ['fbo']
+       */
+      families?: string[] | null;
+      /**
+       * Countries
+       * @description Only sync these countries, e.g. ['dk', 'core']
+       */
+      countries?: string[] | null;
+      /**
+       * Selections
+       * @description Explicit '<family>/<country>/<version>' identifiers to sync; overrides the other filters
+       */
+      selections?: string[] | null;
+      /**
+       * Include Unlisted
+       * @description Also sync entries the registry marks as unlisted
+       * @default true
+       */
+      include_unlisted: boolean;
+      /**
+       * Latest Only
+       * @description Only sync the newest version of each ontology
+       * @default false
+       */
+      latest_only: boolean;
+      /**
+       * Overwrite
+       * @description Re-publish versions that already exist locally but whose content or status differs
+       * @default false
+       */
+      overwrite: boolean;
+      /**
+       * Dry Run
+       * @description Only compute the plan; publish nothing
+       * @default false
+       */
+      dry_run: boolean;
+    };
+    /** OntologySyncResponse */
+    OntologySyncResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /** Source Url */
+      source_url: string;
+      /** Registry */
+      registry?: string | null;
+      /** Schema Version */
+      schema_version?: number | null;
+      /** Dry Run */
+      dry_run: boolean;
+      /**
+       * Fetched At
+       * Format: date-time
+       */
+      fetched_at: string;
+      /** Total */
+      total: number;
+      /** To Publish */
+      to_publish: number;
+      /** To Update */
+      to_update: number;
+      /** Current */
+      current: number;
+      /** Skipped */
+      skipped: number;
+      /** Published */
+      published: number;
+      /** Failed */
+      failed: number;
+      /** Items */
+      items?: components['schemas']['OntologySyncItem'][];
+    };
+    /** OntologySyncSourceResponse */
+    OntologySyncSourceResponse: {
+      /** Default Source Url */
+      default_source_url: string;
+      /**
+       * Registry Format
+       * @default firebim-ontology-registry
+       */
+      registry_format: string;
+      /**
+       * Schema Version
+       * @default 1
+       */
+      schema_version: number;
+      /**
+       * Documentation Url
+       * @default https://firebim.org/documentation/ontologies/#developers
+       */
+      documentation_url: string;
+    };
     /** OntologyVersionFetchResponse */
     OntologyVersionFetchResponse: {
       /** Ontology Family */
@@ -5798,6 +6141,35 @@ export interface operations {
       };
     };
   };
+  delete_model_ifc_models__id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   download_model_ifc_models__id__download_get: {
     parameters: {
       query?: never;
@@ -5811,6 +6183,41 @@ export interface operations {
     responses: {
       /** @description Successful Response */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  upload_data_payload_ifc_models__id__data_payload_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IfcSqlDataUpload'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
         headers: {
           [name: string]: unknown;
         };
@@ -7310,6 +7717,92 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['OntologyPublishResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_sync_source_ontologies_sync_source_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySyncSourceResponse'];
+        };
+      };
+    };
+  };
+  preview_ontology_sync_ontologies_sync_preview_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['OntologySyncRequest'] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySyncResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  sync_ontologies_ontologies_sync_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['OntologySyncRequest'] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySyncResponse'];
         };
       };
       /** @description Validation Error */
@@ -8876,14 +9369,13 @@ export interface operations {
         };
         content: {
           'text/plain': string;
-          /**
-           * @example PREFIX ex: <http://example.org/firebim/>
+          /** @example PREFIX ex: <http://example.org/firebim/>
            *     PREFIX fb: <http://example.org/firebim/rule/>
            *     PREFIX sh: <http://www.w3.org/ns/shacl#>
            *
            *     ex:room_area_rule a ex:RuleSet ;
            *         ex:entryPoint ex:check_room_area .
-           */
+           *      */
           'text/turtle': unknown;
         };
       };

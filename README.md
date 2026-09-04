@@ -147,3 +147,11 @@ The webapp also includes two authenticated rule-focused areas:
 * `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
 
 Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
+
+## Ontologies page (registry sync)
+
+`/ontologies` lets a signed-in user pull ontology releases from the public FireBIM registry
+(https://firebim.org/documentation/ontologies/index.json — no credentials needed) into the connected
+API. It calls `POST /ontologies/sync/preview` to compare the registry with the local ontology store and
+`POST /ontologies/sync` to publish the missing versions (all new, or a selection). Another registry that
+serves the same index format can be entered as the source URL.
