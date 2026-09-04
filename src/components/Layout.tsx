@@ -24,6 +24,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
     { name: 'RuleBuilder', href: '/rulebuilder', requiresAuth: true },
     { name: 'RuleBook', href: '/rulebook', requiresAuth: true },
     { name: 'Lexicon', href: '/lexicon', requiresAuth: true },
+    { name: 'Ontologies', href: '/ontologies', requiresAuth: true },
   ];
 
   return (
