@@ -13,8 +13,8 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
   return (
     // refetchInterval keeps the session (and access token) fresh client-side.
     // Without it, token expiry is only discovered when the proxy returns 401.
-    // 4 minutes (240 s) ensures refresh runs before the default 5-min token lifetime.
-    <SessionProvider session={session} refetchInterval={240} refetchOnWindowFocus>
+    // 55 minutes (3300 s) refreshes shortly before the one-hour Authentik token lifetime.
+    <SessionProvider session={session} refetchInterval={3300} refetchOnWindowFocus>
       <QueryProvider>
         <AuthProvider>
           <Component {...pageProps} />
