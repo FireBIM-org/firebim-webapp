@@ -12,6 +12,14 @@ export type OntologySyncRequest = components['schemas']['OntologySyncRequest'];
 export type OntologySyncResponse = components['schemas']['OntologySyncResponse'];
 export type OntologySyncItem = components['schemas']['OntologySyncItem'];
 export type OntologySyncSource = components['schemas']['OntologySyncSourceResponse'];
+export type OntologyPublishRequest = components['schemas']['OntologyPublishRequest'];
+export type OntologyPublishResponse = components['schemas']['OntologyPublishResponse'];
+export type OntologyDictionaryConversionRequest =
+  components['schemas']['OntologyDictionaryConversionRequest'];
+export type OntologyDictionaryConversionResponse =
+  components['schemas']['OntologyDictionaryConversionResponse'];
+export type LexiconCatalogTerm = components['schemas']['LexiconCatalogTermSummary'];
+export type LexiconCatalogTermsResponse = components['schemas']['LexiconCatalogTermsResponse'];
 
 // Define IFC Model and IDS File interfaces
 export interface IFCModel {
@@ -217,6 +225,40 @@ export class ApiClient {
   async runOntologySync(body: OntologySyncRequest): Promise<OntologySyncResponse> {
     const response = await this.axiosInstance.post('/api/proxy/ontologies/sync', body, {
       timeout: 15 * 60 * 1000,
+    });
+    return response.data;
+  }
+
+  async publishOntology(body: OntologyPublishRequest): Promise<OntologyPublishResponse> {
+    const response = await this.axiosInstance.post('/api/proxy/ontologies/publish', body);
+    return response.data;
+  }
+
+  async convertAndPublishOntologyDictionary(
+    body: OntologyDictionaryConversionRequest,
+  ): Promise<OntologyDictionaryConversionResponse> {
+    const response = await this.axiosInstance.post(
+      '/api/proxy/ontologies/conversions/dictionary-json-to-ttl',
+      body,
+    );
+    return response.data;
+  }
+
+  async listOntologyCatalogTerms(
+    ontologyFamily: string,
+    country: string,
+    version: string,
+    params: {
+      kind?: string;
+      search?: string;
+      limit?: number;
+      cursor?: string;
+      property_of?: string;
+    } = {},
+  ): Promise<LexiconCatalogTermsResponse> {
+    const path = [ontologyFamily, country, version].map(encodeURIComponent).join('/');
+    const response = await this.axiosInstance.get(`/api/proxy/lexicon/catalog/${path}/terms`, {
+      params,
     });
     return response.data;
   }

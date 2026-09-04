@@ -1,7 +1,16 @@
-import { Bars3Icon } from '@heroicons/react/24/outline';
-import { ChangeEvent } from 'react';
+import { Bars3Icon, BookOpenIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 import type { RuleData } from '@/features/rulebuilder/editorStore';
+
+import {
+  readRuleBuilderOntologySelection,
+  saveRuleBuilderOntologySelection,
+  searchOntologyLibraryTerms,
+  getOntologyLibrary,
+  type OntologyLibraryEntry,
+  type OntologyTermSuggestion,
+} from '@/features/ontologies/library';
 
 type RuleElementType = RuleData['element_type'];
 
@@ -27,6 +36,52 @@ function getEffectiveElementType(rule: RuleData | null): RuleElementType | null 
   return null;
 }
 
+function OntologySuggestionList({
+  visible,
+  loading,
+  suggestions,
+  onSelect,
+}: {
+  visible: boolean;
+  loading: boolean;
+  suggestions: OntologyTermSuggestion[];
+  onSelect: (term: OntologyTermSuggestion) => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <div className="mt-1 overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center gap-1 border-b border-gray-100 px-2 py-1 text-[10px] font-semibold tracking-wide text-gray-500 uppercase">
+        <MagnifyingGlassIcon className="h-3 w-3" />
+        {loading ? 'Searching selected ontologies…' : 'Ontology suggestions'}
+      </div>
+      {!loading && suggestions.length === 0 ? (
+        <p className="px-2 py-2 text-xs text-gray-500">No matching terms found.</p>
+      ) : (
+        <div className="max-h-48 overflow-y-auto">
+          {suggestions.slice(0, 8).map((term) => (
+            <button
+              key={`${term.ontology_id}:${term.uri}`}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onSelect(term)}
+              className="block w-full border-b border-gray-100 px-2 py-2 text-left last:border-0 hover:bg-orange-50"
+              title={term.uri}
+            >
+              <span className="block truncate text-xs font-medium text-gray-900">
+                {term.label ?? term.term_id}
+              </span>
+              <span className="block truncate font-mono text-[10px] text-gray-500">
+                {term.ontology_label} · {term.uri}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RuleInspectorPanel({
   selectedRule,
   onChange,
@@ -34,6 +89,19 @@ export default function RuleInspectorPanel({
   collapsed,
   onToggleCollapsed,
 }: Props) {
+  const [ontologyPickerOpen, setOntologyPickerOpen] = useState(false);
+  const [ontologyLibrary, setOntologyLibrary] = useState<OntologyLibraryEntry[]>([]);
+  const [selectedOntologyIds, setSelectedOntologyIds] = useState<string[]>([]);
+  const [activeSuggestionField, setActiveSuggestionField] = useState<
+    'target_class' | 'property_path' | null
+  >(null);
+  const [targetClassSuggestions, setTargetClassSuggestions] = useState<OntologyTermSuggestion[]>(
+    [],
+  );
+  const [propertyPathSuggestions, setPropertyPathSuggestions] = useState<OntologyTermSuggestion[]>(
+    [],
+  );
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const elementType = getEffectiveElementType(selectedRule);
   const isStart = elementType === 'start';
   const isDecision = elementType === 'decision';
@@ -41,6 +109,48 @@ export default function RuleInspectorPanel({
   const hasConnectedStartBranch = Boolean(
     selectedRule?.true_path || selectedRule?.false_path || selectedRule?.unknown_path,
   );
+
+  useEffect(() => {
+    setOntologyLibrary(getOntologyLibrary());
+    setSelectedOntologyIds(readRuleBuilderOntologySelection());
+  }, []);
+
+  useEffect(() => {
+    if (!isDecision || selectedOntologyIds.length === 0 || !activeSuggestionField) {
+      setTargetClassSuggestions([]);
+      setPropertyPathSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    let active = true;
+    const search = inputValue(selectedRule?.[activeSuggestionField]);
+    const timeout = window.setTimeout(() => {
+      setSuggestionsLoading(true);
+      void searchOntologyLibraryTerms(selectedOntologyIds, activeSuggestionField, search)
+        .then((terms) => {
+          if (!active) return;
+          if (activeSuggestionField === 'target_class') setTargetClassSuggestions(terms);
+          else setPropertyPathSuggestions(terms);
+        })
+        .finally(() => {
+          if (active) setSuggestionsLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [activeSuggestionField, isDecision, selectedOntologyIds, selectedRule]);
+
+  const toggleOntology = (ontologyId: string) => {
+    const next = selectedOntologyIds.includes(ontologyId)
+      ? selectedOntologyIds.filter((id) => id !== ontologyId)
+      : [...selectedOntologyIds, ontologyId];
+    setSelectedOntologyIds(next);
+    saveRuleBuilderOntologySelection(next);
+  };
 
   const handleTextChange = (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -141,6 +251,40 @@ export default function RuleInspectorPanel({
               Build rule from start rule element
             </button>
           ) : null}
+
+          <button
+            type="button"
+            onClick={() => setOntologyPickerOpen((open) => !open)}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-orange-300 bg-white px-3 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50"
+            aria-expanded={ontologyPickerOpen}
+          >
+            <BookOpenIcon className="h-4 w-4" />
+            Standard Library ontologies
+            {selectedOntologyIds.length > 0 ? ` (${selectedOntologyIds.length})` : ''}
+          </button>
+
+          {ontologyPickerOpen ? (
+            <div className="space-y-2 rounded-md border border-orange-200 bg-orange-50 p-3">
+              <p className="text-xs text-orange-900">
+                Checked ontologies provide search help for decision target classes and property
+                paths.
+              </p>
+              {ontologyLibrary.map((ontology) => (
+                <label key={ontology.id} className="flex cursor-pointer items-start gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={selectedOntologyIds.includes(ontology.id)}
+                    onChange={() => toggleOntology(ontology.id)}
+                    className="mt-0.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                  />
+                  <span>
+                    <span className="font-semibold text-gray-900">{ontology.label}</span>
+                    <span className="block text-gray-500">{ontology.description}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
@@ -177,9 +321,21 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.target_class)}
                 onChange={handleTextChange('target_class')}
+                onFocus={() => setActiveSuggestionField('target_class')}
                 disabled={!isDecision}
                 className={isDecision ? activeClass : disabledClass}
               />
+              {isDecision && selectedOntologyIds.length > 0 ? (
+                <OntologySuggestionList
+                  visible={activeSuggestionField === 'target_class'}
+                  loading={suggestionsLoading}
+                  suggestions={targetClassSuggestions}
+                  onSelect={(term) => {
+                    onChange({ target_class: term.uri });
+                    setActiveSuggestionField(null);
+                  }}
+                />
+              ) : null}
             </div>
 
             <div>
@@ -189,9 +345,21 @@ export default function RuleInspectorPanel({
               <input
                 value={inputValue(selectedRule.property_path)}
                 onChange={handleTextChange('property_path')}
+                onFocus={() => setActiveSuggestionField('property_path')}
                 disabled={!isDecision}
                 className={isDecision ? activeClass : disabledClass}
               />
+              {isDecision && selectedOntologyIds.length > 0 ? (
+                <OntologySuggestionList
+                  visible={activeSuggestionField === 'property_path'}
+                  loading={suggestionsLoading}
+                  suggestions={propertyPathSuggestions}
+                  onSelect={(term) => {
+                    onChange({ property_path: term.uri });
+                    setActiveSuggestionField(null);
+                  }}
+                />
+              ) : null}
             </div>
 
             <div>
