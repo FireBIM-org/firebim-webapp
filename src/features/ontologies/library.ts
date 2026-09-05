@@ -1,5 +1,6 @@
 import apiClient, {
   type LexiconCatalogTerm,
+  type OntologySummary,
   type RuleTermValidationRequest,
   type RuleTermValidationResponse,
 } from '@/utils/api-client';
@@ -45,14 +46,13 @@ export const STANDARD_ONTOLOGY_LIBRARY: OntologyLibraryEntry[] = [
 
 export const RULEBUILDER_ONTOLOGY_STORAGE_KEY = 'firebim-rulebuilder-ontologies-v1';
 export const USER_ONTOLOGY_LIBRARY_STORAGE_KEY = 'firebim-user-ontologies-v1';
+export const DISCOVERED_ONTOLOGY_LIBRARY_STORAGE_KEY = 'firebim-discovered-ontologies-v1';
 
-export function readUserOntologyLibrary(): OntologyLibraryEntry[] {
+function readStoredOntologyLibrary(key: string): OntologyLibraryEntry[] {
   if (typeof window === 'undefined') return [];
 
   try {
-    const parsed = JSON.parse(
-      window.localStorage.getItem(USER_ONTOLOGY_LIBRARY_STORAGE_KEY) ?? '[]',
-    );
+    const parsed = JSON.parse(window.localStorage.getItem(key) ?? '[]');
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (value): value is OntologyLibraryEntry =>
@@ -68,8 +68,44 @@ export function readUserOntologyLibrary(): OntologyLibraryEntry[] {
   }
 }
 
+export function readUserOntologyLibrary(): OntologyLibraryEntry[] {
+  return readStoredOntologyLibrary(USER_ONTOLOGY_LIBRARY_STORAGE_KEY);
+}
+
 export function getOntologyLibrary(): OntologyLibraryEntry[] {
-  const entries = [...STANDARD_ONTOLOGY_LIBRARY, ...readUserOntologyLibrary()];
+  const entries = [
+    ...STANDARD_ONTOLOGY_LIBRARY,
+    ...readStoredOntologyLibrary(DISCOVERED_ONTOLOGY_LIBRARY_STORAGE_KEY),
+    ...readUserOntologyLibrary(),
+  ];
+  return [...new Map(entries.map((entry) => [entry.id, entry])).values()];
+}
+
+export function ontologyLibraryEntriesFromSummaries(
+  ontologies: OntologySummary[],
+): OntologyLibraryEntry[] {
+  return ontologies.map((ontology) => ({
+    id: `${ontology.ontology_family}/${ontology.country}/latest`,
+    ontology_family: ontology.ontology_family,
+    country: ontology.country,
+    version: 'latest',
+    label: `${ontology.ontology_family.toUpperCase()} ${ontology.country.toUpperCase()}`,
+    description: `Published in the backend ontology store; latest release ${ontology.latest_version ?? 'unknown'}.`,
+  }));
+}
+
+export async function refreshOntologyLibrary(): Promise<OntologyLibraryEntry[]> {
+  const response = await apiClient.listOntologies();
+  const discovered = ontologyLibraryEntriesFromSummaries(response.ontologies ?? []);
+
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(
+      DISCOVERED_ONTOLOGY_LIBRARY_STORAGE_KEY,
+      JSON.stringify(discovered),
+    );
+  }
+
+  const entries = [...STANDARD_ONTOLOGY_LIBRARY, ...discovered, ...readUserOntologyLibrary()];
   return [...new Map(entries.map((entry) => [entry.id, entry])).values()];
 }
 

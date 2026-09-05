@@ -22,6 +22,7 @@ import { env } from '@/config/env';
 import {
   getOntologyLibrary,
   readRuleBuilderOntologySelection,
+  refreshOntologyLibrary,
   saveRuleBuilderOntologySelection,
   validateRuleTermsAgainstOntologyLibrary,
   type OntologyLibraryEntry,
@@ -389,6 +390,12 @@ export default function RuleBuilderPage() {
   useEffect(() => {
     setOntologyLibrary(getOntologyLibrary());
     setSelectedOntologyIds(readRuleBuilderOntologySelection());
+
+    void refreshOntologyLibrary()
+      .then((entries) => setOntologyLibrary(entries))
+      .catch(() => {
+        // The cached library remains usable if ontology discovery is temporarily unavailable.
+      });
   }, []);
 
   const ontologyValidationRuleJson = useMemo(() => {

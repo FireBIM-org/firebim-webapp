@@ -412,6 +412,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/lexicon/catalog/rule-term-validation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Validate Rule Terms
+     * @description Validate rule target classes and property paths against the selected ontologies.
+     */
+    post: operations['validate_rule_terms_lexicon_catalog_rule_term_validation_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/lexicon/catalog/{ontology_family}/{country}/{version}/classes/{term_id}/properties': {
     parameters: {
       query?: never;
@@ -902,6 +922,26 @@ export interface paths {
     };
     /** Ontologies Health */
     get: operations['ontologies_health_ontologies_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Ontologies
+     * @description List every ontology family/country currently published in this API.
+     */
+    get: operations['list_ontologies_ontologies_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -3832,6 +3872,119 @@ export interface components {
       /** Matches */
       matches?: components['schemas']['LexiconRuleSimilarityMatch'][];
     };
+    /** LexiconRuleTermValidationFieldResult */
+    LexiconRuleTermValidationFieldResult: {
+      /**
+       * Field
+       * @enum {string}
+       */
+      field: 'target_class' | 'property_path';
+      /**
+       * Expected Kind
+       * @enum {string}
+       */
+      expected_kind: 'class' | 'property';
+      /** Value */
+      value: string;
+      /** Valid */
+      valid: boolean;
+      /** Matches */
+      matches?: components['schemas']['LexiconRuleTermValidationMatch'][];
+      issue?: components['schemas']['LexiconRuleTermValidationIssue'] | null;
+    };
+    /** LexiconRuleTermValidationIssue */
+    LexiconRuleTermValidationIssue: {
+      /** Rule Id */
+      rule_id: string;
+      /** Node Id */
+      node_id: string;
+      /**
+       * Field
+       * @enum {string}
+       */
+      field: 'target_class' | 'property_path';
+      /**
+       * Expected Kind
+       * @enum {string}
+       */
+      expected_kind: 'class' | 'property';
+      /** Value */
+      value: string;
+      /**
+       * Code
+       * @enum {string}
+       */
+      code: 'unknown_term' | 'wrong_term_kind';
+      /** Message */
+      message: string;
+    };
+    /** LexiconRuleTermValidationMatch */
+    LexiconRuleTermValidationMatch: {
+      /** Ontology Family */
+      ontology_family: string;
+      /** Country */
+      country: string;
+      /** Version */
+      version: string;
+      /** Term Id */
+      term_id: string;
+      /** Uri */
+      uri: string;
+    };
+    /** LexiconRuleTermValidationNodeResult */
+    LexiconRuleTermValidationNodeResult: {
+      /** Rule Id */
+      rule_id: string;
+      /** Node Id */
+      node_id: string;
+      /** Label */
+      label?: string | null;
+      /** Valid */
+      valid: boolean;
+      /** Fields */
+      fields?: components['schemas']['LexiconRuleTermValidationFieldResult'][];
+    };
+    /** LexiconRuleTermValidationRequest */
+    LexiconRuleTermValidationRequest: {
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Rule Id */
+      rule_id?: string | null;
+      /** Rule Ids */
+      rule_ids?: string[];
+      rule?: components['schemas']['RuleDraft'] | null;
+      /** Rules */
+      rules?: components['schemas']['RuleDraft'][];
+    };
+    /** LexiconRuleTermValidationResponse */
+    LexiconRuleTermValidationResponse: {
+      /** Valid */
+      valid: boolean;
+      /** Rule Ids */
+      rule_ids?: string[];
+      /** Selected Ontologies */
+      selected_ontologies?: components['schemas']['LexiconSelectedOntology'][];
+      /** Nodes */
+      nodes?: components['schemas']['LexiconRuleTermValidationNodeResult'][];
+      /** Issues */
+      issues?: components['schemas']['LexiconRuleTermValidationIssue'][];
+      stats: components['schemas']['LexiconRuleTermValidationStats'];
+    };
+    /** LexiconRuleTermValidationStats */
+    LexiconRuleTermValidationStats: {
+      /** Rule Count */
+      rule_count: number;
+      /** Ontology Count */
+      ontology_count: number;
+      /** Validated Node Count */
+      validated_node_count: number;
+      /** Validated Field Count */
+      validated_field_count: number;
+      /** Invalid Node Count */
+      invalid_node_count: number;
+      /** Issue Count */
+      issue_count: number;
+    };
     /** LexiconSelectedOntology */
     LexiconSelectedOntology: {
       /** Ontology Family */
@@ -4341,6 +4494,13 @@ export interface components {
       storage_host?: string | null;
       /** Resource Directories */
       resource_directories?: string[];
+    };
+    /** OntologyListResponse */
+    OntologyListResponse: {
+      /** Count */
+      count: number;
+      /** Ontologies */
+      ontologies?: components['schemas']['OntologySummaryResponse'][];
     };
     /** OntologyPublishRequest */
     OntologyPublishRequest: {
@@ -6611,6 +6771,39 @@ export interface operations {
       };
     };
   };
+  validate_rule_terms_lexicon_catalog_rule_term_validation_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LexiconRuleTermValidationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LexiconRuleTermValidationResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_class_properties_lexicon_catalog__ontology_family___country___version__classes__term_id__properties_get: {
     parameters: {
       query?: never;
@@ -7693,6 +7886,26 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['OntologyHealthResponse'];
+        };
+      };
+    };
+  };
+  list_ontologies_ontologies_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologyListResponse'];
         };
       };
     };
@@ -9369,13 +9582,14 @@ export interface operations {
         };
         content: {
           'text/plain': string;
-          /** @example PREFIX ex: <http://example.org/firebim/>
+          /**
+           * @example PREFIX ex: <http://example.org/firebim/>
            *     PREFIX fb: <http://example.org/firebim/rule/>
            *     PREFIX sh: <http://www.w3.org/ns/shacl#>
            *
            *     ex:room_area_rule a ex:RuleSet ;
            *         ex:entryPoint ex:check_room_area .
-           *      */
+           */
           'text/turtle': unknown;
         };
       };
