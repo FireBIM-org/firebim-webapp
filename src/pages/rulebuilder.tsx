@@ -49,14 +49,17 @@ import {
   connectRuleElementBranch,
   checkRuleCompleteness,
   publishRule,
+  validateRule,
   createRuleBuilderWorkspace,
   updateRuleBuilderWorkspace,
 } from '@/features/rulebuilder/api';
 import {
   buildRuleDraftFromTree,
   buildRuleTreeFromStart,
+  describeRuleDraftValidationIssue,
   detectCyclesInRules,
   validateRuleDraft,
+  type RuleDraft,
 } from '@/features/rulebuilder/buildTree';
 import RuleCanvas from '@/features/rulebuilder/components/RuleCanvas';
 import RuleInspectorPanel from '@/features/rulebuilder/components/RuleInspectorPanel';
@@ -149,9 +152,11 @@ function normalizeLocalLibraryItems(): LibraryItem[] {
         ? 'local:start'
         : item.type === 'end'
           ? 'local:end'
-          : index === 0
-            ? 'local:decision'
-            : `local:${item.type}:${index}`;
+          : item.type === 'derive'
+            ? 'local:derive'
+            : index === 0 || item.id === 'local:decision'
+              ? 'local:decision'
+              : `local:${item.type}:${index}`;
 
     return {
       ...item,
@@ -354,6 +359,7 @@ export default function RuleBuilderPage() {
   const [publishMessage, setPublishMessage] = useState<string | null>(null);
   const [rulePublishState, setRulePublishState] = useState<PublishState>('idle');
   const [rulePublishMessage, setRulePublishMessage] = useState<string | null>(null);
+  const [ruleValidationWarnings, setRuleValidationWarnings] = useState<string[]>([]);
   const [buildAndSaveState, setBuildAndSaveState] = useState<PublishState>('idle');
   const [buildAndSaveMessage, setBuildAndSaveMessage] = useState<string | null>(null);
   const [completenessIssueNodeIds, setCompletenessIssueNodeIds] = useState<string[]>([]);
@@ -652,7 +658,8 @@ export default function RuleBuilderPage() {
           const typeOrder: Record<string, number> = {
             start: 0,
             decision: 1,
-            end: 2,
+            derive: 2,
+            end: 3,
           };
 
           const aOrder = typeOrder[a.type] ?? 999;
@@ -690,6 +697,7 @@ export default function RuleBuilderPage() {
       return {
         start: 0,
         decision: 0,
+        derive: 0,
         end: 0,
       };
     }
@@ -700,6 +708,8 @@ export default function RuleBuilderPage() {
           counts.start += 1;
         } else if (node.rule.element_type === 'decision') {
           counts.decision += 1;
+        } else if (node.rule.element_type === 'derive') {
+          counts.derive += 1;
         } else if (node.rule.element_type === 'end') {
           counts.end += 1;
         }
@@ -709,13 +719,16 @@ export default function RuleBuilderPage() {
       {
         start: 0,
         decision: 0,
+        derive: 0,
         end: 0,
       },
     );
   }, [workspaceState]);
 
   const canBuildAndSaveRule =
-    canvasNodeCounts.start > 0 && canvasNodeCounts.decision > 0 && canvasNodeCounts.end > 0;
+    canvasNodeCounts.start > 0 &&
+    canvasNodeCounts.decision + canvasNodeCounts.derive > 0 &&
+    canvasNodeCounts.end > 0;
 
   const buildAndSaveButtonClass = useMemo(() => {
     const baseClass =
@@ -1006,6 +1019,36 @@ export default function RuleBuilderPage() {
     return buildRuleDraftFromTree(baseId, builtTreeResult, ruleLabel);
   };
 
+  const runApiRuleValidation = async (draft: RuleDraft): Promise<string | null> => {
+    setRuleValidationWarnings([]);
+
+    let validation: Awaited<ReturnType<typeof validateRule>>;
+    try {
+      validation = await validateRule({ rule: draft });
+    } catch (error) {
+      // Validation is best-effort: publish still goes through the API's own checks.
+      console.warn('validateRule failed:', error);
+      return null;
+    }
+
+    const warnings = (validation.warnings || []).filter(
+      (warning): warning is string => typeof warning === 'string' && warning.trim() !== '',
+    );
+    setRuleValidationWarnings(warnings);
+
+    const errors = (validation.errors || []).filter(
+      (error): error is string => typeof error === 'string' && error.trim() !== '',
+    );
+
+    if (validation.valid === false || errors.length > 0) {
+      return errors.length > 0
+        ? `Rule validation failed: ${errors.join('; ')}`
+        : 'Rule validation failed';
+    }
+
+    return null;
+  };
+
   const handleConnectBuiltTree = async () => {
     const draft = buildCurrentRulesetDraft();
     if (!draft || !builtTreeResult) return;
@@ -1026,9 +1069,7 @@ export default function RuleBuilderPage() {
     if (validationIssues.length > 0) {
       const issue = validationIssues[0];
       setRulePublishState('error');
-      setRulePublishMessage(
-        `Cannot connect rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
-      );
+      setRulePublishMessage(`Cannot connect rule: ${describeRuleDraftValidationIssue(issue)}`);
       return;
     }
 
@@ -1066,7 +1107,7 @@ export default function RuleBuilderPage() {
       const issue = validationIssues[0];
       setRulePublishState('error');
       setRulePublishMessage(
-        `Cannot check completeness: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
+        `Cannot check completeness: ${describeRuleDraftValidationIssue(issue)}`,
       );
       return;
     }
@@ -1141,14 +1182,21 @@ export default function RuleBuilderPage() {
     if (validationIssues.length > 0) {
       const issue = validationIssues[0];
       setRulePublishState('error');
-      setRulePublishMessage(
-        `Cannot publish rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`,
-      );
+      setRulePublishMessage(`Cannot publish rule: ${describeRuleDraftValidationIssue(issue)}`);
       return;
     }
 
     try {
       setRulePublishState('saving');
+      setRulePublishMessage('Validating rule...');
+
+      const validationError = await runApiRuleValidation(draft);
+      if (validationError) {
+        setRulePublishState('error');
+        setRulePublishMessage(`Cannot publish rule: ${validationError}`);
+        return;
+      }
+
       setRulePublishMessage('Saving rule...');
 
       const baseRuleLabel = draft.label?.trim() || draft.id;
@@ -1207,10 +1255,11 @@ export default function RuleBuilderPage() {
     setBuiltRuleEdgePhase('idle');
     setRulePublishState('idle');
     setRulePublishMessage(null);
+    setRuleValidationWarnings([]);
 
     if (!workspaceState) {
       const message =
-        'No workspace is ready to build. Add start, decision and end nodes to the canvas.';
+        'No workspace is ready to build. Add start, decision/derive and end nodes to the canvas.';
       setBuildAndSaveState('error');
       setBuildAndSaveMessage(message);
       setRulePublishState('error');
@@ -1288,7 +1337,7 @@ export default function RuleBuilderPage() {
 
     if (validationIssues.length > 0) {
       const issue = validationIssues[0];
-      const message = `Cannot build rule: decision node "${issue.node_id}" is missing ${issue.missing_fields.join(', ')}`;
+      const message = `Cannot build rule: ${describeRuleDraftValidationIssue(issue)}`;
       setBuildAndSaveState('error');
       setBuildAndSaveMessage(message);
       setRulePublishState('error');
@@ -1324,6 +1373,13 @@ export default function RuleBuilderPage() {
       }
 
       setBuiltRuleEdgePhase('complete');
+      setRulePublishMessage('Validating rule...');
+
+      const validationError = await runApiRuleValidation(draft);
+      if (validationError) {
+        throw new Error(`Cannot build rule: ${validationError}`);
+      }
+
       setRulePublishMessage('Saving rule...');
 
       const baseRuleLabel = draft.label?.trim() || draft.id;
@@ -2334,6 +2390,22 @@ export default function RuleBuilderPage() {
                         {rulePublishMessage}
                       </p>
                     )}
+
+                    {ruleValidationWarnings.length > 0 && (
+                      <div
+                        role="status"
+                        className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+                      >
+                        <div className="font-semibold">
+                          Validation warning{ruleValidationWarnings.length > 1 ? 's' : ''}
+                        </div>
+                        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                          {ruleValidationWarnings.map((warning: string, index: number) => (
+                            <li key={`${index}-${warning}`}>{warning}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -2355,7 +2427,8 @@ export default function RuleBuilderPage() {
           workspaceMessage ||
           publishMessage ||
           rulePublishMessage ||
-          buildAndSaveMessage) && (
+          buildAndSaveMessage ||
+          ruleValidationWarnings.length > 0) && (
           <div className="border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-600">
             <div className="flex flex-wrap items-center gap-3">
               {activeWorkspace && (
@@ -2414,6 +2487,13 @@ export default function RuleBuilderPage() {
                   }
                 >
                   {buildAndSaveMessage}
+                </span>
+              )}
+              {ruleValidationWarnings.length > 0 && (
+                <span className="text-amber-700">
+                  {ruleValidationWarnings.length} validation warning
+                  {ruleValidationWarnings.length > 1 ? 's' : ''}:{' '}
+                  {ruleValidationWarnings.join('; ')}
                 </span>
               )}
             </div>

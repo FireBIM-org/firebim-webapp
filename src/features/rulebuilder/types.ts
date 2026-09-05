@@ -1,4 +1,4 @@
-export type RuleElementType = 'start' | 'decision' | 'end';
+export type RuleElementType = 'start' | 'decision' | 'derive' | 'end';
 
 export type RuleElementSource = 'local' | 'api';
 
@@ -16,6 +16,7 @@ export type RuleElementTemplate = {
     property_path?: string | null;
     operator?: string | null;
     value?: unknown;
+    expression?: string | null;
     true_path?: string | null;
     false_path?: string | null;
     unknown_path?: string | null;

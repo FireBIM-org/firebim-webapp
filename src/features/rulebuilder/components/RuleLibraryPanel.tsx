@@ -12,7 +12,7 @@ import {
 import { useMemo, useState } from 'react';
 
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
-import { getNodePalette } from './RuleElementNode';
+import { formatValue, getNodePalette } from './RuleElementNode';
 
 type Props = {
   collapsed: boolean;
@@ -68,10 +68,8 @@ function NodeItem({
   const targetClass = item.template.target_class?.trim();
   const propertyPath = item.template.property_path?.trim();
   const operator = item.template.operator?.trim();
-  const value =
-    item.template.value === null || item.template.value === undefined
-      ? null
-      : String(item.template.value);
+  const value = formatValue(item.template.value);
+  const expression = item.template.expression?.trim();
 
   return (
     <div
@@ -85,7 +83,13 @@ function NodeItem({
     >
       <div className={`border-b px-3 py-2 ${palette.header}`}>
         <div className={`text-[11px] font-semibold tracking-wide uppercase ${palette.badge}`}>
-          {item.type === 'start' ? 'Start' : item.type === 'decision' ? 'Decision' : 'End'}
+          {item.type === 'start'
+            ? 'Start'
+            : item.type === 'decision'
+              ? 'Decision'
+              : item.type === 'derive'
+                ? 'Derive'
+                : 'End'}
         </div>
 
         <div className="mt-1 font-medium text-gray-900">{item.label}</div>
@@ -105,6 +109,23 @@ function NodeItem({
             <div>
               <span className="font-medium text-gray-800">Operator / Value:</span>{' '}
               {[operator || 'Not set', value || 'Not set'].join('  ')}
+            </div>
+          </div>
+        )}
+
+        {item.type === 'derive' && (
+          <div className="space-y-1 text-xs text-gray-600">
+            <div>
+              <span className="font-medium text-gray-800">Target class:</span>{' '}
+              {targetClass || 'Not set'}
+            </div>
+            <div>
+              <span className="font-medium text-gray-800">Writes property:</span>{' '}
+              {propertyPath || 'Not set'}
+            </div>
+            <div>
+              <span className="font-medium text-gray-800">Expression:</span>{' '}
+              <span className="font-mono">{expression || 'Not set'}</span>
             </div>
           </div>
         )}
