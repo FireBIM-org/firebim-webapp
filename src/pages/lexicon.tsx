@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import {
   ArrowPathIcon,
+  ArrowUpTrayIcon,
   Bars3Icon,
   BeakerIcon,
   BookOpenIcon,
@@ -26,10 +27,16 @@ import type { RuleListItem, RuleRunnerItem } from '@/features/rulebook/types';
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
+import {
+  getOntologyLibrary,
+  OFFICIAL_FIREBIM_ONTOLOGY_INDEX,
+  rememberUserOntology,
+} from '@/features/ontologies/library';
 import { getRulesHealth, listRules } from '@/features/rulebook/api';
 import RuleBookLibraryPanel from '@/features/rulebook/components/RuleBookLibraryPanel';
 import { useRuleBookStore, type RuleBookStore } from '@/features/rulebook/store';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import apiClient from '@/utils/api-client';
 
 type CoverageState = 'covered' | 'partial' | 'missing' | 'suggested';
 type DrawerState = 'closed' | 'half' | 'full';
@@ -405,6 +412,16 @@ const standardSources = [
   { ontology_family: 'ifc', country: 'global', fallback_version: 'latest' },
   { ontology_family: 'rir', country: 'global', fallback_version: 'latest' },
 ];
+
+type StandardSource = (typeof standardSources)[number];
+
+function ontologyStandardSources(): StandardSource[] {
+  return getOntologyLibrary().map((entry) => ({
+    ontology_family: entry.ontology_family,
+    country: entry.country,
+    fallback_version: entry.version,
+  }));
+}
 
 const fallbackStandards: StandardSummary[] = [
   {
@@ -821,7 +838,7 @@ function standardLabel(standard: StandardSummary) {
   return `${family} ${country}`;
 }
 
-function normalizeStandardSummary(input: unknown, fallback: (typeof standardSources)[number]) {
+function normalizeStandardSummary(input: unknown, fallback: StandardSource) {
   const raw = (input ?? {}) as Record<string, unknown>;
   const ontology_family = String(raw.ontology_family ?? fallback.ontology_family);
   const country = String(raw.country ?? fallback.country);
@@ -843,7 +860,7 @@ function normalizeStandardSummary(input: unknown, fallback: (typeof standardSour
 
 async function listOntologyStandards(): Promise<StandardSummary[]> {
   return Promise.all(
-    standardSources.map(async (source) => {
+    ontologyStandardSources().map(async (source) => {
       try {
         return await loadOntologyStandard(source, 4500);
       } catch {
@@ -857,7 +874,7 @@ async function listOntologyStandards(): Promise<StandardSummary[]> {
 }
 
 async function loadOntologyStandard(
-  source: (typeof standardSources)[number],
+  source: StandardSource,
   timeoutMs = 15000,
 ): Promise<StandardSummary> {
   const overviewResponse = await fetchWithTimeout(
@@ -988,6 +1005,7 @@ function StandardLibraryPanel({
   loadingStandardIds,
   error,
   onLoadStandard,
+  onLibraryChanged,
   onToggleCollapsed,
 }: {
   collapsed: boolean;
@@ -996,8 +1014,128 @@ function StandardLibraryPanel({
   loadingStandardIds: Set<string>;
   error: string | null;
   onLoadStandard: (standard: StandardSummary) => void;
+  onLibraryChanged: () => Promise<void>;
   onToggleCollapsed: () => void;
 }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFamily, setUploadFamily] = useState('custom');
+  const [uploadCountry, setUploadCountry] = useState('user');
+  const [uploadVersion, setUploadVersion] = useState(today.replaceAll('-', '.'));
+
+  const messageFromError = (caught: unknown) => {
+    const candidate = caught as {
+      response?: { data?: { detail?: unknown } };
+      message?: unknown;
+    };
+    const detail = candidate?.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (typeof candidate?.message === 'string') return candidate.message;
+    return 'Unexpected ontology operation error.';
+  };
+
+  const syncOfficialOntologies = async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    setSyncError(null);
+    try {
+      const result = await apiClient.runOntologySync({
+        source_url: OFFICIAL_FIREBIM_ONTOLOGY_INDEX,
+        include_unlisted: true,
+        latest_only: true,
+        overwrite: false,
+        dry_run: false,
+      });
+      setSyncMessage(
+        `Sync complete: ${result.published} published, ${result.current} current, ${result.failed} failed.`,
+      );
+      await onLibraryChanged();
+    } catch (caught) {
+      setSyncError(messageFromError(caught));
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const uploadOntology = async () => {
+    if (!uploadFile || !uploadFamily.trim() || !uploadCountry.trim() || !uploadVersion.trim()) {
+      setUploadError('Choose a file and complete family, country/namespace, and version.');
+      return;
+    }
+
+    const lowerName = uploadFile.name.toLowerCase();
+    if (!lowerName.endsWith('.ttl') && !lowerName.endsWith('.json')) {
+      setUploadError('Ontology uploads must be Turtle (.ttl) or dictionary JSON (.json).');
+      return;
+    }
+
+    setUploading(true);
+    setUploadMessage(null);
+    setUploadError(null);
+    try {
+      const content = await uploadFile.text();
+      if (lowerName.endsWith('.json')) {
+        const dictionaryJson = JSON.parse(content) as unknown;
+        if (
+          !dictionaryJson ||
+          typeof dictionaryJson !== 'object' ||
+          Array.isArray(dictionaryJson)
+        ) {
+          throw new Error('The JSON ontology must contain a dictionary object at its root.');
+        }
+        const result = await apiClient.convertAndPublishOntologyDictionary({
+          ontology_family: uploadFamily.trim(),
+          country: uploadCountry.trim(),
+          version: uploadVersion.trim(),
+          dictionary_json: dictionaryJson as Record<string, unknown>,
+          source_resource_filename: uploadFile.name,
+          output_resource_filename: uploadFile.name.replace(/\.json$/i, '.ttl'),
+          publish: true,
+          status: 'draft',
+          issued_at: today,
+          default_version: false,
+        });
+        setUploadMessage(
+          `${result.ontology_family}/${result.country}/${result.version} converted and published (${result.class_count} classes, ${result.property_count} properties).`,
+        );
+      } else {
+        const result = await apiClient.publishOntology({
+          ontology_family: uploadFamily.trim(),
+          country: uploadCountry.trim(),
+          version: uploadVersion.trim(),
+          status: 'draft',
+          issued_at: today,
+          ttl: content,
+          resource_filename: uploadFile.name,
+          default_version: false,
+        });
+        setUploadMessage(
+          `${result.ontology_family}/${result.country}/${result.version} published (${result.triple_count} triples).`,
+        );
+      }
+      rememberUserOntology({
+        id: `${uploadFamily.trim()}/${uploadCountry.trim()}/${uploadVersion.trim()}`,
+        ontology_family: uploadFamily.trim(),
+        country: uploadCountry.trim(),
+        version: uploadVersion.trim(),
+        label: `${uploadFamily.trim().toUpperCase()} ${uploadCountry.trim().toUpperCase()}`,
+        description: `User ontology uploaded from ${uploadFile.name}.`,
+      });
+      await onLibraryChanged();
+    } catch (caught) {
+      setUploadError(messageFromError(caught));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, standard: StandardSummary) => {
     event.dataTransfer.setData(
       'application/firebim-lexicon-standard',
@@ -1048,6 +1186,100 @@ function StandardLibraryPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => void syncOfficialOntologies()}
+            disabled={syncing}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800 hover:bg-orange-100 disabled:cursor-wait disabled:opacity-60"
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing…' : 'Sync official FireBIM'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadOpen((open) => !open)}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            aria-expanded={uploadOpen}
+          >
+            <ArrowUpTrayIcon className="h-4 w-4" />
+            Upload ontology
+          </button>
+        </div>
+
+        {syncMessage ? (
+          <div className="mb-3 rounded-md border border-green-200 bg-green-50 p-2 text-xs text-green-800">
+            {syncMessage}
+          </div>
+        ) : null}
+        {syncError ? (
+          <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+            Sync failed: {syncError}
+          </div>
+        ) : null}
+
+        {uploadOpen ? (
+          <div className="mb-4 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <div>
+              <div className="text-xs font-semibold text-gray-900">Upload a personal ontology</div>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Turtle is published directly. Dictionary JSON is converted to Turtle by the API and
+                then published as a draft.
+              </p>
+            </div>
+            <input
+              type="file"
+              accept=".ttl,.json,text/turtle,application/json"
+              onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
+              className="block w-full text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-white file:px-2 file:py-1 file:text-xs file:font-semibold"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-[11px] font-medium text-gray-600">
+                Family
+                <input
+                  value={uploadFamily}
+                  onChange={(event) => setUploadFamily(event.target.value)}
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs"
+                />
+              </label>
+              <label className="text-[11px] font-medium text-gray-600">
+                Country / namespace
+                <input
+                  value={uploadCountry}
+                  onChange={(event) => setUploadCountry(event.target.value)}
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs"
+                />
+              </label>
+            </div>
+            <label className="block text-[11px] font-medium text-gray-600">
+              Version (YYYY.MM or YYYY.MM.DD)
+              <input
+                value={uploadVersion}
+                onChange={(event) => setUploadVersion(event.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs"
+              />
+            </label>
+            {uploadMessage ? (
+              <div className="rounded-md border border-green-200 bg-green-50 p-2 text-xs text-green-800">
+                {uploadMessage}
+              </div>
+            ) : null}
+            {uploadError ? (
+              <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+                {uploadError}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void uploadOntology()}
+              disabled={uploading || !uploadFile}
+              className="w-full rounded-md bg-orange-600 px-3 py-2 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {uploading ? 'Uploading…' : 'Convert / publish ontology'}
+            </button>
+          </div>
+        ) : null}
+
         <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
           Drag one or more standards into the right side of the canvas. Lexicon uses them to keep
           definitions consistent across rules, profiles, and BIM graphs.
@@ -2536,9 +2768,7 @@ export default function LexiconPage() {
     createFromRulesInspectActions.find((action) => action.id === activeInspectView) ??
     createFromRulesInspectActions[0];
 
-  const loadStandardsLibrary = useCallback(async () => {
-    if (standardsLoading || standardsLoaded) return;
-
+  const refreshStandardsLibrary = useCallback(async () => {
     setStandardsLoading(true);
     setStandardsError(null);
 
@@ -2557,7 +2787,12 @@ export default function LexiconPage() {
     } finally {
       setStandardsLoading(false);
     }
-  }, [standardsLoaded, standardsLoading]);
+  }, []);
+
+  const loadStandardsLibrary = useCallback(async () => {
+    if (standardsLoading || standardsLoaded) return;
+    await refreshStandardsLibrary();
+  }, [refreshStandardsLibrary, standardsLoaded, standardsLoading]);
 
   const loadRulesLibrary = useCallback(async () => {
     if (availableRules.length > 0) return;
@@ -2782,7 +3017,7 @@ export default function LexiconPage() {
 
   const loadSingleStandard = useCallback(
     async (standard: StandardSummary) => {
-      const source = standardSources.find(
+      const source = ontologyStandardSources().find(
         (item) =>
           item.ontology_family === standard.ontology_family && item.country === standard.country,
       );
@@ -3867,6 +4102,7 @@ export default function LexiconPage() {
               loadingStandardIds={loadingStandardIds}
               error={standardsError}
               onLoadStandard={loadSingleStandard}
+              onLibraryChanged={refreshStandardsLibrary}
               onToggleCollapsed={() => setRightCollapsed((value) => !value)}
             />
           ) : (
