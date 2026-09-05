@@ -18,7 +18,7 @@ type RuleData = {
   element_id?: string | null;
 };
 
-type VisualState = 'normal' | 'dimmed' | 'completeness-issue';
+type VisualState = 'normal' | 'dimmed' | 'completeness-issue' | 'ontology-issue';
 
 function getEndOutputText(rule: RuleData) {
   const outputText = typeof rule.config?.output_text === 'string' ? rule.config.output_text : null;
@@ -130,17 +130,24 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
   const showUnknownOutput = rule.element_type === 'decision';
   const isDimmed = visualState === 'dimmed';
   const isCompletenessIssue = visualState === 'completeness-issue';
+  const isOntologyIssue = visualState === 'ontology-issue';
 
   return (
     <div
       className={[
         'relative min-w-[240px] rounded-xl border-2',
-        isCompletenessIssue
-          ? 'border-slate-600 bg-slate-200 shadow-[0_0_48px_rgba(51,65,85,0.9)]'
-          : '',
+        isOntologyIssue
+          ? 'border-red-600 bg-red-50 shadow-[0_0_38px_rgba(220,38,38,0.45)]'
+          : isCompletenessIssue
+            ? 'border-slate-600 bg-slate-200 shadow-[0_0_48px_rgba(51,65,85,0.9)]'
+            : '',
         isDimmed ? 'border-slate-300 bg-slate-100 opacity-65 shadow-lg grayscale-[0.25]' : '',
-        !isCompletenessIssue && !isDimmed ? `shadow-xl ${palette.body}` : '',
-        selected ? `${palette.border} ring-3 ${palette.ring}` : palette.border,
+        !isOntologyIssue && !isCompletenessIssue && !isDimmed ? `shadow-xl ${palette.body}` : '',
+        isOntologyIssue
+          ? 'border-red-600 ring-3 ring-red-200'
+          : selected
+            ? `${palette.border} ring-3 ${palette.ring}`
+            : palette.border,
       ].join(' ')}
     >
       {showInput && (
@@ -154,22 +161,28 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
       <div
         className={`rounded-xl border-1 px-3 py-2 ${
-          isCompletenessIssue
-            ? 'border-slate-500 bg-slate-300'
-            : isDimmed
-              ? 'border-slate-300 bg-slate-200'
-              : palette.header
+          isOntologyIssue
+            ? 'border-red-300 bg-red-100'
+            : isCompletenessIssue
+              ? 'border-slate-500 bg-slate-300'
+              : isDimmed
+                ? 'border-slate-300 bg-slate-200'
+                : palette.header
         }`}
       >
         <div
           className={`text-[11px] font-semibold tracking-wide uppercase ${
-            isCompletenessIssue || isDimmed ? 'text-slate-700' : palette.badge
+            isOntologyIssue
+              ? 'text-red-800'
+              : isCompletenessIssue || isDimmed
+                ? 'text-slate-700'
+                : palette.badge
           }`}
         >
-          {typeBadge(rule.element_type)}
+          {isOntologyIssue ? 'Ontology issue' : typeBadge(rule.element_type)}
         </div>
         <div
-          className={`mt-1 text-sm font-semibold ${isCompletenessIssue ? 'text-slate-950' : 'text-slate-900'}`}
+          className={`mt-1 text-sm font-semibold ${isOntologyIssue ? 'text-red-950' : isCompletenessIssue ? 'text-slate-950' : 'text-slate-900'}`}
         >
           {label}
         </div>
@@ -177,7 +190,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
       {rule.element_type === 'decision' && (
         <div
-          className={`px-3 py-2 text-xs ${isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
+          className={`px-3 py-2 text-xs ${isOntologyIssue ? 'text-red-900' : isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
         >
           <div>
             <span className="font-medium">Target:</span> {rule.target_class || '—'}

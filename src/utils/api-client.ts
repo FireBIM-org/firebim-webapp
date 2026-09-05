@@ -20,6 +20,53 @@ export type OntologyDictionaryConversionResponse =
   components['schemas']['OntologyDictionaryConversionResponse'];
 export type LexiconCatalogTerm = components['schemas']['LexiconCatalogTermSummary'];
 export type LexiconCatalogTermsResponse = components['schemas']['LexiconCatalogTermsResponse'];
+export type RuleTermValidationField = 'target_class' | 'property_path';
+export type RuleTermValidationIssue = {
+  rule_id: string;
+  node_id: string;
+  field: RuleTermValidationField;
+  expected_kind: 'class' | 'property';
+  value: string;
+  code: 'unknown_term' | 'wrong_term_kind';
+  message: string;
+};
+export type RuleTermValidationResponse = {
+  valid: boolean;
+  rule_ids: string[];
+  issues: RuleTermValidationIssue[];
+  stats: {
+    rule_count: number;
+    ontology_count: number;
+    validated_node_count: number;
+    validated_field_count: number;
+    invalid_node_count: number;
+    issue_count: number;
+  };
+};
+export type RuleTermValidationRequest = {
+  selected_ontologies: Array<{
+    ontology_family: string;
+    country: string;
+    version: string;
+  }>;
+  rule: {
+    id: string;
+    entry: string;
+    elements: Array<{
+      id: string;
+      element_type: string;
+      target_class?: string | null;
+      property_path?: string | null;
+      operator?: string | null;
+      value?: unknown;
+      true_path?: string | null;
+      false_path?: string | null;
+      unknown_path?: string | null;
+      label?: string | null;
+      config?: Record<string, unknown>;
+    }>;
+  };
+};
 
 // Define IFC Model and IDS File interfaces
 export interface IFCModel {
@@ -260,6 +307,14 @@ export class ApiClient {
     const response = await this.axiosInstance.get(`/api/proxy/lexicon/catalog/${path}/terms`, {
       params,
     });
+    return response.data;
+  }
+
+  async validateRuleTerms(body: RuleTermValidationRequest): Promise<RuleTermValidationResponse> {
+    const response = await this.axiosInstance.post(
+      '/api/proxy/lexicon/catalog/rule-term-validation',
+      body,
+    );
     return response.data;
   }
 

@@ -1,4 +1,8 @@
-import apiClient, { type LexiconCatalogTerm } from '@/utils/api-client';
+import apiClient, {
+  type LexiconCatalogTerm,
+  type RuleTermValidationRequest,
+  type RuleTermValidationResponse,
+} from '@/utils/api-client';
 
 export const OFFICIAL_FIREBIM_ONTOLOGY_INDEX =
   'https://firebim.org/documentation/ontologies/index.json';
@@ -150,4 +154,38 @@ export async function searchOntologyLibraryTerms(
         left.ontology_label.localeCompare(right.ontology_label),
     )
     .slice(0, 24);
+}
+
+export async function validateRuleTermsAgainstOntologyLibrary(
+  selectedIds: string[],
+  rule: RuleTermValidationRequest['rule'],
+): Promise<RuleTermValidationResponse> {
+  const selectedOntologies = getOntologyLibrary()
+    .filter((entry) => selectedIds.includes(entry.id))
+    .map((entry) => ({
+      ontology_family: entry.ontology_family,
+      country: entry.country,
+      version: entry.version,
+    }));
+
+  if (selectedOntologies.length === 0) {
+    return {
+      valid: true,
+      rule_ids: [rule.id],
+      issues: [],
+      stats: {
+        rule_count: 1,
+        ontology_count: 0,
+        validated_node_count: 0,
+        validated_field_count: 0,
+        invalid_node_count: 0,
+        issue_count: 0,
+      },
+    };
+  }
+
+  return apiClient.validateRuleTerms({
+    selected_ontologies: selectedOntologies,
+    rule,
+  });
 }

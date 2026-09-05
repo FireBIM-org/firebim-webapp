@@ -1,6 +1,7 @@
 import {
   ArchiveBoxArrowDownIcon,
   BookOpenIcon,
+  ExclamationTriangleIcon,
   ArrowTopRightOnSquareIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
@@ -13,9 +14,18 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { RuleTermValidationIssue } from '@/utils/api-client';
+
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { env } from '@/config/env';
+import {
+  getOntologyLibrary,
+  readRuleBuilderOntologySelection,
+  saveRuleBuilderOntologySelection,
+  validateRuleTermsAgainstOntologyLibrary,
+  type OntologyLibraryEntry,
+} from '@/features/ontologies/library';
 import {
   EXAMPLE_RULE_ELEMENTS,
   DetailedRuleElementListItem,
@@ -63,6 +73,7 @@ type ApiStatus = 'loading' | 'online' | 'offline';
 type PublishState = 'idle' | 'saving' | 'success' | 'error';
 type BuiltRuleEdgePhase = 'idle' | 'connected' | 'complete';
 type WorkspaceActionState = 'idle' | 'saving' | 'success' | 'error';
+type OntologyValidationStatus = 'idle' | 'checking' | 'complete' | 'error';
 
 type LibraryItem = RuleLibraryCategory['items'][number] & {
   id: string;
@@ -346,6 +357,14 @@ export default function RuleBuilderPage() {
   const [buildAndSaveMessage, setBuildAndSaveMessage] = useState<string | null>(null);
   const [completenessIssueNodeIds, setCompletenessIssueNodeIds] = useState<string[]>([]);
   const [workspaceState, setWorkspaceState] = useState<RuleBuilderWorkspacePayload | null>(null);
+  const [ontologyLibrary, setOntologyLibrary] = useState<OntologyLibraryEntry[]>([]);
+  const [selectedOntologyIds, setSelectedOntologyIds] = useState<string[]>([]);
+  const [ontologyValidationIssues, setOntologyValidationIssues] = useState<
+    RuleTermValidationIssue[]
+  >([]);
+  const [ontologyValidationStatus, setOntologyValidationStatus] =
+    useState<OntologyValidationStatus>('idle');
+  const [ontologyValidationError, setOntologyValidationError] = useState<string | null>(null);
   const [activeWorkspace, setActiveWorkspace] = useState<RuleBuilderWorkspaceSummary | null>(null);
   const [workspaceToLoad, setWorkspaceToLoad] = useState<RuleBuilderWorkspace | null>(null);
   const [workspaceList, setWorkspaceList] = useState<RuleBuilderWorkspaceSummary[]>([]);
@@ -366,6 +385,73 @@ export default function RuleBuilderPage() {
     () => [...localLibraryItems, ...storedElements],
     [localLibraryItems, storedElements],
   );
+
+  useEffect(() => {
+    setOntologyLibrary(getOntologyLibrary());
+    setSelectedOntologyIds(readRuleBuilderOntologySelection());
+  }, []);
+
+  const ontologyValidationRuleJson = useMemo(() => {
+    if (!workspaceState || workspaceState.nodes.length === 0) return null;
+    return JSON.stringify({
+      id: 'rulebuilder-workspace',
+      entry: workspaceState.entry_node_id || workspaceState.nodes[0]?.canvas_node_id || 'workspace',
+      elements: workspaceState.nodes.map((node) => ({
+        ...node.rule,
+        id: node.canvas_node_id,
+      })),
+    });
+  }, [workspaceState]);
+
+  useEffect(() => {
+    if (selectedOntologyIds.length === 0 || !ontologyValidationRuleJson) {
+      setOntologyValidationIssues([]);
+      setOntologyValidationStatus('idle');
+      setOntologyValidationError(null);
+      return;
+    }
+
+    let active = true;
+    const timeout = window.setTimeout(() => {
+      setOntologyValidationStatus('checking');
+      setOntologyValidationError(null);
+      void validateRuleTermsAgainstOntologyLibrary(
+        selectedOntologyIds,
+        JSON.parse(ontologyValidationRuleJson),
+      )
+        .then((response) => {
+          if (!active) return;
+          setOntologyValidationIssues(response.issues);
+          setOntologyValidationStatus('complete');
+        })
+        .catch((error: unknown) => {
+          if (!active) return;
+          setOntologyValidationIssues([]);
+          setOntologyValidationStatus('error');
+          setOntologyValidationError(
+            error instanceof Error ? error.message : 'Ontology term validation failed',
+          );
+        });
+    }, 450);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [ontologyValidationRuleJson, selectedOntologyIds]);
+
+  const ontologyIssuesByNode = useMemo(() => {
+    const grouped = new Map<string, RuleTermValidationIssue[]>();
+    for (const issue of ontologyValidationIssues) {
+      grouped.set(issue.node_id, [...(grouped.get(issue.node_id) ?? []), issue]);
+    }
+    return grouped;
+  }, [ontologyValidationIssues]);
+
+  const handleSelectedOntologyIdsChange = useCallback((ids: string[]) => {
+    setSelectedOntologyIds(ids);
+    saveRuleBuilderOntologySelection(ids);
+  }, []);
 
   const loadStoredRuleElements = useCallback(async () => {
     const items = await listRuleElementsDetailed();
@@ -1294,6 +1380,13 @@ export default function RuleBuilderPage() {
     setPublishMessage(null);
   };
 
+  const handleSelectOntologyIssueNode = (nodeId: string) => {
+    const node = workspaceState?.nodes.find((candidate) => candidate.canvas_node_id === nodeId);
+    if (!node) return;
+    handleSelectedNodeChange(nodeId, node.rule);
+    setInspectorCollapsed(false);
+  };
+
   const toggleWorkspaceSelected = (workspaceId: string) => {
     setSelectedWorkspaceIds((current: string[]) =>
       current.includes(workspaceId)
@@ -2014,7 +2107,50 @@ export default function RuleBuilderPage() {
               workspaceToLoad={workspaceToLoad}
               onWorkspaceStateChange={setWorkspaceState}
               completenessIssueNodeIds={completenessIssueNodeIds}
+              ontologyIssueNodeIds={[...ontologyIssuesByNode.keys()]}
             />
+            {selectedOntologyIds.length > 0 && ontologyIssuesByNode.size > 0 ? (
+              <div className="absolute bottom-3 left-3 z-10 max-h-64 w-[min(28rem,calc(100%-1.5rem))] overflow-y-auto rounded-lg border border-red-300 bg-white/95 p-3 shadow-lg backdrop-blur">
+                <div className="flex items-center gap-2 text-sm font-semibold text-red-800">
+                  <ExclamationTriangleIcon className="h-5 w-5 shrink-0" />
+                  Ontology term issues ({ontologyValidationIssues.length})
+                </div>
+                <p className="mt-1 text-xs text-red-700">
+                  {ontologyIssuesByNode.size} canvas node
+                  {ontologyIssuesByNode.size === 1 ? '' : 's'} contain terms that do not fit the
+                  selected ontologies.
+                </p>
+                <div className="mt-2 space-y-2">
+                  {[...ontologyIssuesByNode.entries()].map(([nodeId, issues]) => {
+                    const node = workspaceState?.nodes.find(
+                      (candidate) => candidate.canvas_node_id === nodeId,
+                    );
+                    return (
+                      <button
+                        key={nodeId}
+                        type="button"
+                        onClick={() => handleSelectOntologyIssueNode(nodeId)}
+                        className="block w-full rounded-md border border-red-200 bg-red-50 px-3 py-2 text-left hover:bg-red-100"
+                      >
+                        <span className="block text-xs font-semibold text-red-900">
+                          {node?.rule.label || node?.rule.id || nodeId}
+                        </span>
+                        {issues.map((issue) => (
+                          <span key={issue.field} className="mt-0.5 block text-[11px] text-red-700">
+                            {issue.message}
+                          </span>
+                        ))}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+            {selectedOntologyIds.length > 0 && ontologyValidationStatus === 'error' ? (
+              <div className="absolute bottom-3 left-3 z-10 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 shadow-lg">
+                Ontology validation unavailable: {ontologyValidationError}
+              </div>
+            ) : null}
           </div>
 
           <RuleInspectorPanel
@@ -2023,6 +2159,13 @@ export default function RuleBuilderPage() {
             selectedRule={selectedRule}
             onChange={handleInspectorChange}
             onBuildTree={handleBuildTreeFromSelectedStartNode}
+            ontologyLibrary={ontologyLibrary}
+            selectedOntologyIds={selectedOntologyIds}
+            onSelectedOntologyIdsChange={handleSelectedOntologyIdsChange}
+            validationIssues={ontologyValidationIssues.filter(
+              (issue) => issue.node_id === selectedNodeId,
+            )}
+            validationStatus={ontologyValidationStatus}
           />
 
           {builtTreeResult ? (

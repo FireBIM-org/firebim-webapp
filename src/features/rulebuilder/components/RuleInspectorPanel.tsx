@@ -2,12 +2,10 @@ import { Bars3Icon, BookOpenIcon, MagnifyingGlassIcon } from '@heroicons/react/2
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import type { RuleData } from '@/features/rulebuilder/editorStore';
+import type { RuleTermValidationIssue } from '@/utils/api-client';
 
 import {
-  readRuleBuilderOntologySelection,
-  saveRuleBuilderOntologySelection,
   searchOntologyLibraryTerms,
-  getOntologyLibrary,
   type OntologyLibraryEntry,
   type OntologyTermSuggestion,
 } from '@/features/ontologies/library';
@@ -18,6 +16,11 @@ type Props = {
   selectedRule: RuleData | null;
   onChange: (patch: Partial<RuleData>) => void;
   onBuildTree?: () => void;
+  ontologyLibrary: OntologyLibraryEntry[];
+  selectedOntologyIds: string[];
+  onSelectedOntologyIdsChange: (ids: string[]) => void;
+  validationIssues: RuleTermValidationIssue[];
+  validationStatus: 'idle' | 'checking' | 'complete' | 'error';
   collapsed: boolean;
   onToggleCollapsed: () => void;
 };
@@ -86,12 +89,15 @@ export default function RuleInspectorPanel({
   selectedRule,
   onChange,
   onBuildTree,
+  ontologyLibrary,
+  selectedOntologyIds,
+  onSelectedOntologyIdsChange,
+  validationIssues,
+  validationStatus,
   collapsed,
   onToggleCollapsed,
 }: Props) {
   const [ontologyPickerOpen, setOntologyPickerOpen] = useState(false);
-  const [ontologyLibrary, setOntologyLibrary] = useState<OntologyLibraryEntry[]>([]);
-  const [selectedOntologyIds, setSelectedOntologyIds] = useState<string[]>([]);
   const [activeSuggestionField, setActiveSuggestionField] = useState<
     'target_class' | 'property_path' | null
   >(null);
@@ -109,11 +115,6 @@ export default function RuleInspectorPanel({
   const hasConnectedStartBranch = Boolean(
     selectedRule?.true_path || selectedRule?.false_path || selectedRule?.unknown_path,
   );
-
-  useEffect(() => {
-    setOntologyLibrary(getOntologyLibrary());
-    setSelectedOntologyIds(readRuleBuilderOntologySelection());
-  }, []);
 
   useEffect(() => {
     if (!isDecision || selectedOntologyIds.length === 0 || !activeSuggestionField) {
@@ -148,8 +149,7 @@ export default function RuleInspectorPanel({
     const next = selectedOntologyIds.includes(ontologyId)
       ? selectedOntologyIds.filter((id) => id !== ontologyId)
       : [...selectedOntologyIds, ontologyId];
-    setSelectedOntologyIds(next);
-    saveRuleBuilderOntologySelection(next);
+    onSelectedOntologyIdsChange(next);
   };
 
   const handleTextChange = (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -215,6 +215,12 @@ export default function RuleInspectorPanel({
     'w-full rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500';
 
   const activeClass = 'w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
+  const invalidClass =
+    'w-full rounded-md border border-red-500 bg-red-50 px-3 py-2 text-sm text-red-900 focus:border-red-600 focus:ring-red-200';
+  const issueFor = (field: 'target_class' | 'property_path') =>
+    validationIssues.find((issue) => issue.field === field);
+  const targetClassIssue = issueFor('target_class');
+  const propertyPathIssue = issueFor('property_path');
 
   return (
     <aside className="w-80 border-l border-gray-200 bg-white">
@@ -266,8 +272,8 @@ export default function RuleInspectorPanel({
           {ontologyPickerOpen ? (
             <div className="space-y-2 rounded-md border border-orange-200 bg-orange-50 p-3">
               <p className="text-xs text-orange-900">
-                Checked ontologies provide search help for decision target classes and property
-                paths.
+                Checked ontologies provide search help and API validation for decision target
+                classes and property paths.
               </p>
               {ontologyLibrary.map((ontology) => (
                 <label key={ontology.id} className="flex cursor-pointer items-start gap-2 text-xs">
@@ -323,8 +329,21 @@ export default function RuleInspectorPanel({
                 onChange={handleTextChange('target_class')}
                 onFocus={() => setActiveSuggestionField('target_class')}
                 disabled={!isDecision}
-                className={isDecision ? activeClass : disabledClass}
+                className={
+                  isDecision ? (targetClassIssue ? invalidClass : activeClass) : disabledClass
+                }
+                aria-invalid={Boolean(targetClassIssue)}
+                aria-describedby={targetClassIssue ? 'target-class-validation-error' : undefined}
               />
+              {targetClassIssue ? (
+                <p
+                  id="target-class-validation-error"
+                  role="alert"
+                  className="mt-1 text-xs text-red-700"
+                >
+                  {targetClassIssue.message}
+                </p>
+              ) : null}
               {isDecision && selectedOntologyIds.length > 0 ? (
                 <OntologySuggestionList
                   visible={activeSuggestionField === 'target_class'}
@@ -347,8 +366,21 @@ export default function RuleInspectorPanel({
                 onChange={handleTextChange('property_path')}
                 onFocus={() => setActiveSuggestionField('property_path')}
                 disabled={!isDecision}
-                className={isDecision ? activeClass : disabledClass}
+                className={
+                  isDecision ? (propertyPathIssue ? invalidClass : activeClass) : disabledClass
+                }
+                aria-invalid={Boolean(propertyPathIssue)}
+                aria-describedby={propertyPathIssue ? 'property-path-validation-error' : undefined}
               />
+              {propertyPathIssue ? (
+                <p
+                  id="property-path-validation-error"
+                  role="alert"
+                  className="mt-1 text-xs text-red-700"
+                >
+                  {propertyPathIssue.message}
+                </p>
+              ) : null}
               {isDecision && selectedOntologyIds.length > 0 ? (
                 <OntologySuggestionList
                   visible={activeSuggestionField === 'property_path'}
@@ -359,6 +391,9 @@ export default function RuleInspectorPanel({
                     setActiveSuggestionField(null);
                   }}
                 />
+              ) : null}
+              {selectedOntologyIds.length > 0 && validationStatus === 'checking' ? (
+                <p className="mt-1 text-[11px] text-gray-500">Checking terms with the API…</p>
               ) : null}
             </div>
 

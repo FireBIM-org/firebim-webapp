@@ -82,6 +82,7 @@ type Props = {
   workspaceToLoad?: RuleBuilderWorkspace | null;
   onWorkspaceStateChange?: (workspace: RuleBuilderWorkspacePayload | null) => void;
   completenessIssueNodeIds?: string[];
+  ontologyIssueNodeIds?: string[];
 };
 
 type BranchHandle = 'true' | 'false' | 'unknown';
@@ -302,6 +303,7 @@ function RuleCanvasInner({
   workspaceToLoad,
   onWorkspaceStateChange,
   completenessIssueNodeIds = [],
+  ontologyIssueNodeIds = [],
 }: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const lastHandledDuplicateRequestId = useRef<number | null>(null);
@@ -322,7 +324,8 @@ function RuleCanvasInner({
   }, [nodes, selectedNodeId]);
 
   const visualNodes = useMemo(() => {
-    const issueIds = new Set(completenessIssueNodeIds);
+    const completenessIssueIds = new Set(completenessIssueNodeIds);
+    const ontologyIssueIds = new Set(ontologyIssueNodeIds);
 
     return nodes.map((node: Node) => {
       const rule = node.data?.rule as RuleData | undefined;
@@ -331,11 +334,13 @@ function RuleCanvasInner({
       const hasIncoming = edges.some((edge: Edge) => edge.target === node.id);
       const hasOutgoing = edges.some((edge: Edge) => edge.source === node.id);
       const isIsolated = !hasIncoming && !hasOutgoing;
-      const visualState = issueIds.has(node.id)
-        ? 'completeness-issue'
-        : isIsolated
-          ? 'dimmed'
-          : 'normal';
+      const visualState = ontologyIssueIds.has(node.id)
+        ? 'ontology-issue'
+        : completenessIssueIds.has(node.id)
+          ? 'completeness-issue'
+          : isIsolated
+            ? 'dimmed'
+            : 'normal';
 
       return {
         ...node,
@@ -345,7 +350,7 @@ function RuleCanvasInner({
         },
       };
     });
-  }, [completenessIssueNodeIds, edges, nodes]);
+  }, [completenessIssueNodeIds, edges, nodes, ontologyIssueNodeIds]);
 
   const entryNodeFileName = useMemo(() => {
     const startNode = nodes.find((node: Node) => {
