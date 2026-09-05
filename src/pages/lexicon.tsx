@@ -30,6 +30,7 @@ import { env } from '@/config/env';
 import {
   getOntologyLibrary,
   OFFICIAL_FIREBIM_ONTOLOGY_INDEX,
+  refreshOntologyLibrary,
   rememberUserOntology,
 } from '@/features/ontologies/library';
 import { getRulesHealth, listRules } from '@/features/rulebook/api';
@@ -859,8 +860,20 @@ function normalizeStandardSummary(input: unknown, fallback: StandardSource) {
 }
 
 async function listOntologyStandards(): Promise<StandardSummary[]> {
+  let library = getOntologyLibrary();
+  try {
+    library = await refreshOntologyLibrary();
+  } catch {
+    // Keep the cached and built-in entries available while the API is offline.
+  }
+
   return Promise.all(
-    ontologyStandardSources().map(async (source) => {
+    library.map(async (entry) => {
+      const source: StandardSource = {
+        ontology_family: entry.ontology_family,
+        country: entry.country,
+        fallback_version: entry.version,
+      };
       try {
         return await loadOntologyStandard(source, 4500);
       } catch {

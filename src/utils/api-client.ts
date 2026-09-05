@@ -12,6 +12,8 @@ export type OntologySyncRequest = components['schemas']['OntologySyncRequest'];
 export type OntologySyncResponse = components['schemas']['OntologySyncResponse'];
 export type OntologySyncItem = components['schemas']['OntologySyncItem'];
 export type OntologySyncSource = components['schemas']['OntologySyncSourceResponse'];
+export type OntologySummary = components['schemas']['OntologySummaryResponse'];
+export type OntologyListResponse = components['schemas']['OntologyListResponse'];
 export type OntologyPublishRequest = components['schemas']['OntologyPublishRequest'];
 export type OntologyPublishResponse = components['schemas']['OntologyPublishResponse'];
 export type OntologyDictionaryConversionRequest =
@@ -259,6 +261,11 @@ export class ApiClient {
   }
 
   // Ontology registry sync endpoints
+  async listOntologies(): Promise<OntologyListResponse> {
+    const response = await this.axiosInstance.get('/api/proxy/ontologies');
+    return response.data;
+  }
+
   async getOntologySyncSource(): Promise<OntologySyncSource> {
     const response = await this.axiosInstance.get('/api/proxy/ontologies/sync/source');
     return response.data;
