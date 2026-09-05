@@ -22,6 +22,7 @@ export default function RuleBookPage() {
   const active_graph_data = useRuleBookStore((state: RuleBookStore) => state.active_graph_data);
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
+  const chain_derived = useRuleBookStore((state: RuleBookStore) => state.chain_derived);
   const execution_status = useRuleBookStore((state: RuleBookStore) => state.execution_status);
   const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
   const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
@@ -97,6 +98,7 @@ export default function RuleBookPage() {
         runner_rule_items,
         available_rules,
         solver: execution_solver,
+        chain_derived,
       });
 
       setExecutionTimeline(timeline);
@@ -113,6 +115,7 @@ export default function RuleBookPage() {
   }, [
     active_graph_data,
     available_rules,
+    chain_derived,
     execution_solver,
     graph_loaded,
     runner_rule_items,
@@ -146,6 +149,7 @@ export default function RuleBookPage() {
         runner_rule_items,
         available_rules,
         solver: execution_solver,
+        chain_derived,
       });
 
       setExecutionTimeline(timeline);
@@ -162,6 +166,7 @@ export default function RuleBookPage() {
   }, [
     active_graph_data,
     available_rules,
+    chain_derived,
     execution_solver,
     graph_loaded,
     runner_rule_items,
