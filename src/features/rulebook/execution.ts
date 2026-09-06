@@ -748,8 +748,10 @@ export async function buildRuleRunnerExecutionTimeline(input: {
       getRuleOrNull(runner_item.rule_id),
     ]);
 
+    // Linked rules run right after this item, in the order of their end elements (the queue is
+    // front-loaded, so the links are pushed in reverse).
     const linked = collectRuleLinks(diagnostic_run);
-    for (const link of linked) {
+    for (const link of [...linked].reverse()) {
       const chain_path = [...path, runner_item.rule_id];
       if (chain_path.includes(link.next_rule) || chained_count >= MAX_CHAINED_ITEMS) {
         continue;
