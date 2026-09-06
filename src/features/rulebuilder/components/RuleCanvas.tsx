@@ -47,7 +47,7 @@ const EXPORT_PIXEL_RATIO = 4;
 
 type DragPayload = {
   kind: 'rule-node-template';
-  nodeType: 'start' | 'decision' | 'end';
+  nodeType: RuleData['element_type'];
   label: string;
   template: Record<string, unknown>;
   source?: 'local' | 'api';
@@ -180,7 +180,11 @@ function clearTargetReferences(rule: RuleData, targetId: string): RuleData {
 }
 
 function allowsMultipleIncoming(rule: RuleData | undefined | null) {
-  return rule?.element_type === 'decision' || rule?.element_type === 'end';
+  return (
+    rule?.element_type === 'decision' ||
+    rule?.element_type === 'derive' ||
+    rule?.element_type === 'end'
+  );
 }
 
 function updateRuleBranch(rule: RuleData, branch: RuleBranch, targetId: string | null): RuleData {
@@ -475,6 +479,13 @@ function RuleCanvasInner({
       const sourceId = params.source;
       const targetId = params.target;
 
+      const sourceNode = nodes.find((node: Node) => node.id === sourceId);
+      const sourceRule = (sourceNode?.data?.rule as RuleData | undefined) || null;
+      if (sourceRule?.element_type === 'derive' && handle === 'false') {
+        window.alert('Derive rule elements have no false branch (only written / missing input).');
+        return;
+      }
+
       const targetNode = nodes.find((node: Node) => node.id === targetId);
       const targetRule = (targetNode?.data?.rule as RuleData | undefined) || null;
       if (targetRule?.element_type === 'start') {
@@ -617,8 +628,9 @@ function RuleCanvasInner({
       setNodes((current: Node[]) => {
         const label = nextLabelWithBase(baseLabel, current);
 
+        const templateRule = template as RuleData;
         const rule: RuleData = {
-          ...(template as RuleData),
+          ...templateRule,
           id: canvasNodeId,
           label,
           true_path: null,
@@ -627,6 +639,12 @@ function RuleCanvasInner({
           graph_uri: null,
           element_id: payload.element_id || null,
         };
+
+        if (templateRule.element_type === 'derive') {
+          rule.expression = templateRule.expression ?? null;
+          rule.operator = null;
+          rule.value = null;
+        }
 
         const newNode: Node = {
           id: canvasNodeId,

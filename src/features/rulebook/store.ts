@@ -125,6 +125,7 @@ export type RuleBookStore = {
 
   execution_status: 'idle' | 'ready' | 'running' | 'paused' | 'complete';
   execution_solver: 'standard' | 'horizontal' | 'vertical';
+  chain_derived: boolean;
   execution_timeline: ExecutionTimeline | null;
   current_step_index: number;
   execution_playback_ms: number;
@@ -173,6 +174,7 @@ export type RuleBookStore = {
 
   setExecutionStatus: (value: 'idle' | 'ready' | 'running' | 'paused' | 'complete') => void;
   setExecutionSolver: (value: 'standard' | 'horizontal' | 'vertical') => void;
+  setChainDerived: (value: boolean) => void;
   setExecutionTimeline: (timeline: ExecutionTimeline | null) => void;
   setCurrentStepIndex: (value: number) => void;
   setExecutionPlaybackMs: (value: number) => void;
@@ -206,6 +208,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
 
   execution_status: 'idle',
   execution_solver: 'standard',
+  chain_derived: true,
   execution_timeline: null,
   current_step_index: 0,
   execution_playback_ms: 900,
@@ -546,6 +549,7 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
 
   setExecutionStatus: (value) => set({ execution_status: value }),
   setExecutionSolver: (value) => set({ execution_solver: value }),
+  setChainDerived: (value) => set({ chain_derived: value }),
   setExecutionTimeline: (timeline) => set({ execution_timeline: timeline }),
   setCurrentStepIndex: (value) => set({ current_step_index: value }),
   setExecutionPlaybackMs: (value) => set({ execution_playback_ms: value }),

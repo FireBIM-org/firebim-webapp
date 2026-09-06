@@ -85,6 +85,8 @@ export function RuleRunner({ onRun }: Props) {
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
   const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
+  const chain_derived = useRuleBookStore((state: RuleBookStore) => state.chain_derived);
+  const setChainDerived = useRuleBookStore((state: RuleBookStore) => state.setChainDerived);
 
   const addRuleToRunner = useRuleBookStore((state: RuleBookStore) => state.addRuleToRunner);
   const removeRuleFromRunner = useRuleBookStore(
@@ -207,6 +209,19 @@ export function RuleRunner({ onRun }: Props) {
           <TrashIcon className="h-4 w-4" />
           Clear runner
         </button>
+
+        <label
+          className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm"
+          title="Persist values written by derive elements and let later rules in the sequence read them"
+        >
+          <input
+            type="checkbox"
+            checked={chain_derived}
+            onChange={(event) => setChainDerived(event.target.checked)}
+            className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          Chain derived values
+        </label>
 
         <div className="ml-auto text-xs text-gray-500">
           {graph_loaded

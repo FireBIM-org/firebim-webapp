@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
+import type { components } from '@/types/api';
+
 import { env } from '@/config/env';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
@@ -46,7 +48,7 @@ export type RuleHealthResponse = {
   ok?: boolean;
 };
 
-export type RuleElementType = 'start' | 'decision' | 'end';
+export type RuleElementType = 'start' | 'decision' | 'derive' | 'end';
 export type RuleBranch = 'true_path' | 'false_path' | 'unknown_path';
 type ApiRuleBranch = 'true' | 'false' | 'unknown';
 
@@ -65,6 +67,7 @@ export type RuleElementJson = {
   property_path?: string | null;
   operator?: string | null;
   value?: unknown;
+  expression?: string | null;
   true_path?: string | null;
   false_path?: string | null;
   unknown_path?: string | null;
@@ -237,6 +240,12 @@ export type PublishRuleRequest = {
   rule: RuleJson;
 };
 
+export type ValidateRuleRequest = {
+  rule: RuleJson;
+};
+
+export type RuleValidateResponse = components['schemas']['RuleValidateResponse'];
+
 export type PublishRuleResponse = {
   published?: boolean;
   rule_id?: string;
@@ -405,6 +414,10 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
   },
 ];
 
+function isRuleElementType(value: unknown): value is RuleElementType {
+  return value === 'start' || value === 'decision' || value === 'derive' || value === 'end';
+}
+
 function normalizeRuleElement(input: unknown): RuleElementJson {
   const raw = (input ?? {}) as Record<string, unknown>;
   const ruleElement =
@@ -415,16 +428,11 @@ function normalizeRuleElement(input: unknown): RuleElementJson {
         : raw;
 
   const id = String(ruleElement.id ?? raw.element_id ?? '');
-  const elementType =
-    ruleElement.element_type === 'start' ||
-    ruleElement.element_type === 'decision' ||
-    ruleElement.element_type === 'end'
-      ? ruleElement.element_type
-      : ruleElement.node_type === 'start' ||
-          ruleElement.node_type === 'decision' ||
-          ruleElement.node_type === 'end'
-        ? ruleElement.node_type
-        : 'decision';
+  const elementType = isRuleElementType(ruleElement.element_type)
+    ? ruleElement.element_type
+    : isRuleElementType(ruleElement.node_type)
+      ? ruleElement.node_type
+      : 'decision';
 
   return {
     id,
@@ -434,6 +442,7 @@ function normalizeRuleElement(input: unknown): RuleElementJson {
     property_path: (ruleElement.property_path as string | null | undefined) ?? null,
     operator: (ruleElement.operator as string | null | undefined) ?? null,
     value: ruleElement.value,
+    expression: (ruleElement.expression as string | null | undefined) ?? null,
     true_path: (ruleElement.true_path as string | null | undefined) ?? null,
     false_path: (ruleElement.false_path as string | null | undefined) ?? null,
     unknown_path: (ruleElement.unknown_path as string | null | undefined) ?? null,
@@ -502,6 +511,18 @@ export async function checkRuleCompleteness(
   });
 
   return parseJsonResponse<CheckRuleCompletenessResponse>(res);
+}
+
+export async function validateRule(payload: ValidateRuleRequest): Promise<RuleValidateResponse> {
+  const res = await fetch(`${env.apiBaseUrl}/rules/validate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<RuleValidateResponse>(res);
 }
 
 export async function publishRule(payload: PublishRuleRequest): Promise<PublishRuleResponse> {
@@ -717,12 +738,7 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
     basic.map(
       async (item: RuleElementListItem, index: number): Promise<DetailedRuleElementListItem> => {
         const id = item.element_id || item.id || `rule-element-${index}`;
-        const listElementType =
-          item.element_type === 'start' ||
-          item.element_type === 'decision' ||
-          item.element_type === 'end'
-            ? item.element_type
-            : null;
+        const listElementType = isRuleElementType(item.element_type) ? item.element_type : null;
         const hasListMetadata =
           typeof item.label === 'string' && item.label.trim() !== '' && listElementType !== null;
 
@@ -752,10 +768,7 @@ export async function listRuleElementsDetailed(): Promise<DetailedRuleElementLis
             item_id: `api:${id}`,
             element_id: id,
             graph_uri: item.graph_uri || '',
-            element_type:
-              item.element_type === 'start' || item.element_type === 'end'
-                ? item.element_type
-                : 'decision',
+            element_type: isRuleElementType(item.element_type) ? item.element_type : 'decision',
             label: item.label?.trim() || id,
           };
         }

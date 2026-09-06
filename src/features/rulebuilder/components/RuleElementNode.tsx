@@ -1,22 +1,24 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 
+import type { RuleData } from '@/features/rulebuilder/editorStore';
+
 import { classifyTerminalSentimentFromMany } from '../../../lib/ruleSentiment';
 
-type RuleData = {
-  id: string;
-  element_type: 'start' | 'decision' | 'end';
-  label?: string | null;
-  target_class?: string | null;
-  property_path?: string | null;
-  operator?: string | null;
-  value?: unknown;
-  true_path?: string | null;
-  false_path?: string | null;
-  unknown_path?: string | null;
-  config?: Record<string, unknown>;
-  graph_uri?: string | null;
-  element_id?: string | null;
-};
+export function isValueRef(value: unknown): value is { $ref: string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as { $ref?: unknown }).$ref === 'string'
+  );
+}
+
+export function formatValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  if (isValueRef(value)) return `= ${value.$ref}`;
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
 
 type VisualState = 'normal' | 'dimmed' | 'completeness-issue' | 'ontology-issue';
 
@@ -45,6 +47,17 @@ export function getNodePalette(
       badge: 'text-sky-700',
       header: 'bg-sky-50 border-sky-200',
       body: 'bg-white',
+    };
+  }
+
+  if (nodeType === 'derive') {
+    return {
+      border: 'border-indigo-500',
+      ring: 'ring-indigo-200',
+      badge: 'text-indigo-700',
+      header: 'bg-indigo-50 border-indigo-200',
+      body: 'bg-white',
+      output: 'bg-indigo-50 text-indigo-900',
     };
   }
 
@@ -105,6 +118,7 @@ export function getNodePalette(
 function typeBadge(nodeType: RuleData['element_type']) {
   if (nodeType === 'start') return 'Start';
   if (nodeType === 'end') return 'End';
+  if (nodeType === 'derive') return 'Derive';
   return 'Decision';
 }
 
@@ -125,9 +139,15 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
   const label = rule.label || rule.id || 'Unnamed rule element';
 
   const showInput = rule.element_type !== 'start';
-  const showTrueOutput = rule.element_type === 'start' || rule.element_type === 'decision';
+  const isDerive = rule.element_type === 'derive';
+  const showTrueOutput =
+    rule.element_type === 'start' || rule.element_type === 'decision' || isDerive;
   const showFalseOutput = rule.element_type === 'decision';
-  const showUnknownOutput = rule.element_type === 'decision';
+  const showUnknownOutput = rule.element_type === 'decision' || isDerive;
+  const trueLabel = rule.element_type === 'start' ? 'Next' : isDerive ? 'Written' : 'True';
+  const unknownLabel = isDerive ? 'Missing input' : 'Unknown';
+  const trueHandleLeft = rule.element_type === 'start' ? '50%' : isDerive ? '25%' : '12%';
+  const unknownHandleLeft = isDerive ? '75%' : '88%';
   const isDimmed = visualState === 'dimmed';
   const isCompletenessIssue = visualState === 'completeness-issue';
   const isOntologyIssue = visualState === 'ontology-issue';
@@ -202,10 +222,31 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
             <span className="font-medium">Operator:</span> {rule.operator || '—'}
           </div>
           <div className="mt-1">
-            <span className="font-medium">Value:</span>{' '}
-            {rule.value === null || rule.value === undefined || rule.value === ''
-              ? '—'
-              : String(rule.value)}
+            <span className="font-medium">Value:</span> {formatValue(rule.value) ?? '—'}
+          </div>
+        </div>
+      )}
+
+      {isDerive && (
+        <div
+          className={`px-3 py-2 text-xs ${isOntologyIssue ? 'text-red-900' : isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
+        >
+          <div>
+            <span className="font-medium">Target:</span> {rule.target_class || '—'}
+          </div>
+          <div className="mt-1">
+            <span className="font-medium">Writes:</span> {rule.property_path || '—'}
+          </div>
+          <div className="mt-1">
+            <span className="font-medium">Expression:</span>
+          </div>
+          <div
+            className={`mt-1 truncate rounded-lg px-2 py-1 font-mono text-[11px] ${
+              isCompletenessIssue ? 'bg-slate-400 text-slate-950' : palette.output
+            }`}
+            title={rule.expression?.trim() || undefined}
+          >
+            {rule.expression?.trim() || '—'}
           </div>
         </div>
       )}
@@ -232,18 +273,17 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
           {showTrueOutput && (
             <>
               <div
-                className={`absolute top-2 -translate-x-1/2 text-[10px] font-medium text-slate-500 ${
-                  rule.element_type === 'start' ? 'left-1/2' : 'left-[12%]'
-                }`}
+                className="absolute top-2 -translate-x-1/2 text-[10px] font-medium whitespace-nowrap text-slate-500"
+                style={{ left: trueHandleLeft }}
               >
-                {rule.element_type === 'start' ? 'Next' : 'True'}
+                {trueLabel}
               </div>
 
               <Handle
                 type="source"
                 id="true"
                 position={Position.Bottom}
-                style={{ left: rule.element_type === 'start' ? '50%' : '12%' }}
+                style={{ left: trueHandleLeft }}
                 className="!h-3 !w-3 !border-2 !border-emerald-600 !bg-white"
               />
             </>
@@ -266,14 +306,17 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
 
           {showUnknownOutput && (
             <>
-              <div className="absolute top-2 left-[88%] -translate-x-1/2 text-[10px] font-medium text-slate-500">
-                Unknown
+              <div
+                className="absolute top-2 -translate-x-1/2 text-[10px] font-medium whitespace-nowrap text-slate-500"
+                style={{ left: unknownHandleLeft }}
+              >
+                {unknownLabel}
               </div>
               <Handle
                 type="source"
                 id="unknown"
                 position={Position.Bottom}
-                style={{ left: '88%' }}
+                style={{ left: unknownHandleLeft }}
                 className="!h-3 !w-3 !border-2 !border-amber-600 !bg-white"
               />
             </>

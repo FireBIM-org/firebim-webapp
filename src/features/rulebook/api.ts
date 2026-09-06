@@ -24,6 +24,8 @@ const DEFAULT_CHECK_OPTIONS: Required<CheckRunOptions> = {
   include_targets: true,
   include_trace: true,
   debug: false,
+  persist_derived: false,
+  use_derived_from: [],
 };
 
 type DeleteRuleInput = {
@@ -62,6 +64,7 @@ type PublishRuleJsonResponse = {
   error?: string | null;
   message?: string | null;
   fallback?: boolean;
+  warnings?: string[];
 };
 
 type PublishGraphJsonRequest = {

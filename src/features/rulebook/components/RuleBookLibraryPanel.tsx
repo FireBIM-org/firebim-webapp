@@ -387,7 +387,12 @@ export default function RuleBookLibraryPanel({
         await loadAvailableRules();
 
         const label = result.label || result.rule_id || file.name;
-        setRuleUploadMessage(`Uploaded rule: ${label}`);
+        const warnings = Array.isArray(result.warnings) ? result.warnings.filter(Boolean) : [];
+        setRuleUploadMessage(
+          warnings.length > 0
+            ? `Uploaded rule: ${label} · Warnings: ${warnings.join('; ')}`
+            : `Uploaded rule: ${label}`,
+        );
       } catch (error) {
         setRuleUploadMessage(null);
         setRulesError(error instanceof Error ? error.message : 'Rule upload failed');
