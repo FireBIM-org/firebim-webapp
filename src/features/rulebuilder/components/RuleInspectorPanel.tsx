@@ -174,11 +174,12 @@ export default function RuleInspectorPanel({
       const value = event.target.value;
 
       if (field === 'value' && isEnd) {
+        const current_kind = String(selectedRule?.config?.end_kind ?? 'output');
         onChange({
           value,
           config: {
             ...selectedRule?.config,
-            end_kind: 'output',
+            end_kind: current_kind,
             output_text: value,
           },
         });
@@ -187,6 +188,48 @@ export default function RuleInspectorPanel({
 
       onChange({ [field]: value });
     };
+
+  const END_KINDS: Array<{ value: string; label: string; hint: string }> = [
+    {
+      value: 'output',
+      label: 'Outcome (text)',
+      hint: 'A defined outcome, e.g. "unit is AK2" — counts as reached, not as a violation',
+    },
+    { value: 'pass', label: 'Pass', hint: 'The requirement is met' },
+    { value: 'fail', label: 'Fail', hint: 'The requirement is checked and not met' },
+    {
+      value: 'missing_data',
+      label: 'Missing data',
+      hint: 'A fact is missing or ambiguous — ask the user',
+    },
+    {
+      value: 'not_applicable',
+      label: 'Not applicable',
+      hint: 'The rule does not apply to this target',
+    },
+    {
+      value: 'rule',
+      label: 'Continue in another rule',
+      hint: 'Targets reaching this end are handed to the linked rule (the RuleBook chains it)',
+    },
+  ];
+  const endKind = String(selectedRule?.config?.end_kind ?? 'output');
+  const nextRule = String(selectedRule?.config?.next_rule ?? '');
+  const handleEndKindChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const end_kind = event.target.value;
+    const config = { ...(selectedRule?.config ?? {}), end_kind } as Record<string, unknown>;
+    if (end_kind !== 'rule') delete config.next_rule;
+    onChange({ config });
+  };
+  const handleNextRuleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({
+      config: {
+        ...(selectedRule?.config ?? {}),
+        end_kind: 'rule',
+        next_rule: event.target.value.trim(),
+      },
+    });
+  };
 
   const handleValueRefChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange({ value: { $ref: event.target.value } });
@@ -479,9 +522,45 @@ export default function RuleInspectorPanel({
                   </label>
 
                   {isEnd && (
-                    <p className="mb-1 text-[11px] text-gray-400">
-                      This value is used as the rule output
-                    </p>
+                    <>
+                      <p className="mb-1 text-[11px] text-gray-400">
+                        This value is used as the rule output
+                      </p>
+                      <label className="mt-2 mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                        Outcome kind
+                      </label>
+                      <select
+                        value={endKind}
+                        onChange={handleEndKindChange}
+                        className={activeClass}
+                      >
+                        {END_KINDS.map((kind) => (
+                          <option key={kind.value} value={kind.value}>
+                            {kind.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                        {END_KINDS.find((kind) => kind.value === endKind)?.hint ?? ''}
+                      </p>
+                      {endKind === 'rule' && (
+                        <>
+                          <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                            Linked rule id
+                          </label>
+                          <input
+                            value={nextRule}
+                            onChange={handleNextRuleChange}
+                            className={`${activeClass} font-mono`}
+                            placeholder="dk-compartments-size-ak2-v2"
+                          />
+                          <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                            When this rule runs in the RuleBook, the linked rule is run right after
+                            it for exactly the targets that ended here.
+                          </p>
+                        </>
+                      )}
+                    </>
                   )}
 
                   {isDecision && (

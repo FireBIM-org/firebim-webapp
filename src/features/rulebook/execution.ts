@@ -670,6 +670,33 @@ function buildExecutionStepsFromDiagnosticRun(input: {
   };
 }
 
+/** End elements of a run that link to another rule, with the targets that reached them. */
+export function collectRuleLinks(run: DiagnosticRunResponse): Array<{
+  end_node_id: string;
+  next_rule: string;
+  target_nodes: string[];
+}> {
+  const end_nodes = (run.end_nodes ?? []) as Array<{
+    end_node_id: string;
+    next_rule?: string | null;
+  }>;
+  const targets = (run.targets ?? []) as Array<{
+    target_node: string;
+    terminal_node_id?: string | null;
+  }>;
+  const links: Array<{ end_node_id: string; next_rule: string; target_nodes: string[] }> = [];
+  for (const end_node of end_nodes) {
+    const next_rule = (end_node.next_rule ?? '').trim();
+    if (!next_rule) continue;
+    const target_nodes = targets
+      .filter((target) => target.terminal_node_id === end_node.end_node_id)
+      .map((target) => target.target_node);
+    if (target_nodes.length === 0) continue;
+    links.push({ end_node_id: end_node.end_node_id, next_rule, target_nodes });
+  }
+  return links;
+}
+
 export async function buildRuleRunnerExecutionTimeline(input: {
   active_graph_data: BuildingGraphData;
   runner_rule_items: RuleRunnerItem[];
@@ -684,8 +711,20 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   const earlier_rule_ids: string[] = [];
 
   // Items run sequentially (one awaited iteration per item) so a later rule can
-  // read the derived values an earlier rule persisted.
-  for (const runner_item of input.runner_rule_items) {
+  // read the derived values an earlier rule persisted. A rule whose end element
+  // links to another rule (config.next_rule) enqueues that rule right after itself,
+  // scoped to the targets that reached the link; a rule already on the chain path
+  // is not enqueued again (no loops across rules).
+  const queue: Array<{ item: RuleRunnerItem; path: string[] }> = input.runner_rule_items.map(
+    (item) => ({
+      item,
+      path: [],
+    }),
+  );
+  const MAX_CHAINED_ITEMS = 50;
+  let chained_count = 0;
+  while (queue.length > 0) {
+    const { item: runner_item, path } = queue.shift()!;
     const library_item = input.available_rules.find((rule) => rule.rule_id === runner_item.rule_id);
     const use_derived_from = earlier_rule_ids.filter((rule_id) => rule_id !== runner_item.rule_id);
 
@@ -695,6 +734,9 @@ export async function buildRuleRunnerExecutionTimeline(input: {
         graph_id: input.active_graph_data.id,
         options: {
           solver: input.solver,
+          ...(runner_item.target_nodes && runner_item.target_nodes.length > 0
+            ? { target_nodes: runner_item.target_nodes }
+            : {}),
           ...(chain_derived
             ? {
                 persist_derived: true,
@@ -705,6 +747,29 @@ export async function buildRuleRunnerExecutionTimeline(input: {
       }),
       getRuleOrNull(runner_item.rule_id),
     ]);
+
+    const linked = collectRuleLinks(diagnostic_run);
+    for (const link of linked) {
+      const chain_path = [...path, runner_item.rule_id];
+      if (chain_path.includes(link.next_rule) || chained_count >= MAX_CHAINED_ITEMS) {
+        continue;
+      }
+      chained_count += 1;
+      queue.unshift({
+        item: {
+          runner_item_id: `${runner_item.runner_item_id}::${link.end_node_id}::${link.next_rule}`,
+          rule_id: link.next_rule,
+          label: `${
+            input.available_rules.find((rule) => rule.rule_id === link.next_rule)?.label ??
+            link.next_rule
+          } ← ${runner_item.label} (${link.target_nodes.length} target${link.target_nodes.length === 1 ? '' : 's'})`,
+          graph_uri: runner_item.graph_uri ?? null,
+          chained_from: { rule_id: runner_item.rule_id, end_node_id: link.end_node_id },
+          target_nodes: link.target_nodes,
+        },
+        path: chain_path,
+      });
+    }
 
     if (chain_derived && !earlier_rule_ids.includes(runner_item.rule_id)) {
       earlier_rule_ids.push(runner_item.rule_id);

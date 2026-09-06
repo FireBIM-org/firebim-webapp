@@ -58,6 +58,10 @@ export type RuleRunnerItem = {
   rule_id: string;
   label: string;
   graph_uri?: string | null;
+  /** Set on items the runner added itself because an earlier rule's end element links to this rule. */
+  chained_from?: { rule_id: string; end_node_id: string } | null;
+  /** Only these targets are evaluated (the ones that reached the linking end element). */
+  target_nodes?: string[];
 };
 
 export type BuildingGraphTargetClass =
@@ -125,6 +129,8 @@ export type CheckRunOptions = {
   debug?: boolean;
   persist_derived?: boolean;
   use_derived_from?: string[];
+  target_nodes?: string[];
+  schema?: string;
 };
 
 export type DerivedValue = components['schemas']['CheckDerivedValue'];
@@ -142,6 +148,7 @@ export type CheckTargetResult = {
   target_class?: string | null;
   status: string;
   message?: string | null;
+  terminal_node_id?: string | null;
   trace?: CheckTargetTraceItem[];
 };
 
@@ -175,6 +182,15 @@ export type CheckRunResponse = {
   derived_values?: DerivedValue[];
   derived_graph_uri?: string | null;
   derived_persisted?: boolean;
+  end_nodes?: Array<{
+    end_node_id: string;
+    terminal_value?: string | null;
+    terminal_kind?: string | null;
+    label?: string | null;
+    output_text?: string | null;
+    next_rule?: string | null;
+    count?: number;
+  }>;
 };
 
 export type DiagnosticSequenceEvent = {
