@@ -1942,6 +1942,22 @@ export interface components {
        * @default 100000
        */
       max_steps: number;
+      /**
+       * Schema
+       * @description see CheckRunOptions.schema
+       * @default auto
+       */
+      schema: string;
+      /**
+       * Use Derived From
+       * @description see CheckRunOptions.use_derived_from
+       */
+      use_derived_from?: string[];
+      /**
+       * Target Nodes
+       * @description see CheckRunOptions.target_nodes
+       */
+      target_nodes?: string[];
     };
     /** BlindCheckRunRequest */
     BlindCheckRunRequest: {
@@ -2226,6 +2242,11 @@ export interface components {
       /** Analysis Code */
       analysis_code?: string | null;
       /**
+       * Next Rule
+       * @description end_kind 'rule': rule that continues for these targets
+       */
+      next_rule?: string | null;
+      /**
        * Count
        * @default 0
        */
@@ -2366,6 +2387,17 @@ export interface components {
        * @description Rule ids whose persisted derived graphs are merged into the building graph before evaluation
        */
       use_derived_from?: string[];
+      /**
+       * Target Nodes
+       * @description Restrict the run to these target IRIs (used by the RuleBook to chain a rule only for the targets that reached an end element with next_rule)
+       */
+      target_nodes?: string[];
+      /**
+       * Schema
+       * @description Which published ontologies' schema triples (subClassOf, subPropertyOf, equivalentClass/Property, inverseOf) are merged into the building graph before evaluation: 'auto' = every ontology whose namespace the rule uses, 'none' = no merge, or a comma-separated list of family/country[/version]
+       * @default auto
+       */
+      schema: string;
     };
     /** CheckRunRequest */
     CheckRunRequest: {

@@ -209,3 +209,102 @@ describe('buildAggregateStep', () => {
     expect(step.derived_graph_uri).toBeNull();
   });
 });
+
+describe('rule links (end elements with next_rule)', () => {
+  it('collectRuleLinks pairs a linking end with the targets that reached it', async () => {
+    const { collectRuleLinks } = await import('./execution');
+    const run = makeDiagnosticRun({
+      targets: [
+        { target_node: `${NS}c1`, status: 'True', terminal_node_id: 'disp-to-ak2' },
+        { target_node: `${NS}c2`, status: 'True', terminal_node_id: 'disp-other' },
+        { target_node: `${NS}c3`, status: 'True', terminal_node_id: 'disp-to-ak2' },
+      ],
+      end_nodes: [
+        { end_node_id: 'disp-to-ak2', next_rule: 'dk-compartments-size-ak2-v2' },
+        { end_node_id: 'disp-other', terminal_kind: 'not_applicable' },
+      ],
+    });
+    expect(collectRuleLinks(run)).toEqual([
+      {
+        end_node_id: 'disp-to-ak2',
+        next_rule: 'dk-compartments-size-ak2-v2',
+        target_nodes: [`${NS}c1`, `${NS}c3`],
+      },
+    ]);
+  });
+
+  it('buildRuleRunnerExecutionTimeline chains the linked rule for those targets only, without loops', async () => {
+    const api = await import('./api');
+    const { buildRuleRunnerExecutionTimeline } = await import('./execution');
+    const calls: Array<{ rule_id: string; options?: Record<string, unknown> }> = [];
+    vi.mocked(api.runDiagnosticCheck).mockImplementation(async (input) => {
+      calls.push({ rule_id: input.rule_id, options: input.options as Record<string, unknown> });
+      if (input.rule_id === 'dispatcher') {
+        return makeDiagnosticRun({
+          rule_id: 'dispatcher',
+          targets: [
+            { target_node: `${NS}c1`, status: 'True', terminal_node_id: 'to-ak2' },
+            { target_node: `${NS}c2`, status: 'True', terminal_node_id: 'other' },
+          ],
+          end_nodes: [{ end_node_id: 'to-ak2', next_rule: 'ak2' }],
+        });
+      }
+      // the linked rule links back to the dispatcher: must not be enqueued again
+      return makeDiagnosticRun({
+        rule_id: 'ak2',
+        targets: [{ target_node: `${NS}c1`, status: 'False', terminal_node_id: 'back' }],
+        end_nodes: [{ end_node_id: 'back', next_rule: 'dispatcher' }],
+      });
+    });
+    vi.mocked(api.getRuleOrNull).mockResolvedValue(null);
+
+    await buildRuleRunnerExecutionTimeline({
+      active_graph_data: { id: 'graph-1', graph_uri: 'g', label: 'g', triple_count: 1 } as never,
+      runner_rule_items: [{ runner_item_id: 'r1', rule_id: 'dispatcher', label: 'Dispatcher' }],
+      available_rules: [{ rule_id: 'ak2', label: 'AK2 size' } as never],
+      solver: 'standard',
+      chain_derived: true,
+    });
+    expect(calls.map((c) => c.rule_id)).toEqual(['dispatcher', 'ak2']);
+    expect(calls[1].options?.target_nodes).toEqual([`${NS}c1`]);
+    expect(calls[1].options?.use_derived_from).toEqual(['dispatcher']);
+  });
+});
+
+describe('rule links: order and missing rules', () => {
+  it('runs several linked rules in end-element order, each scoped to its own targets', async () => {
+    const api = await import('./api');
+    const { buildRuleRunnerExecutionTimeline } = await import('./execution');
+    const calls: Array<{ rule_id: string; options?: Record<string, unknown> }> = [];
+    vi.mocked(api.runDiagnosticCheck).mockImplementation(async (input) => {
+      calls.push({ rule_id: input.rule_id, options: input.options as Record<string, unknown> });
+      if (input.rule_id === 'dispatcher') {
+        return makeDiagnosticRun({
+          rule_id: 'dispatcher',
+          targets: [
+            { target_node: `${NS}c1`, status: 'True', terminal_node_id: 'to-ak2' },
+            { target_node: `${NS}c2`, status: 'True', terminal_node_id: 'to-ak3' },
+            { target_node: `${NS}c3`, status: 'True', terminal_node_id: 'to-ak2' },
+          ],
+          end_nodes: [
+            { end_node_id: 'to-ak2', next_rule: 'ak2' },
+            { end_node_id: 'to-ak3', next_rule: 'ak3' },
+          ],
+        });
+      }
+      return makeDiagnosticRun({ rule_id: input.rule_id, targets: [], end_nodes: [] });
+    });
+    vi.mocked(api.getRuleOrNull).mockResolvedValue(null);
+
+    await buildRuleRunnerExecutionTimeline({
+      active_graph_data: { id: 'graph-1', graph_uri: 'g', label: 'g', triple_count: 1 } as never,
+      runner_rule_items: [{ runner_item_id: 'r1', rule_id: 'dispatcher', label: 'Dispatcher' }],
+      available_rules: [],
+      solver: 'standard',
+      chain_derived: false,
+    });
+    expect(calls.map((c) => c.rule_id)).toEqual(['dispatcher', 'ak2', 'ak3']);
+    expect(calls[1].options?.target_nodes).toEqual([`${NS}c1`, `${NS}c3`]);
+    expect(calls[2].options?.target_nodes).toEqual([`${NS}c2`]);
+  });
+});

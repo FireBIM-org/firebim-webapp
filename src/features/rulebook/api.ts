@@ -26,6 +26,8 @@ const DEFAULT_CHECK_OPTIONS: Required<CheckRunOptions> = {
   debug: false,
   persist_derived: false,
   use_derived_from: [],
+  target_nodes: [],
+  schema: 'auto',
 };
 
 type DeleteRuleInput = {
