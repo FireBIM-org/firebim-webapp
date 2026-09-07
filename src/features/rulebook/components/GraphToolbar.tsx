@@ -58,6 +58,7 @@ export function GraphToolbar() {
       const nextGraphs = graphs.map((graph): BuildingGraphData => ({
         id: graph.graph_id,
         label: graph.label ?? graph.graph_id,
+        description: graph.description ?? null,
         graph_uri: graph.graph_uri ?? null,
         source: graph.source ?? 'api',
         triple_count: graph.triple_count ?? null,
@@ -111,7 +112,13 @@ export function GraphToolbar() {
 
     try {
       const response = await fetchStoredBuildingGraphRaw(selected_graph_source);
-      const graph = parseBuildingGraphTtl(response, cloneDefaultOntologyCatalog());
+      const parsed = parseBuildingGraphTtl(response, cloneDefaultOntologyCatalog());
+      const listed = available_graphs.find((item) => item.id === selected_graph_source);
+      const graph: BuildingGraphData = {
+        ...parsed,
+        label: listed?.label ?? parsed.label,
+        description: listed?.description ?? parsed.description ?? null,
+      };
 
       setActiveGraphData(graph);
       setActiveGraphUri(graph.graph_uri ?? graph.id);
@@ -173,7 +180,7 @@ export function GraphToolbar() {
               <option value="">No stored graphs found</option>
             ) : (
               available_graphs.map((graph: BuildingGraphData) => (
-                <option key={graph.id} value={graph.id}>
+                <option key={graph.id} value={graph.id} title={graph.description ?? undefined}>
                   {graph.source === 'ontop' ? '[Ontop] ' : ''}
                   {graph.label}
                   {graph.triple_count ? ` - ${graph.triple_count} triples` : ''}
@@ -255,6 +262,15 @@ export function GraphToolbar() {
           </div>
         ) : null}
       </div>
+
+      {graph_loaded && active_graph_data?.description ? (
+        <p
+          className="mt-2 text-xs whitespace-pre-line text-slate-600"
+          data-testid="graph-description"
+        >
+          {active_graph_data.description}
+        </p>
+      ) : null}
     </div>
   );
 }

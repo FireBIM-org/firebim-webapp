@@ -42,6 +42,8 @@ type GraphListApiItem = {
   graph_id: string;
   graph_uri?: string | null;
   label?: string | null;
+  /** what the graph says about itself (`<graph_uri> rdfs:comment`), e.g. which rules it is meant for */
+  description?: string | null;
   source?: string | null;
   triple_count?: number | null;
 };
@@ -234,6 +236,7 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
       graph_id,
       graph_uri,
       label: (graph.label as string | undefined) ?? (graph.name as string | undefined) ?? graph_id,
+      description: (graph.description as string | undefined) ?? null,
       source: (graph.source as string | undefined) ?? (graph_uri ? 'api' : null),
       triple_count: typeof graph.triple_count === 'number' ? graph.triple_count : null,
     });
