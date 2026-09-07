@@ -355,5 +355,11 @@ describe('open questions and overrides', () => {
     expect(timeline.questions).toHaveLength(1); // same subject|property asked by both rules → once
     expect(timeline.questions?.[0].rule_label).toBe('Rule A');
     expect(timeline.questions?.[0].key).toBe(`${NS}c1|${question.write_property}`);
+    expect(
+      timeline.run_summaries?.map((run) => [run.rule_label, run.success, run.total_targets]),
+    ).toEqual([
+      ['Rule A', true, 1],
+      ['Rule B', true, 1],
+    ]);
   });
 });

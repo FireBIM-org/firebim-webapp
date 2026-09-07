@@ -336,10 +336,72 @@ export default function RuleInspectorPanel({
   const activeClass = 'w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
   const invalidClass =
     'w-full rounded-md border border-red-500 bg-red-50 px-3 py-2 text-sm text-red-900 focus:border-red-600 focus:ring-red-200';
-  const issueFor = (field: 'target_class' | 'property_path') =>
+  const issueFor = (field: RuleTermValidationIssue['field']) =>
     validationIssues.find((issue) => issue.field === field);
   const targetClassIssue = issueFor('target_class');
   const propertyPathIssue = issueFor('property_path');
+  const refValueIssue = issueFor('value');
+  const expressionIssue = issueFor('expression');
+  const rawAcceptedTerms = selectedRule?.config?.accepted_terms;
+  const acceptedTerms = Array.isArray(rawAcceptedTerms) ? rawAcceptedTerms.map(String) : [];
+  const acceptTerm = (term: string) => {
+    if (acceptedTerms.includes(term)) return;
+    onChange({
+      config: { ...(selectedRule?.config ?? {}), accepted_terms: [...acceptedTerms, term] },
+    });
+  };
+  const unacceptTerm = (term: string) => {
+    const next = acceptedTerms.filter((item) => item !== term);
+    const config = { ...(selectedRule?.config ?? {}) } as Record<string, unknown>;
+    if (next.length > 0) config.accepted_terms = next;
+    else delete config.accepted_terms;
+    onChange({ config });
+  };
+  const renderIssue = (
+    issue: RuleTermValidationIssue | undefined,
+    field: 'target_class' | 'property_path' | null,
+    id: string,
+  ) => {
+    if (!issue) return null;
+    return (
+      <div
+        id={id}
+        role="alert"
+        className="mt-1 space-y-1.5 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-800"
+      >
+        <p>{issue.message}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {field ? (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSuggestionField(field);
+                if (selectedOntologyIds.length === 0) setOntologyPickerOpen(true);
+              }}
+              className="rounded border border-red-300 bg-white px-2 py-0.5 text-red-800 hover:bg-red-100"
+            >
+              Change the term
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setOntologyPickerOpen(true)}
+            className="rounded border border-red-300 bg-white px-2 py-0.5 text-red-800 hover:bg-red-100"
+          >
+            Add ontologies ↗
+          </button>
+          <button
+            type="button"
+            onClick={() => acceptTerm(issue.value)}
+            className="rounded border border-red-300 bg-white px-2 py-0.5 text-red-800 hover:bg-red-100"
+            title="Keep this term on purpose: the warning is suppressed for this element"
+          >
+            Accept “{issue.value.split(/[#/]/).pop()}”
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <aside className="w-80 border-l border-gray-200 bg-white">
@@ -391,8 +453,9 @@ export default function RuleInspectorPanel({
           {ontologyPickerOpen ? (
             <div className="space-y-2 rounded-md border border-orange-200 bg-orange-50 p-3">
               <p className="text-xs text-orange-900">
-                Checked ontologies provide search help and API validation for decision target
-                classes and property paths.
+                Terms are checked against the ticked ontologies (every step of a path, derive
+                expressions too). Tick the ontology that defines a term and its warning disappears;
+                untick and it comes back.
               </p>
               {ontologyLibrary.map((ontology) => (
                 <label key={ontology.id} className="flex cursor-pointer items-start gap-2 text-xs">
@@ -414,6 +477,26 @@ export default function RuleInspectorPanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-4">
+            {acceptedTerms.length > 0 ? (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                <div className="mb-1 font-medium">
+                  Accepted terms (not checked against the ontologies)
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {acceptedTerms.map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => unacceptTerm(term)}
+                      title={`${term} — click to check it again`}
+                      className="rounded border border-amber-300 bg-white px-2 py-0.5 font-mono text-[11px] hover:bg-amber-100"
+                    >
+                      {term.split(/[#/]/).pop()} ×
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div>
               <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
                 ID
@@ -458,15 +541,7 @@ export default function RuleInspectorPanel({
                 aria-invalid={Boolean(targetClassIssue)}
                 aria-describedby={targetClassIssue ? 'target-class-validation-error' : undefined}
               />
-              {targetClassIssue ? (
-                <p
-                  id="target-class-validation-error"
-                  role="alert"
-                  className="mt-1 text-xs text-red-700"
-                >
-                  {targetClassIssue.message}
-                </p>
-              ) : null}
+              {renderIssue(targetClassIssue, 'target_class', 'target-class-validation-error')}
               {usesOntologyTerms && selectedOntologyIds.length > 0 ? (
                 <OntologySuggestionList
                   visible={activeSuggestionField === 'target_class'}
@@ -499,15 +574,7 @@ export default function RuleInspectorPanel({
                 aria-invalid={Boolean(propertyPathIssue)}
                 aria-describedby={propertyPathIssue ? 'property-path-validation-error' : undefined}
               />
-              {propertyPathIssue ? (
-                <p
-                  id="property-path-validation-error"
-                  role="alert"
-                  className="mt-1 text-xs text-red-700"
-                >
-                  {propertyPathIssue.message}
-                </p>
-              ) : null}
+              {renderIssue(propertyPathIssue, 'property_path', 'property-path-validation-error')}
               {isDecision ? (
                 <p className="mt-1 text-[11px] text-gray-400">{SEQUENCE_PATH_HINT}</p>
               ) : null}
@@ -546,6 +613,7 @@ export default function RuleInspectorPanel({
                   placeholder="e.g. $fbo-lt:GCoeficient * 2"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">{EXPRESSION_HINT}</p>
+                {renderIssue(expressionIssue, null, 'expression-validation-error')}
               </div>
             ) : (
               <>
@@ -689,6 +757,7 @@ export default function RuleInspectorPanel({
                           Compares with this other property path on the same target (not allowed
                           with operator "between").
                         </p>
+                        {renderIssue(refValueIssue, null, 'ref-validation-error')}
                       </>
                     ) : (
                       <input
