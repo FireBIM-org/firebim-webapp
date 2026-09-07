@@ -10,6 +10,7 @@ export type User = components['schemas']['User'];
 // Ontology registry sync (public firebim.org registry -> this API's ontology store)
 export type OntologySyncRequest = components['schemas']['OntologySyncRequest'];
 export type OntologySyncResponse = components['schemas']['OntologySyncResponse'];
+export type OntologySyncJobResponse = components['schemas']['OntologySyncJobResponse'];
 export type OntologySyncItem = components['schemas']['OntologySyncItem'];
 export type OntologySyncSource = components['schemas']['OntologySyncSourceResponse'];
 export type OntologySummary = components['schemas']['OntologySummaryResponse'];
@@ -280,6 +281,16 @@ export class ApiClient {
     const response = await this.axiosInstance.post('/api/proxy/ontologies/sync', body, {
       timeout: 15 * 60 * 1000,
     });
+    return response.data;
+  }
+
+  async startOntologySyncJob(body: OntologySyncRequest): Promise<OntologySyncJobResponse> {
+    const response = await this.axiosInstance.post('/api/proxy/ontologies/sync/jobs', body);
+    return response.data;
+  }
+
+  async getOntologySyncJob(jobId: string): Promise<OntologySyncJobResponse> {
+    const response = await this.axiosInstance.get(`/api/proxy/ontologies/sync/jobs/${jobId}`);
     return response.data;
   }
 
