@@ -320,10 +320,29 @@ export type ExecutionStep = {
   raw_json?: unknown;
 };
 
+/** One line per rule run: what the runner actually checked. */
+export type RunSummary = {
+  runner_item_id: string;
+  rule_id: string;
+  rule_label: string;
+  success: boolean;
+  error?: string | null;
+  total_targets: number;
+  passed: number;
+  failed: number;
+  unknown: number;
+  target_classes_required: string[];
+  missing_target_classes: string[];
+  missing_properties: string[];
+  chained_from?: string | null;
+};
+
 export type ExecutionTimeline = {
   graph_id: string;
   steps: ExecutionStep[];
   raw_result?: unknown;
   /** Open questions (Unknown targets) collected over every run of the timeline. */
   questions?: OpenQuestion[];
+  /** What each run checked (0 targets = the rule found nothing to check in this graph). */
+  run_summaries?: RunSummary[];
 };

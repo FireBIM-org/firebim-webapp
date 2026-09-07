@@ -536,6 +536,25 @@ export const EXAMPLE_RULE_ELEMENTS: RuleElementJson[] = [
     element_id: null,
   },
   {
+    id: 'decision-example-classification',
+    element_type: 'decision',
+    target_class: 'https://firebim.org/ontologies/fbo/dk#FireCompartment',
+    property_path: 'https://firebim.org/ontologies/fbo/dk#RiskClass',
+    operator: '==',
+    value: ['RK1', 'RK2'],
+    true_path: null,
+    false_path: null,
+    unknown_path: null,
+    label: 'Decision — classification check: risk class is RK1 or RK2',
+    config: {
+      library_category: 'Examples',
+      description:
+        'Codes such as RiskClass / UseCategory / a fire-resistance class are compared as text. A list means "one of"; a single code ("AK2") is an exact match. Several values on the target → Unknown, never a guess.',
+    },
+    graph_uri: null,
+    element_id: null,
+  },
+  {
     id: 'end-example-rule-link',
     element_type: 'end',
     target_class: null,
