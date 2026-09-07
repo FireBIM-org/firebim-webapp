@@ -1030,6 +1030,43 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/ontologies/sync/jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Start Ontology Sync Job
+     * @description Queue an ontology sync so large releases do not hold an HTTP request open.
+     */
+    post: operations['start_ontology_sync_job_ontologies_sync_jobs_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ontologies/sync/jobs/{job_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Ontology Sync Job */
+    get: operations['get_ontology_sync_job_ontologies_sync_jobs__job_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ontologies/conversions/dictionary-json-to-ttl': {
     parameters: {
       query?: never;
@@ -4765,6 +4802,29 @@ export interface components {
       /** Error */
       error?: string | null;
     };
+    /** OntologySyncJobResponse */
+    OntologySyncJobResponse: {
+      /** Job Id */
+      job_id: string;
+      status: components['schemas']['OntologySyncJobStatus'];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Started At */
+      started_at?: string | null;
+      /** Completed At */
+      completed_at?: string | null;
+      result?: components['schemas']['OntologySyncResponse'] | null;
+      /** Error */
+      error?: string | null;
+    };
+    /**
+     * OntologySyncJobStatus
+     * @enum {string}
+     */
+    OntologySyncJobStatus: 'queued' | 'running' | 'completed' | 'failed';
     /** OntologySyncRequest */
     OntologySyncRequest: {
       /**
@@ -8117,6 +8177,70 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['OntologySyncResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  start_ontology_sync_job_ontologies_sync_jobs_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['OntologySyncRequest'] | null;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySyncJobResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_ontology_sync_job_ontologies_sync_jobs__job_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['OntologySyncJobResponse'];
         };
       };
       /** @description Validation Error */

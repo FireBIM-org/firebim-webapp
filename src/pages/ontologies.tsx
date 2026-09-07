@@ -11,6 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import PrimaryButton from '../components/PrimaryButton';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 import apiClient, {
+  type OntologySyncJobResponse,
   type OntologySyncItem,
   type OntologySyncRequest,
   type OntologySyncResponse,
@@ -31,6 +32,8 @@ const STATUS_STYLES: Record<string, string> = {
   deprecated: 'bg-gray-100 text-gray-700 ring-gray-200',
   withdrawn: 'bg-red-50 text-red-800 ring-red-200',
 };
+
+const ACTIVE_SYNC_JOB_KEY = 'firebim-active-ontology-sync-job';
 
 function Badge({ text, className }: { text: string; className: string }) {
   return (
@@ -97,10 +100,17 @@ export default function OntologiesPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preview, setPreview] = useState<OntologySyncResponse | null>(null);
   const [result, setResult] = useState<OntologySyncResponse | null>(null);
+  const [syncJobId, setSyncJobId] = useState<string | null>(null);
+  const [syncJobError, setSyncJobError] = useState<string | null>(null);
 
   useEffect(() => {
     if (sourceQuery.data && !sourceUrl) setSourceUrl(sourceQuery.data.default_source_url);
   }, [sourceQuery.data, sourceUrl]);
+
+  useEffect(() => {
+    const activeJobId = window.localStorage.getItem(ACTIVE_SYNC_JOB_KEY);
+    if (activeJobId) setSyncJobId(activeJobId);
+  }, []);
 
   const baseRequest = (): OntologySyncRequest => ({
     source_url: sourceUrl || null,
@@ -127,16 +137,44 @@ export default function OntologiesPage() {
 
   const syncMutation = useMutation({
     mutationFn: (selections: string[] | null) =>
-      apiClient.runOntologySync({
+      apiClient.startOntologySyncJob({
         ...baseRequest(),
         selections,
       }),
-    onSuccess: (data) => {
-      setResult(data);
-      // refresh the plan so local state reflects what was just published
-      previewMutation.mutate();
+    onMutate: () => {
+      setSyncJobError(null);
+      setResult(null);
+    },
+    onSuccess: (job) => {
+      setSyncJobId(job.job_id);
+      window.localStorage.setItem(ACTIVE_SYNC_JOB_KEY, job.job_id);
     },
   });
+
+  const syncJobQuery = useQuery<OntologySyncJobResponse>({
+    queryKey: ['ontology-sync-job', syncJobId],
+    queryFn: () => apiClient.getOntologySyncJob(syncJobId!),
+    enabled: !!user && !!syncJobId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'completed' || status === 'failed' ? false : 2000;
+    },
+  });
+
+  useEffect(() => {
+    const job = syncJobQuery.data;
+    if (!job || job.job_id !== syncJobId) return;
+    if (job.status === 'completed' && job.result) {
+      setResult(job.result);
+      setSyncJobId(null);
+      window.localStorage.removeItem(ACTIVE_SYNC_JOB_KEY);
+      previewMutation.mutate();
+    } else if (job.status === 'failed') {
+      setSyncJobError(job.error || 'Ontology sync job failed');
+      setSyncJobId(null);
+      window.localStorage.removeItem(ACTIVE_SYNC_JOB_KEY);
+    }
+  }, [previewMutation, syncJobId, syncJobQuery.data]);
 
   const groups = useMemo(() => groupItems(preview?.items ?? []), [preview]);
   const actionable = useMemo(
@@ -163,7 +201,8 @@ export default function OntologiesPage() {
     );
   }
 
-  const busy = previewMutation.isPending || syncMutation.isPending;
+  const syncInProgress = syncMutation.isPending || !!syncJobId;
+  const busy = previewMutation.isPending || syncInProgress;
 
   return (
     <Layout title="Ontologies | FireBIM">
@@ -253,10 +292,25 @@ export default function OntologiesPage() {
           <span>Could not read the registry: {errorMessage(previewMutation.error)}</span>
         </div>
       )}
-      {syncMutation.isError && (
+      {(syncMutation.isError || syncJobQuery.isError || syncJobError) && (
         <div className="mt-4 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           <ExclamationTriangleIcon className="h-5 w-5 shrink-0" />
-          <span>Sync failed: {errorMessage(syncMutation.error)}</span>
+          <span>
+            Sync failed: {syncJobError || errorMessage(syncMutation.error || syncJobQuery.error)}
+          </span>
+        </div>
+      )}
+
+      {syncInProgress && (
+        <div className="mt-4 flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+          <ArrowPathIcon className="h-5 w-5 shrink-0 animate-spin" />
+          <span>
+            {syncJobQuery.data?.status === 'queued'
+              ? 'Sync queued — waiting for a worker.'
+              : syncJobQuery.data?.status === 'running'
+                ? 'Sync running in the background. Large ontologies such as IFC can take several minutes.'
+                : 'Starting background sync…'}
+          </span>
         </div>
       )}
 
@@ -310,9 +364,10 @@ export default function OntologiesPage() {
                 disabled={busy || actionable.length === 0}
                 onClick={() => syncMutation.mutate(null)}
               >
-                {syncMutation.isPending ? (
+                {syncInProgress ? (
                   <>
-                    <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" /> Syncing…
+                    <ArrowPathIcon className="mr-2 h-4 w-4 animate-spin" />
+                    {syncJobQuery.data?.status === 'queued' ? 'Queued…' : 'Syncing…'}
                   </>
                 ) : (
                   `Sync all new (${actionable.length})`
