@@ -9,6 +9,7 @@ import {
   type OntologyLibraryEntry,
   type OntologyTermSuggestion,
 } from '@/features/ontologies/library';
+import { isValueRef } from '@/features/rulebuilder/components/RuleElementNode';
 
 type RuleElementType = RuleData['element_type'];
 
@@ -34,10 +35,17 @@ function getEffectiveElementType(rule: RuleData | null): RuleElementType | null 
   if (!rule) return null;
 
   const raw = rule.element_type ?? null;
-  if (raw === 'start' || raw === 'decision' || raw === 'end') return raw;
+  if (raw === 'start' || raw === 'decision' || raw === 'derive' || raw === 'end') return raw;
 
   return null;
 }
+
+const SEQUENCE_PATH_HINT = 'Sequence paths allowed: iriA/iriB (e.g. fbo:from/fbo-dk:UseCategory)';
+
+const EXPRESSION_HINT =
+  'Operators + - * / ( ), numbers, "strings", true/false/null, $path references ' +
+  '(e.g. $fbo-lt:GCoeficient or a full IRI), functions min max abs sqrt floor ceil round pow ' +
+  'sin cos tan sind cosd tand and lookup(x, [[lo, hi, value], ...]). No comparisons or conditionals.';
 
 function OntologySuggestionList({
   visible,
@@ -111,13 +119,22 @@ export default function RuleInspectorPanel({
   const elementType = getEffectiveElementType(selectedRule);
   const isStart = elementType === 'start';
   const isDecision = elementType === 'decision';
+  const isDerive = elementType === 'derive';
   const isEnd = elementType === 'end';
+  const usesOntologyTerms = isDecision || isDerive;
+  const valueIsRef = isValueRef(selectedRule?.value);
+  const [valueMode, setValueMode] = useState<'literal' | 'ref'>(valueIsRef ? 'ref' : 'literal');
+  const effectiveValueMode: 'literal' | 'ref' = valueIsRef ? 'ref' : valueMode;
   const hasConnectedStartBranch = Boolean(
     selectedRule?.true_path || selectedRule?.false_path || selectedRule?.unknown_path,
   );
 
   useEffect(() => {
-    if (!isDecision || selectedOntologyIds.length === 0 || !activeSuggestionField) {
+    setValueMode(isValueRef(selectedRule?.value) ? 'ref' : 'literal');
+  }, [selectedRule?.id, selectedRule?.value]);
+
+  useEffect(() => {
+    if (!usesOntologyTerms || selectedOntologyIds.length === 0 || !activeSuggestionField) {
       setTargetClassSuggestions([]);
       setPropertyPathSuggestions([]);
       setSuggestionsLoading(false);
@@ -143,7 +160,7 @@ export default function RuleInspectorPanel({
       active = false;
       window.clearTimeout(timeout);
     };
-  }, [activeSuggestionField, isDecision, selectedOntologyIds, selectedRule]);
+  }, [activeSuggestionField, usesOntologyTerms, selectedOntologyIds, selectedRule]);
 
   const toggleOntology = (ontologyId: string) => {
     const next = selectedOntologyIds.includes(ontologyId)
@@ -152,22 +169,79 @@ export default function RuleInspectorPanel({
     onSelectedOntologyIdsChange(next);
   };
 
-  const handleTextChange = (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
+  const handleTextChange =
+    (field: keyof RuleData) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = event.target.value;
 
-    if (field === 'value' && isEnd) {
-      onChange({
-        value,
-        config: {
-          ...selectedRule?.config,
-          end_kind: 'output',
-          output_text: value,
-        },
-      });
-      return;
+      if (field === 'value' && isEnd) {
+        const current_kind = String(selectedRule?.config?.end_kind ?? 'output');
+        onChange({
+          value,
+          config: {
+            ...selectedRule?.config,
+            end_kind: current_kind,
+            output_text: value,
+          },
+        });
+        return;
+      }
+
+      onChange({ [field]: value });
+    };
+
+  const END_KINDS: Array<{ value: string; label: string; hint: string }> = [
+    {
+      value: 'output',
+      label: 'Outcome (text)',
+      hint: 'A defined outcome, e.g. "unit is AK2" — counts as reached, not as a violation',
+    },
+    { value: 'pass', label: 'Pass', hint: 'The requirement is met' },
+    { value: 'fail', label: 'Fail', hint: 'The requirement is checked and not met' },
+    {
+      value: 'missing_data',
+      label: 'Missing data',
+      hint: 'A fact is missing or ambiguous — ask the user',
+    },
+    {
+      value: 'not_applicable',
+      label: 'Not applicable',
+      hint: 'The rule does not apply to this target',
+    },
+    {
+      value: 'rule',
+      label: 'Continue in another rule',
+      hint: 'Targets reaching this end are handed to the linked rule (the RuleBook chains it)',
+    },
+  ];
+  const endKind = String(selectedRule?.config?.end_kind ?? 'output');
+  const nextRule = String(selectedRule?.config?.next_rule ?? '');
+  const handleEndKindChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const end_kind = event.target.value;
+    const config = { ...(selectedRule?.config ?? {}), end_kind } as Record<string, unknown>;
+    if (end_kind !== 'rule') delete config.next_rule;
+    onChange({ config });
+  };
+  const handleNextRuleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({
+      config: {
+        ...(selectedRule?.config ?? {}),
+        end_kind: 'rule',
+        next_rule: event.target.value.trim(),
+      },
+    });
+  };
+
+  const handleValueRefChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({ value: { $ref: event.target.value } });
+  };
+
+  const handleValueModeChange = (mode: 'literal' | 'ref') => {
+    setValueMode(mode);
+    if (mode === 'ref' && !isValueRef(selectedRule?.value)) {
+      onChange({ value: { $ref: '' } });
+    } else if (mode === 'literal' && isValueRef(selectedRule?.value)) {
+      onChange({ value: '' });
     }
-
-    onChange({ [field]: value });
   };
 
   if (collapsed) {
@@ -328,9 +402,13 @@ export default function RuleInspectorPanel({
                 value={inputValue(selectedRule.target_class)}
                 onChange={handleTextChange('target_class')}
                 onFocus={() => setActiveSuggestionField('target_class')}
-                disabled={!isDecision}
+                disabled={!usesOntologyTerms}
                 className={
-                  isDecision ? (targetClassIssue ? invalidClass : activeClass) : disabledClass
+                  usesOntologyTerms
+                    ? targetClassIssue
+                      ? invalidClass
+                      : activeClass
+                    : disabledClass
                 }
                 aria-invalid={Boolean(targetClassIssue)}
                 aria-describedby={targetClassIssue ? 'target-class-validation-error' : undefined}
@@ -344,7 +422,7 @@ export default function RuleInspectorPanel({
                   {targetClassIssue.message}
                 </p>
               ) : null}
-              {isDecision && selectedOntologyIds.length > 0 ? (
+              {usesOntologyTerms && selectedOntologyIds.length > 0 ? (
                 <OntologySuggestionList
                   visible={activeSuggestionField === 'target_class'}
                   loading={suggestionsLoading}
@@ -359,15 +437,19 @@ export default function RuleInspectorPanel({
 
             <div>
               <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                Property path
+                {isDerive ? 'Writes property' : 'Property path'}
               </label>
               <input
                 value={inputValue(selectedRule.property_path)}
                 onChange={handleTextChange('property_path')}
                 onFocus={() => setActiveSuggestionField('property_path')}
-                disabled={!isDecision}
+                disabled={!usesOntologyTerms}
                 className={
-                  isDecision ? (propertyPathIssue ? invalidClass : activeClass) : disabledClass
+                  usesOntologyTerms
+                    ? propertyPathIssue
+                      ? invalidClass
+                      : activeClass
+                    : disabledClass
                 }
                 aria-invalid={Boolean(propertyPathIssue)}
                 aria-describedby={propertyPathIssue ? 'property-path-validation-error' : undefined}
@@ -381,7 +463,15 @@ export default function RuleInspectorPanel({
                   {propertyPathIssue.message}
                 </p>
               ) : null}
-              {isDecision && selectedOntologyIds.length > 0 ? (
+              {isDecision ? (
+                <p className="mt-1 text-[11px] text-gray-400">{SEQUENCE_PATH_HINT}</p>
+              ) : null}
+              {isDerive ? (
+                <p className="mt-1 text-[11px] text-gray-400">
+                  The single property this element writes on the target.
+                </p>
+              ) : null}
+              {usesOntologyTerms && selectedOntologyIds.length > 0 ? (
                 <OntologySuggestionList
                   visible={activeSuggestionField === 'property_path'}
                   loading={suggestionsLoading}
@@ -397,36 +487,133 @@ export default function RuleInspectorPanel({
               ) : null}
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                Operator
-              </label>
-              <input
-                value={inputValue(selectedRule.operator)}
-                onChange={handleTextChange('operator')}
-                disabled={!isDecision}
-                className={isDecision ? activeClass : disabledClass}
-              />
-            </div>
+            {isDerive ? (
+              <div>
+                <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                  Expression
+                </label>
+                <textarea
+                  value={inputValue(selectedRule.expression)}
+                  onChange={handleTextChange('expression')}
+                  rows={4}
+                  spellCheck={false}
+                  className={`${activeClass} font-mono`}
+                  placeholder="e.g. $fbo-lt:GCoeficient * 2"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">{EXPRESSION_HINT}</p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    Operator
+                  </label>
+                  <input
+                    value={inputValue(selectedRule.operator)}
+                    onChange={handleTextChange('operator')}
+                    disabled={!isDecision}
+                    className={isDecision ? activeClass : disabledClass}
+                  />
+                </div>
 
-            <div>
-              <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                {isEnd ? 'Output (value)' : 'Value'}
-              </label>
+                <div>
+                  <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                    {isEnd ? 'Output (value)' : 'Value'}
+                  </label>
 
-              {isEnd && (
-                <p className="mb-1 text-[11px] text-gray-400">
-                  This value is used as the rule output
-                </p>
-              )}
+                  {isEnd && (
+                    <>
+                      <p className="mb-1 text-[11px] text-gray-400">
+                        This value is used as the rule output
+                      </p>
+                      <label className="mt-2 mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                        Outcome kind
+                      </label>
+                      <select
+                        value={endKind}
+                        onChange={handleEndKindChange}
+                        className={activeClass}
+                      >
+                        {END_KINDS.map((kind) => (
+                          <option key={kind.value} value={kind.value}>
+                            {kind.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                        {END_KINDS.find((kind) => kind.value === endKind)?.hint ?? ''}
+                      </p>
+                      {endKind === 'rule' && (
+                        <>
+                          <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                            Linked rule id
+                          </label>
+                          <input
+                            value={nextRule}
+                            onChange={handleNextRuleChange}
+                            className={`${activeClass} font-mono`}
+                            placeholder="dk-compartments-size-ak2-v2"
+                          />
+                          <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                            When this rule runs in the RuleBook, the linked rule is run right after
+                            it for exactly the targets that ended here.
+                          </p>
+                        </>
+                      )}
+                    </>
+                  )}
 
-              <input
-                value={inputValue(selectedRule.value)}
-                onChange={handleTextChange('value')}
-                disabled={isStart}
-                className={!isStart ? activeClass : disabledClass}
-              />
-            </div>
+                  {isDecision && (
+                    <div className="mb-1 inline-flex rounded-md border border-gray-200 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => handleValueModeChange('literal')}
+                        className={`rounded-l-md px-2 py-1 ${
+                          effectiveValueMode === 'literal'
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        Literal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleValueModeChange('ref')}
+                        className={`rounded-r-md px-2 py-1 ${
+                          effectiveValueMode === 'ref'
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        Other property ($ref)
+                      </button>
+                    </div>
+                  )}
+
+                  {isDecision && effectiveValueMode === 'ref' ? (
+                    <>
+                      <input
+                        value={isValueRef(selectedRule.value) ? selectedRule.value.$ref : ''}
+                        onChange={handleValueRefChange}
+                        className={`${activeClass} font-mono`}
+                        placeholder="fbo:from/fbo-dk:UseCategory"
+                      />
+                      <p className="mt-1 text-[11px] text-gray-400">
+                        Compares with this other property path on the same target (not allowed with
+                        operator "between").
+                      </p>
+                    </>
+                  ) : (
+                    <input
+                      value={inputValue(selectedRule.value)}
+                      onChange={handleTextChange('value')}
+                      disabled={isStart}
+                      className={!isStart ? activeClass : disabledClass}
+                    />
+                  )}
+                </div>
+              </>
+            )}
 
             <div>
               <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">

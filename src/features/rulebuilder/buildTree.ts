@@ -16,6 +16,13 @@ function toBranchKey(branch: Branch): 'true_path' | 'false_path' | 'unknown_path
   return 'unknown_path';
 }
 
+const ALL_BRANCHES: Branch[] = ['true', 'false', 'unknown'];
+const DERIVE_BRANCHES: Branch[] = ['true', 'unknown'];
+
+function branchesForRule(rule: Pick<RuleData, 'element_type'>): Branch[] {
+  return rule.element_type === 'derive' ? DERIVE_BRANCHES : ALL_BRANCHES;
+}
+
 function collectRuleCycles(rules: RuleData[]): string[][] {
   const byId = new Map<string, RuleData>(rules.map((rule: RuleData) => [rule.id, rule] as const));
   const visited = new Set<string>();
@@ -39,8 +46,7 @@ function collectRuleCycles(rules: RuleData[]): string[][] {
     visited.add(nodeId);
     activePath.add(nodeId);
 
-    const branches: Branch[] = ['true', 'false', 'unknown'];
-    for (const branch of branches) {
+    for (const branch of branchesForRule(node)) {
       const key = toBranchKey(branch);
       const targetId = node[key];
       if (!targetId || !byId.has(targetId)) continue;
@@ -90,9 +96,7 @@ export function buildRuleTreeFromStart(startNodeId: string, rules: RuleData[]): 
     visited.add(nodeId);
     activePath.add(nodeId);
 
-    const branches: Branch[] = ['true', 'false', 'unknown'];
-
-    for (const branch of branches) {
+    for (const branch of branchesForRule(node)) {
       const key = toBranchKey(branch);
       const targetId = node[key];
 
@@ -133,6 +137,7 @@ export function buildRuleTreeFromStart(startNodeId: string, rules: RuleData[]): 
       property_path: node.property_path ?? null,
       operator: node.operator ?? null,
       value: node.value,
+      expression: node.expression ?? null,
       true_path: node.true_path ?? null,
       false_path: node.false_path ?? null,
       unknown_path: node.unknown_path ?? null,
@@ -160,12 +165,13 @@ export function extractRulesFromCanvasNodes(nodes: CanvasRuleNode[]): RuleData[]
 
 export type RuleDraftElement = {
   id: string;
-  element_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'derive' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
   value?: unknown;
+  expression?: string | null;
   true_path?: string | null;
   false_path?: string | null;
   unknown_path?: string | null;
@@ -180,14 +186,26 @@ export type RuleDraft = {
 
 export type RuleDraftValidationIssue = {
   node_id: string;
-  missing_fields: Array<'target_class' | 'property_path' | 'operator'>;
+  element_type: RuleDraftElement['element_type'];
+  missing_fields: Array<'target_class' | 'property_path' | 'operator' | 'expression' | 'true_path'>;
+  unexpected_fields: Array<'operator' | 'value' | 'false_path'>;
 };
+
+function hasValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return true;
+}
 
 export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
   return rule.elements
-    .filter((element: RuleDraftElement) => element.element_type === 'decision')
+    .filter(
+      (element: RuleDraftElement) =>
+        element.element_type === 'decision' || element.element_type === 'derive',
+    )
     .map((element: RuleDraftElement) => {
       const missing_fields: RuleDraftValidationIssue['missing_fields'] = [];
+      const unexpected_fields: RuleDraftValidationIssue['unexpected_fields'] = [];
 
       if (!element.target_class?.trim()) {
         missing_fields.push('target_class');
@@ -197,16 +215,48 @@ export function validateRuleDraft(rule: RuleDraft): RuleDraftValidationIssue[] {
         missing_fields.push('property_path');
       }
 
-      if (!element.operator?.trim()) {
+      if (element.element_type === 'derive') {
+        if (!element.expression?.trim()) {
+          missing_fields.push('expression');
+        }
+        if (!element.true_path?.trim()) {
+          missing_fields.push('true_path');
+        }
+        if (hasValue(element.operator)) {
+          unexpected_fields.push('operator');
+        }
+        if (hasValue(element.value)) {
+          unexpected_fields.push('value');
+        }
+        if (hasValue(element.false_path)) {
+          unexpected_fields.push('false_path');
+        }
+      } else if (!element.operator?.trim()) {
         missing_fields.push('operator');
       }
 
       return {
         node_id: element.id,
+        element_type: element.element_type,
         missing_fields,
+        unexpected_fields,
       };
     })
-    .filter((issue: RuleDraftValidationIssue) => issue.missing_fields.length > 0);
+    .filter(
+      (issue: RuleDraftValidationIssue) =>
+        issue.missing_fields.length > 0 || issue.unexpected_fields.length > 0,
+    );
+}
+
+export function describeRuleDraftValidationIssue(issue: RuleDraftValidationIssue): string {
+  const parts: string[] = [];
+  if (issue.missing_fields.length > 0) {
+    parts.push(`is missing ${issue.missing_fields.join(', ')}`);
+  }
+  if (issue.unexpected_fields.length > 0) {
+    parts.push(`must not set ${issue.unexpected_fields.join(', ')}`);
+  }
+  return `${issue.element_type} node "${issue.node_id}" ${parts.join(' and ')}`;
 }
 
 export function buildRuleDraftFromTree(
@@ -226,6 +276,7 @@ export function buildRuleDraftFromTree(
       property_path: node.property_path ?? null,
       operator: node.operator ?? null,
       value: node.value,
+      expression: node.expression ?? null,
       true_path: node.true_path ?? null,
       false_path: node.false_path ?? null,
       unknown_path: node.unknown_path ?? null,

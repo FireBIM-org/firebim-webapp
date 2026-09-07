@@ -2,12 +2,13 @@ import { useCallback, useReducer } from 'react';
 
 export type RuleData = {
   id: string;
-  element_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'derive' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
   value?: unknown;
+  expression?: string | null;
   true_path?: string | null;
   false_path?: string | null;
   unknown_path?: string | null;
@@ -33,12 +34,13 @@ export type DeriveRequest = {
 
 export type BuiltTreeNode = {
   id: string;
-  element_type: 'start' | 'decision' | 'end';
+  element_type: 'start' | 'decision' | 'derive' | 'end';
   label?: string | null;
   target_class?: string | null;
   property_path?: string | null;
   operator?: string | null;
   value?: unknown;
+  expression?: string | null;
   true_path?: string | null;
   false_path?: string | null;
   unknown_path?: string | null;

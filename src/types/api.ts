@@ -1979,6 +1979,22 @@ export interface components {
        * @default 100000
        */
       max_steps: number;
+      /**
+       * Schema
+       * @description see CheckRunOptions.schema
+       * @default auto
+       */
+      schema: string;
+      /**
+       * Use Derived From
+       * @description see CheckRunOptions.use_derived_from
+       */
+      use_derived_from?: string[];
+      /**
+       * Target Nodes
+       * @description see CheckRunOptions.target_nodes
+       */
+      target_nodes?: string[];
     };
     /** BlindCheckRunRequest */
     BlindCheckRunRequest: {
@@ -2024,6 +2040,8 @@ export interface components {
       message_counts?: {
         [key: string]: number;
       };
+      /** Derived Values */
+      derived_values?: components['schemas']['CheckDerivedValue'][];
       /** Debug */
       debug?: {
         [key: string]: unknown;
@@ -2115,6 +2133,25 @@ export interface components {
       /** Warnings */
       warnings?: components['schemas']['CompatibilityWarning'][];
     };
+    /** CheckDerivedValue */
+    CheckDerivedValue: {
+      /** Target */
+      target: string;
+      /** Property */
+      property: string;
+      /** Value */
+      value?: unknown;
+      /** Node Id */
+      node_id?: string | null;
+      /** Expression */
+      expression?: string | null;
+      /** Inputs */
+      inputs?: {
+        [key: string]: unknown;
+      };
+      /** Overwrote Previous */
+      overwrote_previous?: unknown;
+    };
     /** CheckDiagnosticResponse */
     CheckDiagnosticResponse: {
       /**
@@ -2155,6 +2192,15 @@ export interface components {
       debug?: {
         [key: string]: unknown;
       };
+      /** Derived Values */
+      derived_values?: components['schemas']['CheckDerivedValue'][];
+      /** Derived Graph Uri */
+      derived_graph_uri?: string | null;
+      /**
+       * Derived Persisted
+       * @default false
+       */
+      derived_persisted: boolean;
       /** Compiled Rule */
       compiled_rule?: {
         [key: string]: unknown;
@@ -2232,6 +2278,11 @@ export interface components {
       output_text?: string | null;
       /** Analysis Code */
       analysis_code?: string | null;
+      /**
+       * Next Rule
+       * @description end_kind 'rule': rule that continues for these targets
+       */
+      next_rule?: string | null;
       /**
        * Count
        * @default 0
@@ -2362,6 +2413,28 @@ export interface components {
        * @default false
        */
       diagnostic_success_only: boolean;
+      /**
+       * Persist Derived
+       * @description Publish values written by derive elements to the derived named graph of this graph/rule
+       * @default false
+       */
+      persist_derived: boolean;
+      /**
+       * Use Derived From
+       * @description Rule ids whose persisted derived graphs are merged into the building graph before evaluation
+       */
+      use_derived_from?: string[];
+      /**
+       * Target Nodes
+       * @description Restrict the run to these target IRIs (used by the RuleBook to chain a rule only for the targets that reached an end element with next_rule)
+       */
+      target_nodes?: string[];
+      /**
+       * Schema
+       * @description Which published ontologies' schema triples (subClassOf, subPropertyOf, equivalentClass/Property, inverseOf) are merged into the building graph before evaluation: 'auto' = every ontology whose namespace the rule uses, 'none' = no merge, or a comma-separated list of family/country[/version]
+       * @default auto
+       */
+      schema: string;
     };
     /** CheckRunRequest */
     CheckRunRequest: {
@@ -2447,6 +2520,15 @@ export interface components {
       debug?: {
         [key: string]: unknown;
       };
+      /** Derived Values */
+      derived_values?: components['schemas']['CheckDerivedValue'][];
+      /** Derived Graph Uri */
+      derived_graph_uri?: string | null;
+      /**
+       * Derived Persisted
+       * @default false
+       */
+      derived_persisted: boolean;
     };
     /** CheckTargetResult */
     CheckTargetResult: {
@@ -5316,6 +5398,8 @@ export interface components {
       element_count: number;
       /** Ttl */
       ttl: string;
+      /** Warnings */
+      warnings?: string[];
       /**
        * Success
        * @default true
@@ -5555,6 +5639,11 @@ export interface components {
       operator?: string | null;
       /** Value */
       value?: unknown | null;
+      /**
+       * Expression
+       * @description derive elements only: expression written to property_path (see app.rules.expressions)
+       */
+      expression?: string | null;
       /** True Path */
       true_path?: string | null;
       /** False Path */
@@ -5623,6 +5712,11 @@ export interface components {
       operator?: string | null;
       /** Value */
       value?: unknown | null;
+      /**
+       * Expression
+       * @description derive elements only: expression written to property_path (see app.rules.expressions)
+       */
+      expression?: string | null;
       /** True Path */
       true_path?: string | null;
       /** False Path */
@@ -5653,6 +5747,11 @@ export interface components {
       operator?: string | null;
       /** Value */
       value?: unknown | null;
+      /**
+       * Expression
+       * @description derive elements only: expression written to property_path (see app.rules.expressions)
+       */
+      expression?: string | null;
       /** True Path */
       true_path?: string | null;
       /** False Path */
@@ -6018,6 +6117,8 @@ export interface components {
       element_count: number;
       /** Errors */
       errors?: string[];
+      /** Warnings */
+      warnings?: string[];
       /**
        * Success
        * @default true

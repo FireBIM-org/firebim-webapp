@@ -20,6 +20,7 @@ type RuleStructureStats = {
   label: string;
   targetClasses: string[];
   decisionCount: number;
+  deriveCount: number;
   terminalPathCount: number;
   passPathCount: number;
   minDecisionStepsToPass: number | null;
@@ -58,7 +59,11 @@ function branchTargetsForElement(element: RuleDefinition['rule_elements'][number
 function isPassingEndNode(element: RuleDefinition['rule_elements'][number]) {
   const candidates = [
     element.label,
-    typeof element.value === 'string' ? element.value : null,
+    typeof element.value === 'string'
+      ? element.value
+      : typeof element.value === 'boolean'
+        ? String(element.value)
+        : null,
     typeof element.config?.terminal_value === 'string'
       ? (element.config.terminal_value as string)
       : null,
@@ -85,7 +90,8 @@ function computeRuleStructureStats(
     new Set(
       ruleElements
         .filter(
-          (element: RuleDefinition['rule_elements'][number]) => element.element_type === 'decision',
+          (element: RuleDefinition['rule_elements'][number]) =>
+            element.element_type === 'decision' || element.element_type === 'derive',
         )
         .map((element: RuleDefinition['rule_elements'][number]) => element.target_class)
         .filter((value): value is string => Boolean(value))
@@ -94,6 +100,9 @@ function computeRuleStructureStats(
   );
   const decisionCount = ruleElements.filter(
     (element: RuleDefinition['rule_elements'][number]) => element.element_type === 'decision',
+  ).length;
+  const deriveCount = ruleElements.filter(
+    (element: RuleDefinition['rule_elements'][number]) => element.element_type === 'derive',
   ).length;
 
   const visited = new Set<string>();
@@ -162,6 +171,7 @@ function computeRuleStructureStats(
     label: startElement?.label || fallbackLabel,
     targetClasses,
     decisionCount,
+    deriveCount,
     terminalPathCount: pathStats.length,
     passPathCount: passPaths.length,
     minDecisionStepsToPass,
@@ -556,6 +566,10 @@ export function RuleSummaryPanel() {
                     <div>
                       <div className="tracking-wide text-gray-500 uppercase">Decision elements</div>
                       <div className="mt-1 text-sm text-gray-800">{stats.decisionCount}</div>
+                    </div>
+                    <div>
+                      <div className="tracking-wide text-gray-500 uppercase">Derive elements</div>
+                      <div className="mt-1 text-sm text-gray-800">{stats.deriveCount}</div>
                     </div>
                     <div>
                       <div className="tracking-wide text-gray-500 uppercase">Terminal paths</div>

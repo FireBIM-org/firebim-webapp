@@ -1,6 +1,9 @@
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 
+import type { DerivedValue } from '../types';
+
+import { formatValue } from '../execution';
 import { useRuleBookStore, type RuleBookStore } from '../store';
 
 function localNameFromToken(token: string | null | undefined) {
@@ -53,6 +56,25 @@ export function ExecutionConsole() {
     } catch {
       return null;
     }
+  }, [current_step]);
+
+  const derivedGroups = useMemo(() => {
+    const groups = new Map<string, Array<{ key: string; label: string; value: string }>>();
+
+    for (const [index, item] of (
+      (current_step?.derived_values ?? []) as DerivedValue[]
+    ).entries()) {
+      const target = localNameFromToken(item.target) ?? item.target;
+      const list = groups.get(target) ?? [];
+      list.push({
+        key: `${item.node_id ?? index}-${item.property}`,
+        label: localNameFromToken(item.property) ?? item.property,
+        value: formatValue(item.value),
+      });
+      groups.set(target, list);
+    }
+
+    return Array.from(groups.entries());
   }, [current_step]);
 
   const compatibilitySummary = useMemo(() => {
@@ -186,6 +208,39 @@ export function ExecutionConsole() {
               </div>
             )}
           </div>
+
+          {derivedGroups.length > 0 || current_step.derived_persisted ? (
+            <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 px-3 py-3">
+              <div className="mb-2 text-xs font-semibold tracking-wide text-violet-300 uppercase">
+                Derived values
+              </div>
+
+              {derivedGroups.length > 0 ? (
+                <div className="space-y-1 text-xs text-violet-100">
+                  {derivedGroups.map(([target, items]) => (
+                    <div key={target} className="font-mono text-[11px]">
+                      <span className="font-semibold text-white">{target}</span>
+                      {': '}
+                      {items.map((item, index) => (
+                        <span key={item.key}>
+                          {index > 0 ? ', ' : ''}
+                          {item.label} = {item.value}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-violet-200">No values derived in this run.</div>
+              )}
+
+              {current_step.derived_persisted ? (
+                <div className="mt-2 font-mono text-[11px] text-violet-300">
+                  Derived graph persisted: {current_step.derived_graph_uri ?? 'n/a'}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {compatibilitySummary &&
           (compatibilitySummary.missing_target_classes.length > 0 ||

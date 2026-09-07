@@ -22,6 +22,7 @@ import type {
 } from '../types';
 
 import { classifyTerminalSentiment, type RuleSentiment } from '../../../lib/ruleSentiment';
+import { formatExpectedValue } from '../execution';
 import { useRuleBookStore, type RuleBookStore } from '../store';
 import { ExecutionControls } from './ExecutionControls';
 
@@ -74,10 +75,33 @@ type StepDisplay = {
   false_path?: string | null;
   unknown_path?: string | null;
   branch_taken?: 'True' | 'False' | 'Unknown' | null;
+  branch_label?: string | null;
+  node_type?: string | null;
+  expression?: string | null;
+  derived_value?: string | null;
+  derived_inputs?: string | null;
+  narration?: string | null;
   terminal_label?: string | null;
   terminal_output?: string | null;
   outcome_label?: string | null;
 };
+
+function describeDeriveStep(display: StepDisplay | null) {
+  if (display?.node_type !== 'derive') return null;
+  if (display.branch_taken === 'Unknown') {
+    return display.narration ?? `could not derive ${display.property_label ?? 'value'}`;
+  }
+  return `wrote ${display.property_label ?? 'value'} = ${display.derived_value ?? 'null'}`;
+}
+
+function describeCondition(display: StepDisplay | null, fallback: string) {
+  const derive = describeDeriveStep(display);
+  if (derive) return derive;
+  if (display?.property_label && display?.operator) {
+    return `${display.property_label} ${operatorToSentence(display.operator)} ${formatExpectedValue(display.expected_value) ?? 'the expected value'}`;
+  }
+  return display?.outcome_label ?? display?.terminal_output ?? fallback;
+}
 
 type CanvasSentiment = RuleSentiment;
 type StepIssue = {
@@ -360,10 +384,7 @@ function describeStepIssue(step: ExecutionStep, stepIndex: number): StepIssue | 
   ) {
     const nodeLabel =
       display?.sample_target_label ?? step.active_node_ids?.[0] ?? 'the current node';
-    const conditionText =
-      display?.property_label && display?.operator
-        ? `${display.property_label} ${operatorToSentence(display.operator)} ${display.expected_value ?? 'the expected value'}`
-        : (display?.outcome_label ?? display?.terminal_output ?? 'a required condition');
+    const conditionText = describeCondition(display, 'a required condition');
 
     return {
       sentiment: 'failure',
@@ -1169,7 +1190,8 @@ export function BuildingGraphView({
                   {visible_log_steps.map((step: ExecutionStep, index: number) => {
                     const display = getStepDisplay(step);
                     const isTerminal = display?.event_type === 'chain_complete';
-                    const isDecision = display?.event_type === 'node_visit';
+                    const isDerive = display?.node_type === 'derive';
+                    const isDecision = display?.event_type === 'node_visit' && !isDerive;
                     const targetLabel =
                       display?.sample_target_label ?? step.active_node_ids?.join(', ') ?? 'n/a';
                     const targetClass = display?.target_class_label ?? 'n/a';
@@ -1212,7 +1234,13 @@ export function BuildingGraphView({
                             Step {index + 1}
                           </div>
                           <div className="text-[11px] tracking-[0.14em] text-slate-500 uppercase">
-                            {isTerminal ? 'End node fired' : isDecision ? 'Decision' : 'Event'}
+                            {isTerminal
+                              ? 'End node fired'
+                              : isDerive
+                                ? 'Derive'
+                                : isDecision
+                                  ? 'Decision'
+                                  : 'Event'}
                           </div>
                         </div>
 
@@ -1244,6 +1272,29 @@ export function BuildingGraphView({
                           </div>
                         ) : null}
 
+                        {isExpanded && isDerive ? (
+                          <div
+                            className="mt-3 rounded-lg border border-violet-200 bg-white/90 px-3 py-3 text-[12px] text-slate-800"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <div className="leading-6 text-slate-900">
+                              The <strong>{targetClass}:</strong> {targetLabel}{' '}
+                              <strong>{describeDeriveStep(display)}</strong>
+                              {display?.derived_inputs ? ` from ${display.derived_inputs}` : ''}
+                              {display?.expression ? (
+                                <>
+                                  {' '}
+                                  using <code className="text-[11px]">{display.expression}</code>
+                                </>
+                              ) : null}
+                              .{' '}
+                              {display?.branch_label
+                                ? `This step continues through the ${display.branch_label} path.`
+                                : branchToSentence(null)}
+                            </div>
+                          </div>
+                        ) : null}
+
                         {isExpanded && isDecision ? (
                           <div
                             className="mt-3 rounded-lg border border-sky-200 bg-white/90 px-3 py-3 text-[12px] text-slate-800"
@@ -1257,7 +1308,7 @@ export function BuildingGraphView({
                                   {humanizeValue(graphPropertyValue)}{' '}
                                   <strong>
                                     {operatorToSentence(display?.operator)}{' '}
-                                    {display?.expected_value ?? 'n/a'}
+                                    {formatExpectedValue(display?.expected_value) ?? 'n/a'}
                                   </strong>
                                   .{' '}
                                   {branchLabel ? (

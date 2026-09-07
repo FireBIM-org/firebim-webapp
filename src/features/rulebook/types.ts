@@ -1,9 +1,11 @@
+import type { components } from '@/types/api';
+
 export type RuleHealthResponse = {
   status?: string;
   ok?: boolean;
 };
 
-export type RuleElementType = 'start' | 'decision' | 'end';
+export type RuleElementType = 'start' | 'decision' | 'end' | 'derive';
 
 export type RuleListItem = {
   rule_id: string;
@@ -26,6 +28,7 @@ export type RuleDefinition = {
     property_path?: string | null;
     operator?: string | null;
     value?: unknown;
+    expression?: string | null;
     true_path?: string | null;
     false_path?: string | null;
     unknown_path?: string | null;
@@ -55,6 +58,10 @@ export type RuleRunnerItem = {
   rule_id: string;
   label: string;
   graph_uri?: string | null;
+  /** Set on items the runner added itself because an earlier rule's end element links to this rule. */
+  chained_from?: { rule_id: string; end_node_id: string } | null;
+  /** Only these targets are evaluated (the ones that reached the linking end element). */
+  target_nodes?: string[];
 };
 
 export type BuildingGraphTargetClass =
@@ -120,7 +127,13 @@ export type CheckRunOptions = {
   include_targets?: boolean;
   include_trace?: boolean;
   debug?: boolean;
+  persist_derived?: boolean;
+  use_derived_from?: string[];
+  target_nodes?: string[];
+  schema?: string;
 };
+
+export type DerivedValue = components['schemas']['CheckDerivedValue'];
 
 export type CheckTargetTraceItem = {
   step_index?: number;
@@ -135,6 +148,7 @@ export type CheckTargetResult = {
   target_class?: string | null;
   status: string;
   message?: string | null;
+  terminal_node_id?: string | null;
   trace?: CheckTargetTraceItem[];
 };
 
@@ -165,6 +179,18 @@ export type CheckRunResponse = {
   report_text?: string | null;
   report_graph_ttl?: string | null;
   debug?: Record<string, unknown>;
+  derived_values?: DerivedValue[];
+  derived_graph_uri?: string | null;
+  derived_persisted?: boolean;
+  end_nodes?: Array<{
+    end_node_id: string;
+    terminal_value?: string | null;
+    terminal_kind?: string | null;
+    label?: string | null;
+    output_text?: string | null;
+    next_rule?: string | null;
+    count?: number;
+  }>;
 };
 
 export type DiagnosticSequenceEvent = {
@@ -243,6 +269,9 @@ export type ExecutionStep = {
   node_results: Record<string, NodeEvaluationResult>;
   console_lines: string[];
   active_node_ids?: string[];
+  derived_values?: DerivedValue[];
+  derived_graph_uri?: string | null;
+  derived_persisted?: boolean;
   raw_json?: unknown;
 };
 
