@@ -2180,8 +2180,9 @@ export default function RuleBuilderPage() {
                 </div>
                 <p className="mt-1 text-xs text-red-700">
                   {ontologyIssuesByNode.size} canvas node
-                  {ontologyIssuesByNode.size === 1 ? '' : 's'} contain terms that do not fit the
-                  selected ontologies.
+                  {ontologyIssuesByNode.size === 1 ? '' : 's'} use terms that are not in the ticked
+                  ontologies. Click a node, then either change the term, tick the ontology that
+                  defines it (Standard Library ontologies, right), or accept the term on purpose.
                 </p>
                 <div className="mt-2 space-y-2">
                   {[...ontologyIssuesByNode.entries()].map(([nodeId, issues]) => {
@@ -2199,7 +2200,10 @@ export default function RuleBuilderPage() {
                           {node?.rule.label || node?.rule.id || nodeId}
                         </span>
                         {issues.map((issue) => (
-                          <span key={issue.field} className="mt-0.5 block text-[11px] text-red-700">
+                          <span
+                            key={`${issue.field}-${issue.value}`}
+                            className="mt-0.5 block text-[11px] text-red-700"
+                          >
                             {issue.message}
                           </span>
                         ))}

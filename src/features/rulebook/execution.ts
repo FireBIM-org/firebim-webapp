@@ -7,6 +7,7 @@ import type {
   GraphAssertion,
   NodeEvaluationResult,
   OpenQuestion,
+  RunSummary,
   RuleDefinition,
   RuleListItem,
   RuleRunnerItem,
@@ -712,6 +713,7 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   const runs: StepRawJson[] = [];
   const questions: OpenQuestion[] = [];
   const seen_questions = new Set<string>();
+  const run_summaries: RunSummary[] = [];
   let next_step_index = 0;
   const chain_derived = input.chain_derived ?? true;
   const earlier_rule_ids: string[] = [];
@@ -789,6 +791,25 @@ export async function buildRuleRunnerExecutionTimeline(input: {
       compatibility: diagnostic_run.compatibility ?? null,
     });
 
+    run_summaries.push({
+      runner_item_id: runner_item.runner_item_id,
+      rule_id: runner_item.rule_id,
+      rule_label: library_item?.label ?? runner_item.label ?? runner_item.rule_id,
+      success: diagnostic_run.success !== false,
+      error:
+        diagnostic_run.success === false
+          ? (diagnostic_run.message ?? diagnostic_run.error ?? 'run failed')
+          : null,
+      total_targets: diagnostic_run.summary?.total_targets ?? 0,
+      passed: diagnostic_run.summary?.passed ?? 0,
+      failed: diagnostic_run.summary?.failed ?? 0,
+      unknown: diagnostic_run.summary?.unknown ?? 0,
+      target_classes_required: diagnostic_run.compatibility?.target_classes_required ?? [],
+      missing_target_classes: diagnostic_run.compatibility?.missing_target_classes ?? [],
+      missing_properties: diagnostic_run.compatibility?.missing_properties ?? [],
+      chained_from: runner_item.chained_from?.rule_id ?? null,
+    });
+
     for (const question of diagnostic_run.questions ?? []) {
       const key =
         question.write_subject && question.write_property
@@ -821,6 +842,7 @@ export async function buildRuleRunnerExecutionTimeline(input: {
     graph_id: input.active_graph_data.id,
     steps,
     questions,
+    run_summaries,
     raw_result: {
       graph_id: input.active_graph_data.id,
       graph_uri: input.active_graph_data.graph_uri ?? null,

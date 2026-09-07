@@ -1,4 +1,8 @@
-import { CheckCircleIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  QuestionMarkCircleIcon,
+} from '@heroicons/react/24/outline';
 import { useCallback, useMemo, useState } from 'react';
 
 import type { BuildingGraphData, GraphAssertion, OpenQuestion } from '../types';
@@ -179,18 +183,117 @@ export function OpenQuestionsPanel({ onRun }: Props) {
     setBusy(null);
   }, [assertions, clearAnswerDrafts, onRun, overrides, setOverrides]);
 
-  if (!ask_user || !execution_timeline) return null;
+  if (!execution_timeline) return null;
 
   const answered_graph = active_graph_data?.id.endsWith(ANSWER_SUFFIX)
     ? active_graph_data.id
     : `${active_graph_data?.id ?? 'graph'}${ANSWER_SUFFIX}`;
 
-  if (questions.length === 0) {
+  const summaries = execution_timeline.run_summaries ?? [];
+  const failed_runs = summaries.filter((run) => !run.success);
+  const empty_runs = summaries.filter((run) => run.success && run.total_targets === 0);
+  const totals = summaries.reduce(
+    (acc, run) => ({
+      targets: acc.targets + run.total_targets,
+      passed: acc.passed + run.passed,
+      failed: acc.failed + run.failed,
+      unknown: acc.unknown + run.unknown,
+    }),
+    { targets: 0, passed: 0, failed: 0, unknown: 0 },
+  );
+
+  // Nothing was actually checked: say so loudly instead of implying a clean result.
+  if (summaries.length > 0 && totals.targets === 0) {
     return (
-      <div className="mx-4 mb-3 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-800">
-        <CheckCircleIcon className="h-4 w-4" />
-        No open questions — every target reached a definite end.
-        {notice ? <span className="ml-2 text-emerald-700">{notice}</span> : null}
+      <div className="mx-4 mb-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-xs text-red-900">
+        <div className="flex items-center gap-2 font-semibold">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          Nothing was checked — the graph has no instances of the classes these rules target.
+        </div>
+        <ul className="mt-2 space-y-1">
+          {summaries.map((run) => (
+            <li key={run.runner_item_id}>
+              <span className="font-medium">{run.rule_label}</span>
+              {run.success ? (
+                <>
+                  {' '}
+                  targets {run.target_classes_required.map(compactTerm).join(', ') || '—'}
+                  {run.missing_target_classes.length > 0 ? (
+                    <>
+                      {' '}
+                      · not in this graph: {run.missing_target_classes.map(compactTerm).join(', ')}
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <> · run failed: {run.error}</>
+              )}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 text-red-800">
+          No verdict can be drawn from this run. Load a graph that contains these classes (see the
+          Matching classes table on the right) or pick rules that fit this graph.
+        </p>
+      </div>
+    );
+  }
+
+  const statusLine = (
+    <span>
+      Checked {totals.targets} target{totals.targets === 1 ? '' : 's'} in {summaries.length} run
+      {summaries.length === 1 ? '' : 's'}: {totals.passed} pass · {totals.failed} fail ·{' '}
+      {totals.unknown} unknown
+      {empty_runs.length > 0 ? (
+        <>
+          {' '}
+          · {empty_runs.length} rule{empty_runs.length === 1 ? '' : 's'} found nothing to check (
+          {empty_runs.map((run) => run.rule_label).join('; ')})
+        </>
+      ) : null}
+      {failed_runs.length > 0 ? (
+        <>
+          {' '}
+          · {failed_runs.length} run{failed_runs.length === 1 ? '' : 's'} failed (
+          {failed_runs.map((run) => `${run.rule_label}: ${run.error}`).join('; ')})
+        </>
+      ) : null}
+    </span>
+  );
+
+  if (!ask_user) {
+    return (
+      <div className="mx-4 mb-3 rounded-2xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700">
+        {statusLine}
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    const tone =
+      totals.unknown > 0
+        ? 'border-amber-200 bg-amber-50 text-amber-900'
+        : failed_runs.length > 0 || empty_runs.length > 0
+          ? 'border-amber-200 bg-amber-50 text-amber-900'
+          : 'border-emerald-200 bg-emerald-50 text-emerald-800';
+    return (
+      <div className={`mx-4 mb-3 rounded-2xl border px-4 py-2 text-xs ${tone}`}>
+        <div className="flex items-center gap-2">
+          {totals.unknown > 0 || failed_runs.length > 0 || empty_runs.length > 0 ? (
+            <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
+          ) : (
+            <CheckCircleIcon className="h-4 w-4 shrink-0" />
+          )}
+          {statusLine}
+        </div>
+        {totals.unknown > 0 ? (
+          <p className="mt-1">
+            {totals.unknown} target{totals.unknown === 1 ? '' : 's'} ended Unknown but nothing can
+            be asked for them (usually a target of the wrong class, or a fact on a node the graph
+            does not have) — open the execution log for the reason.
+          </p>
+        ) : null}
+        {notice ? <p className="mt-1">{notice}</p> : null}
       </div>
     );
   }

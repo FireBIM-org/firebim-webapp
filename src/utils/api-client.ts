@@ -22,7 +22,7 @@ export type OntologyDictionaryConversionResponse =
   components['schemas']['OntologyDictionaryConversionResponse'];
 export type LexiconCatalogTerm = components['schemas']['LexiconCatalogTermSummary'];
 export type LexiconCatalogTermsResponse = components['schemas']['LexiconCatalogTermsResponse'];
-export type RuleTermValidationField = 'target_class' | 'property_path';
+export type RuleTermValidationField = 'target_class' | 'property_path' | 'value' | 'expression';
 export type RuleTermValidationIssue = {
   rule_id: string;
   node_id: string;
@@ -31,6 +31,8 @@ export type RuleTermValidationIssue = {
   value: string;
   code: 'unknown_term' | 'wrong_term_kind';
   message: string;
+  /** the whole field value when `value` is one step of a path / expression */
+  context?: string | null;
 };
 export type RuleTermValidationResponse = {
   valid: boolean;
