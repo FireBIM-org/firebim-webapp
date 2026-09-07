@@ -107,6 +107,8 @@ export type BuildingGraphEdge = {
 export type BuildingGraphData = {
   id: string;
   label: string;
+  /** the graph's own note about itself (rdfs:comment on the graph URI) — e.g. expected rule outcomes */
+  description?: string | null;
   graph_uri?: string | null;
   source?: string | null;
   triple_count?: number | null;
