@@ -87,6 +87,10 @@ export function RuleRunner({ onRun }: Props) {
   const rules_loading = useRuleBookStore((state: RuleBookStore) => state.rules_loading);
   const chain_derived = useRuleBookStore((state: RuleBookStore) => state.chain_derived);
   const setChainDerived = useRuleBookStore((state: RuleBookStore) => state.setChainDerived);
+  const ask_user = useRuleBookStore((state: RuleBookStore) => state.ask_user);
+  const setAskUser = useRuleBookStore((state: RuleBookStore) => state.setAskUser);
+  const overrides = useRuleBookStore((state: RuleBookStore) => state.overrides);
+  const setOverrides = useRuleBookStore((state: RuleBookStore) => state.setOverrides);
 
   const addRuleToRunner = useRuleBookStore((state: RuleBookStore) => state.addRuleToRunner);
   const removeRuleFromRunner = useRuleBookStore(
@@ -222,6 +226,30 @@ export function RuleRunner({ onRun }: Props) {
           />
           Chain derived values
         </label>
+
+        <label
+          className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm"
+          title="When a rule ends in 'ask the user', list what is missing and let you answer it; answers are written into a copy of the graph (<graph>--answered) and the rules run again"
+        >
+          <input
+            type="checkbox"
+            checked={ask_user}
+            onChange={(event) => setAskUser(event.target.checked)}
+            className="h-3.5 w-3.5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+          />
+          Ask me when data is missing
+        </label>
+
+        {overrides.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setOverrides([])}
+            className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-800 shadow-sm hover:bg-amber-100"
+            title="Facts asserted for the next run only (not saved to any graph). Click to drop them."
+          >
+            {overrides.length} what-if fact{overrides.length === 1 ? '' : 's'} · clear
+          </button>
+        )}
 
         <div className="ml-auto text-xs text-gray-500">
           {graph_loaded

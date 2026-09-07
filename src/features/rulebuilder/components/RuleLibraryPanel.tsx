@@ -12,7 +12,7 @@ import {
 import { useMemo, useState } from 'react';
 
 import { RuleLibraryCategory, RuleNodeTemplate } from '../types';
-import { formatValue, getNodePalette } from './RuleElementNode';
+import { compactExpression, compactTerm, formatValue, getNodePalette } from './RuleElementNode';
 
 type Props = {
   collapsed: boolean;
@@ -65,11 +65,17 @@ function NodeItem({
   };
 
   const palette = getNodePalette(item.type);
-  const targetClass = item.template.target_class?.trim();
-  const propertyPath = item.template.property_path?.trim();
+  const targetClass = compactTerm(item.template.target_class?.trim());
+  const propertyPath = compactTerm(item.template.property_path?.trim());
   const operator = item.template.operator?.trim();
   const value = formatValue(item.template.value);
-  const expression = item.template.expression?.trim();
+  const expression = compactExpression(item.template.expression?.trim());
+  const description =
+    typeof item.template.config?.description === 'string' ? item.template.config.description : null;
+  const endKind =
+    typeof item.template.config?.end_kind === 'string' ? item.template.config.end_kind : null;
+  const nextRule =
+    typeof item.template.config?.next_rule === 'string' ? item.template.config.next_rule : null;
 
   return (
     <div
@@ -107,8 +113,10 @@ function NodeItem({
               {propertyPath || 'Not set'}
             </div>
             <div>
-              <span className="font-medium text-gray-800">Operator / Value:</span>{' '}
-              {[operator || 'Not set', value || 'Not set'].join('  ')}
+              <span className="font-medium text-gray-800">Test:</span>{' '}
+              {operator === 'exists'
+                ? 'has a value (exists)'
+                : [operator || 'Not set', value || 'Not set'].join(' ')}
             </div>
           </div>
         )}
@@ -132,9 +140,21 @@ function NodeItem({
 
         {item.type === 'end' && (
           <div className="text-xs text-gray-600">
+            {endKind ? (
+              <div>
+                <span className="font-medium text-gray-800">Outcome:</span>{' '}
+                {endKind === 'rule' && nextRule
+                  ? `continue in ${nextRule}`
+                  : endKind.replace('_', ' ')}
+              </div>
+            ) : null}
             <span className="font-medium text-gray-800">Output:</span> {value || 'Not set'}
           </div>
         )}
+
+        {description ? (
+          <p className="mt-2 text-[11px] leading-snug text-gray-500">{description}</p>
+        ) : null}
 
         {item.source === 'api' && (
           <div className="mt-2 text-[10px] text-orange-600 uppercase">stored</div>

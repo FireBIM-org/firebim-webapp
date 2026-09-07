@@ -213,6 +213,51 @@ export default function RuleInspectorPanel({
       hint: 'Targets reaching this end are handed to the linked rule (the RuleBook chains it)',
     },
   ];
+  const OPERATORS: Array<{ value: string; label: string; hint: string }> = [
+    {
+      value: '==',
+      label: '== equals',
+      hint: 'True when the value equals; a list of values means "one of"',
+    },
+    { value: '<', label: '< less than', hint: 'Numbers only' },
+    { value: '<=', label: '≤ at most', hint: 'Numbers only' },
+    { value: '>', label: '> more than', hint: 'Numbers only' },
+    { value: '>=', label: '≥ at least', hint: 'Numbers only' },
+    {
+      value: 'between',
+      label: 'between [low, high)',
+      hint: 'Value is a two-item list; not with $ref',
+    },
+    {
+      value: 'exists',
+      label: 'exists (has a value)',
+      hint: 'True when the path has at least one value, False otherwise — never Unknown; no value needed',
+    },
+  ];
+  const isExistsOperator =
+    String(selectedRule?.operator ?? '')
+      .trim()
+      .toLowerCase() === 'exists';
+  const handleOperatorChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const operator = event.target.value || null;
+    if (operator === 'exists') {
+      onChange({ operator, value: null });
+      return;
+    }
+    onChange({ operator });
+  };
+
+  const ruleTitle = String(selectedRule?.config?.rule_title ?? '');
+  const ruleDescription = String(selectedRule?.config?.rule_description ?? '');
+  const handleRuleMetaChange =
+    (key: 'rule_title' | 'rule_description') =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const config = { ...(selectedRule?.config ?? {}) } as Record<string, unknown>;
+      if (event.target.value.trim()) config[key] = event.target.value;
+      else delete config[key];
+      onChange({ config });
+    };
+
   const endKind = String(selectedRule?.config?.end_kind ?? 'output');
   const nextRule = String(selectedRule?.config?.next_rule ?? '');
   const handleEndKindChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -504,114 +549,157 @@ export default function RuleInspectorPanel({
               </div>
             ) : (
               <>
-                <div>
-                  <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                    Operator
-                  </label>
-                  <input
-                    value={inputValue(selectedRule.operator)}
-                    onChange={handleTextChange('operator')}
-                    disabled={!isDecision}
-                    className={isDecision ? activeClass : disabledClass}
-                  />
-                </div>
+                {isDecision && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                      Operator
+                    </label>
+                    <select
+                      value={inputValue(selectedRule.operator)}
+                      onChange={handleOperatorChange}
+                      className={activeClass}
+                    >
+                      <option value="">Choose…</option>
+                      {OPERATORS.map((op) => (
+                        <option key={op.value} value={op.value}>
+                          {op.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-[11px] text-gray-400">
+                      {OPERATORS.find((op) => op.value === selectedRule.operator)?.hint ??
+                        'Decisions send each target down the True, False or Unknown path.'}
+                    </p>
+                  </div>
+                )}
 
-                <div>
-                  <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                    {isEnd ? 'Output (value)' : 'Value'}
-                  </label>
-
-                  {isEnd && (
-                    <>
-                      <p className="mb-1 text-[11px] text-gray-400">
-                        This value is used as the rule output
-                      </p>
-                      <label className="mt-2 mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                        Outcome kind
-                      </label>
-                      <select
-                        value={endKind}
-                        onChange={handleEndKindChange}
-                        className={activeClass}
-                      >
-                        {END_KINDS.map((kind) => (
-                          <option key={kind.value} value={kind.value}>
-                            {kind.label}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="mt-1 mb-2 text-[11px] text-gray-400">
-                        {END_KINDS.find((kind) => kind.value === endKind)?.hint ?? ''}
-                      </p>
-                      {endKind === 'rule' && (
-                        <>
-                          <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
-                            Linked rule id
-                          </label>
-                          <input
-                            value={nextRule}
-                            onChange={handleNextRuleChange}
-                            className={`${activeClass} font-mono`}
-                            placeholder="dk-compartments-size-ak2-v2"
-                          />
-                          <p className="mt-1 mb-2 text-[11px] text-gray-400">
-                            When this rule runs in the RuleBook, the linked rule is run right after
-                            it for exactly the targets that ended here.
-                          </p>
-                        </>
-                      )}
-                    </>
-                  )}
-
-                  {isDecision && (
-                    <div className="mb-1 inline-flex rounded-md border border-gray-200 text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => handleValueModeChange('literal')}
-                        className={`rounded-l-md px-2 py-1 ${
-                          effectiveValueMode === 'literal'
-                            ? 'bg-gray-800 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        Literal
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleValueModeChange('ref')}
-                        className={`rounded-r-md px-2 py-1 ${
-                          effectiveValueMode === 'ref'
-                            ? 'bg-gray-800 text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        Other property ($ref)
-                      </button>
-                    </div>
-                  )}
-
-                  {isDecision && effectiveValueMode === 'ref' ? (
-                    <>
-                      <input
-                        value={isValueRef(selectedRule.value) ? selectedRule.value.$ref : ''}
-                        onChange={handleValueRefChange}
-                        className={`${activeClass} font-mono`}
-                        placeholder="fbo:from/fbo-dk:UseCategory"
-                      />
-                      <p className="mt-1 text-[11px] text-gray-400">
-                        Compares with this other property path on the same target (not allowed with
-                        operator "between").
-                      </p>
-                    </>
-                  ) : (
+                {isStart && (
+                  <div className="space-y-2 rounded-lg border border-sky-200 bg-sky-50/60 p-2">
+                    <label className="block text-xs font-medium tracking-wide text-sky-800 uppercase">
+                      Rule title
+                    </label>
                     <input
-                      value={inputValue(selectedRule.value)}
-                      onChange={handleTextChange('value')}
-                      disabled={isStart}
-                      className={!isStart ? activeClass : disabledClass}
+                      value={ruleTitle}
+                      onChange={handleRuleMetaChange('rule_title')}
+                      className={activeClass}
+                      placeholder="e.g. What is the maximum area of fire compartments?"
                     />
-                  )}
-                </div>
+                    <label className="block text-xs font-medium tracking-wide text-sky-800 uppercase">
+                      Rule description
+                    </label>
+                    <textarea
+                      value={ruleDescription}
+                      onChange={handleRuleMetaChange('rule_description')}
+                      rows={2}
+                      className={activeClass}
+                      placeholder="One or two lines on what the rule checks and where it comes from"
+                    />
+                    <p className="text-[11px] text-sky-800/80">
+                      The title is what the RuleBook and the rule library show (the Miro frame title
+                      fits here). Without it, the start element's label is used with a leading
+                      "Start:" removed.
+                    </p>
+                  </div>
+                )}
+
+                {!(isDecision && isExistsOperator) && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                      {isEnd ? 'Output (value)' : 'Value'}
+                    </label>
+
+                    {isEnd && (
+                      <>
+                        <p className="mb-1 text-[11px] text-gray-400">
+                          This value is used as the rule output
+                        </p>
+                        <label className="mt-2 mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                          Outcome kind
+                        </label>
+                        <select
+                          value={endKind}
+                          onChange={handleEndKindChange}
+                          className={activeClass}
+                        >
+                          {END_KINDS.map((kind) => (
+                            <option key={kind.value} value={kind.value}>
+                              {kind.label}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                          {END_KINDS.find((kind) => kind.value === endKind)?.hint ?? ''}
+                        </p>
+                        {endKind === 'rule' && (
+                          <>
+                            <label className="mb-1 block text-xs font-medium tracking-wide text-gray-500 uppercase">
+                              Linked rule id
+                            </label>
+                            <input
+                              value={nextRule}
+                              onChange={handleNextRuleChange}
+                              className={`${activeClass} font-mono`}
+                              placeholder="dk-compartments-size-ak2-v2"
+                            />
+                            <p className="mt-1 mb-2 text-[11px] text-gray-400">
+                              When this rule runs in the RuleBook, the linked rule is run right
+                              after it for exactly the targets that ended here.
+                            </p>
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {isDecision && (
+                      <div className="mb-1 inline-flex rounded-md border border-gray-200 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => handleValueModeChange('literal')}
+                          className={`rounded-l-md px-2 py-1 ${
+                            effectiveValueMode === 'literal'
+                              ? 'bg-gray-800 text-white'
+                              : 'bg-white text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          Literal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleValueModeChange('ref')}
+                          className={`rounded-r-md px-2 py-1 ${
+                            effectiveValueMode === 'ref'
+                              ? 'bg-gray-800 text-white'
+                              : 'bg-white text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          Other property ($ref)
+                        </button>
+                      </div>
+                    )}
+
+                    {isDecision && effectiveValueMode === 'ref' ? (
+                      <>
+                        <input
+                          value={isValueRef(selectedRule.value) ? selectedRule.value.$ref : ''}
+                          onChange={handleValueRefChange}
+                          className={`${activeClass} font-mono`}
+                          placeholder="fbo:from/fbo-dk:UseCategory"
+                        />
+                        <p className="mt-1 text-[11px] text-gray-400">
+                          Compares with this other property path on the same target (not allowed
+                          with operator "between").
+                        </p>
+                      </>
+                    ) : (
+                      <input
+                        value={inputValue(selectedRule.value)}
+                        onChange={handleTextChange('value')}
+                        disabled={isStart}
+                        className={!isStart ? activeClass : disabledClass}
+                      />
+                    )}
+                  </div>
+                )}
               </>
             )}
 

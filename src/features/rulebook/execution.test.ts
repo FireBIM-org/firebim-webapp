@@ -308,3 +308,52 @@ describe('rule links: order and missing rules', () => {
     expect(calls[2].options?.target_nodes).toEqual([`${NS}c2`]);
   });
 });
+
+describe('open questions and overrides', () => {
+  it('collects the questions of every run (deduped by where the answer is written) and passes overrides', async () => {
+    const api = await import('./api');
+    const { buildRuleRunnerExecutionTimeline } = await import('./execution');
+    const calls: Array<{ rule_id: string; options?: Record<string, unknown> }> = [];
+    const question = {
+      target_node: `${NS}c1`,
+      node_id: 'q',
+      node_type: 'decision',
+      label: 'Sprinklered?',
+      property_path: 'https://firebim.org/ontologies/fbo/dk#HasAutomaticFireSprinklersystem',
+      operator: '==',
+      value: true,
+      kind: 'boolean',
+      options: [true, false],
+      write_subject: `${NS}c1`,
+      write_property: 'https://firebim.org/ontologies/fbo/dk#HasAutomaticFireSprinklersystem',
+    };
+    vi.mocked(api.runDiagnosticCheck).mockImplementation(async (input) => {
+      calls.push({ rule_id: input.rule_id, options: input.options as Record<string, unknown> });
+      return {
+        ...makeDiagnosticRun({
+          rule_id: input.rule_id,
+          targets: [{ target_node: `${NS}c1`, status: 'Unknown', terminal_node_id: 'ask' }],
+          end_nodes: [],
+        }),
+        questions: [question],
+      } as never;
+    });
+    vi.mocked(api.getRuleOrNull).mockResolvedValue(null);
+    const overrides = [{ subject: `${NS}c2`, property: 'p', value: 1 }];
+    const timeline = await buildRuleRunnerExecutionTimeline({
+      active_graph_data: { id: 'graph-1', graph_uri: 'g', label: 'g', triple_count: 1 } as never,
+      runner_rule_items: [
+        { runner_item_id: 'r1', rule_id: 'a', label: 'Rule A' },
+        { runner_item_id: 'r2', rule_id: 'b', label: 'Rule B' },
+      ],
+      available_rules: [],
+      solver: 'standard',
+      chain_derived: false,
+      overrides,
+    });
+    expect(calls.every((c) => c.options?.overrides === overrides)).toBe(true);
+    expect(timeline.questions).toHaveLength(1); // same subject|property asked by both rules → once
+    expect(timeline.questions?.[0].rule_label).toBe('Rule A');
+    expect(timeline.questions?.[0].key).toBe(`${NS}c1|${question.write_property}`);
+  });
+});

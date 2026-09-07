@@ -4,7 +4,9 @@ import type {
   DiagnosticRunResponse,
   DiagnosticSequenceEvent,
   ExecutionStep,
+  GraphAssertion,
   NodeEvaluationResult,
+  OpenQuestion,
   RuleDefinition,
   RuleListItem,
   RuleRunnerItem,
@@ -703,9 +705,13 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   available_rules: RuleListItem[];
   solver: 'standard' | 'horizontal' | 'vertical';
   chain_derived?: boolean;
+  /** facts the person asserts for this run only (what-if / answers not yet saved) */
+  overrides?: GraphAssertion[];
 }) {
   const steps: ExecutionStep[] = [];
   const runs: StepRawJson[] = [];
+  const questions: OpenQuestion[] = [];
+  const seen_questions = new Set<string>();
   let next_step_index = 0;
   const chain_derived = input.chain_derived ?? true;
   const earlier_rule_ids: string[] = [];
@@ -734,6 +740,7 @@ export async function buildRuleRunnerExecutionTimeline(input: {
         graph_id: input.active_graph_data.id,
         options: {
           solver: input.solver,
+          ...(input.overrides && input.overrides.length > 0 ? { overrides: input.overrides } : {}),
           ...(runner_item.target_nodes && runner_item.target_nodes.length > 0
             ? { target_nodes: runner_item.target_nodes }
             : {}),
@@ -782,6 +789,22 @@ export async function buildRuleRunnerExecutionTimeline(input: {
       compatibility: diagnostic_run.compatibility ?? null,
     });
 
+    for (const question of diagnostic_run.questions ?? []) {
+      const key =
+        question.write_subject && question.write_property
+          ? `${question.write_subject}|${question.write_property}`
+          : `${question.target_node}|${question.property_path}`;
+      if (seen_questions.has(key)) continue;
+      seen_questions.add(key);
+      questions.push({
+        ...question,
+        key,
+        rule_id: runner_item.rule_id,
+        rule_label: library_item?.label ?? runner_item.label ?? runner_item.rule_id,
+        runner_item_id: runner_item.runner_item_id,
+      });
+    }
+
     const built = buildExecutionStepsFromDiagnosticRun({
       starting_step_index: next_step_index,
       runner_item,
@@ -797,6 +820,7 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   return {
     graph_id: input.active_graph_data.id,
     steps,
+    questions,
     raw_result: {
       graph_id: input.active_graph_data.id,
       graph_uri: input.active_graph_data.graph_uri ?? null,

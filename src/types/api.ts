@@ -89,6 +89,29 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/graphs/{graph_id}/answers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Answer Graph
+     * @description Write answers (facts the model did not state) into an answered copy of `graph_id` and publish that copy.
+     *
+     *     The first call copies the base graph to `<graph_id>--answered`; later calls extend the copy, so a person can
+     *     answer the open questions of a rule run one at a time and re-run against the same copy.
+     */
+    post: operations['answer_graph_graphs__graph_id__answers_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/graphs/{graph_id}': {
     parameters: {
       query?: never;
@@ -1995,6 +2018,11 @@ export interface components {
        * @description see CheckRunOptions.target_nodes
        */
       target_nodes?: string[];
+      /**
+       * Overrides
+       * @description see CheckRunOptions.overrides
+       */
+      overrides?: components['schemas']['GraphAssertion'][];
     };
     /** BlindCheckRunRequest */
     BlindCheckRunRequest: {
@@ -2201,6 +2229,11 @@ export interface components {
        * @default false
        */
       derived_persisted: boolean;
+      /**
+       * Questions
+       * @description What the rule would need to know for the targets that ended Unknown (answer with options.overrides or POST /graphs/{graph_id}/answers and run again)
+       */
+      questions?: components['schemas']['CheckQuestion'][];
       /** Compiled Rule */
       compiled_rule?: {
         [key: string]: unknown;
@@ -2296,6 +2329,52 @@ export interface components {
       /** Target Nodes */
       target_nodes?: string[];
     };
+    /**
+     * CheckQuestion
+     * @description What a rule would need to know about one target to get past an Unknown.
+     */
+    CheckQuestion: {
+      /** Target Node */
+      target_node: string;
+      /** Node Id */
+      node_id: string;
+      /**
+       * Node Type
+       * @default decision
+       */
+      node_type: string;
+      /** Label */
+      label?: string | null;
+      /** Property Path */
+      property_path: string;
+      /** Operator */
+      operator?: string | null;
+      /** Value */
+      value?: unknown | null;
+      /** Reason Code */
+      reason_code?: string | null;
+      /** Message */
+      message?: string | null;
+      /**
+       * Kind
+       * @description boolean | choice | number | text
+       * @default text
+       */
+      kind: string;
+      /** Options */
+      options?: unknown[];
+      /** Current Value */
+      current_value?: unknown | null;
+      /**
+       * Write Subject
+       * @description Where an answer is written (None if ambiguous)
+       */
+      write_subject?: string | null;
+      /** Write Property */
+      write_property?: string | null;
+      /** Problem */
+      problem?: string | null;
+    };
     /** CheckRunEngineInfo */
     CheckRunEngineInfo: {
       /**
@@ -2330,6 +2409,11 @@ export interface components {
        * @default false
        */
       diagnostics_enabled: boolean;
+      /**
+       * Merged Schemas
+       * @description Published ontologies (family/country/version) whose schema subset was merged into the graph
+       */
+      merged_schemas?: string[];
     };
     /** CheckRunOptions */
     CheckRunOptions: {
@@ -2424,6 +2508,17 @@ export interface components {
        * @description Rule ids whose persisted derived graphs are merged into the building graph before evaluation
        */
       use_derived_from?: string[];
+      /**
+       * Overrides
+       * @description Facts to assert on the building graph for this run only (a person's answers / what-if)
+       */
+      overrides?: components['schemas']['GraphAssertion'][];
+      /**
+       * Include Questions
+       * @description Return open questions for the targets that ended Unknown
+       * @default true
+       */
+      include_questions: boolean;
       /**
        * Target Nodes
        * @description Restrict the run to these target IRIs (used by the RuleBook to chain a rule only for the targets that reached an end element with next_rule)
@@ -2529,6 +2624,11 @@ export interface components {
        * @default false
        */
       derived_persisted: boolean;
+      /**
+       * Questions
+       * @description What the rule would need to know for the targets that ended Unknown (answer with options.overrides or POST /graphs/{graph_id}/answers and run again)
+       */
+      questions?: components['schemas']['CheckQuestion'][];
     };
     /** CheckTargetResult */
     CheckTargetResult: {
@@ -2583,6 +2683,79 @@ export interface components {
       code: string;
       /** Message */
       message: string;
+    };
+    /**
+     * GraphAnswersRequest
+     * @description Write a person's answers into an *answered copy* of a building graph (the original is never changed).
+     */
+    GraphAnswersRequest: {
+      /** Assertions */
+      assertions: components['schemas']['GraphAssertion'][];
+      /**
+       * Answered Graph Id
+       * @description Id of the answered copy (default '<graph_id>--answered'); answering again extends the same copy
+       */
+      answered_graph_id?: string | null;
+    };
+    /** GraphAnswersResponse */
+    GraphAnswersResponse: {
+      /**
+       * Success
+       * @default true
+       */
+      success: boolean;
+      /**
+       * Graph Id
+       * @description The answered copy
+       */
+      graph_id: string;
+      /** Graph Uri */
+      graph_uri: string;
+      /** Base Graph Id */
+      base_graph_id: string;
+      /**
+       * Created
+       * @description False when the answered copy already existed and was extended
+       */
+      created: boolean;
+      /** Applied */
+      applied: number;
+      /** Triple Count */
+      triple_count: number;
+      /** Message */
+      message: string;
+    };
+    /**
+     * GraphAssertion
+     * @description A fact supplied by a person: `subject property value` (replaces existing values of that property).
+     */
+    GraphAssertion: {
+      /**
+       * Subject
+       * @description IRI of the node the fact is about
+       */
+      subject: string;
+      /**
+       * Property
+       * @description IRI of the property
+       */
+      property: string;
+      /**
+       * Value
+       * @description Literal value (bool / number / string) or {"iri": ...} for a resource
+       */
+      value: unknown;
+      /**
+       * Datatype
+       * @description Optional XSD local name or IRI, or 'iri'
+       */
+      datatype?: string | null;
+      /**
+       * Replace
+       * @description Remove the existing values of the property first
+       * @default true
+       */
+      replace: boolean;
     };
     /** GraphDeleteResponse */
     GraphDeleteResponse: {
@@ -5542,6 +5715,20 @@ export interface components {
       entry: string;
       /** Elements */
       elements?: components['schemas']['RuleElementPayload'][];
+      /**
+       * Title
+       * @description Human-facing name of the rule (e.g. the Miro frame title). Falls back to the start element's label without a leading 'Start:'.
+       */
+      title?: string | null;
+      /** Description */
+      description?: string | null;
+      /**
+       * Source
+       * @description Where the rule comes from, e.g. {system: miro, board, frame_id, frame_title, url}
+       */
+      source?: {
+        [key: string]: unknown;
+      } | null;
     };
     /** RuleElementDeleteRequest */
     RuleElementDeleteRequest: {
@@ -5874,6 +6061,10 @@ export interface components {
       entry?: string | null;
       /** Label */
       label?: string | null;
+      /** Title */
+      title?: string | null;
+      /** Description */
+      description?: string | null;
       /**
        * Element Count
        * @default 0
@@ -6270,6 +6461,41 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['GraphPublishResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  answer_graph_graphs__graph_id__answers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        graph_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['GraphAnswersRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['GraphAnswersResponse'];
         };
       };
       /** @description Validation Error */
