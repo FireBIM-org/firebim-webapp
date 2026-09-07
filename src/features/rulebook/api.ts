@@ -6,6 +6,7 @@ import type {
   DiagnosticRunResponse,
   CheckRunOptions,
   CheckRunResponse,
+  GraphAssertion,
   GraphHealthResponse,
   RuleDefinition,
   RuleHealthResponse,
@@ -28,6 +29,8 @@ const DEFAULT_CHECK_OPTIONS: Required<CheckRunOptions> = {
   use_derived_from: [],
   target_nodes: [],
   schema: 'auto',
+  overrides: [],
+  include_questions: true,
 };
 
 type DeleteRuleInput = {
@@ -455,6 +458,14 @@ export async function getRulesHealth(): Promise<RuleHealthResponse> {
   return res.json();
 }
 
+/** "Start: Flow-UseCategory" → "Flow-UseCategory" (the API does the same when a rule has no title). */
+export function displayRuleTitle(label: string | null | undefined): string | null {
+  if (!label) return null;
+  const text = label.trim();
+  const match = /^start\s*[:\-–]\s*(.+)$/i.exec(text);
+  return (match ? match[1] : text).trim() || null;
+}
+
 export async function listRules(): Promise<RuleListItem[]> {
   const res = await fetch(`${env.apiBaseUrl}/rules/list`);
 
@@ -488,9 +499,12 @@ export async function listRules(): Promise<RuleListItem[]> {
       getRuleIdFromGraphUri(graph_uri) ??
       `rule-${index}`;
 
+    const start_label =
+      (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? null;
     return {
       rule_id,
-      label: (raw.label as string | undefined) ?? (raw.name as string | undefined) ?? rule_id,
+      label: (raw.title as string | undefined) ?? displayRuleTitle(start_label) ?? rule_id,
+      start_label,
       graph_uri,
       source: raw.source === 'example' ? 'example' : 'api',
       entry: (raw.entry as string | undefined) ?? null,
@@ -587,6 +601,37 @@ export async function publishRuleJson(input: unknown): Promise<PublishRuleJsonRe
   });
 
   return parseJsonResponse<PublishRuleJsonResponse>(res);
+}
+
+export type GraphAnswersResponse = {
+  success: boolean;
+  graph_id: string;
+  graph_uri: string;
+  base_graph_id: string;
+  created: boolean;
+  applied: number;
+  triple_count: number;
+  message: string;
+};
+
+/** Write answers into the answered copy of a graph (`<graph_id>--answered`; created on the first call). */
+export async function answerBuildingGraph(input: {
+  graph_id: string;
+  assertions: GraphAssertion[];
+  answered_graph_id?: string | null;
+}): Promise<GraphAnswersResponse> {
+  const res = await fetch(
+    `${env.apiBaseUrl}/graphs/${encodeURIComponent(input.graph_id)}/answers`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        assertions: input.assertions,
+        ...(input.answered_graph_id ? { answered_graph_id: input.answered_graph_id } : {}),
+      }),
+    },
+  );
+  return parseJsonResponse<GraphAnswersResponse>(res);
 }
 
 export async function getGraphsHealth(): Promise<GraphHealthResponse> {

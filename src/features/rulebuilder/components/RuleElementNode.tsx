@@ -15,9 +15,62 @@ export function isValueRef(value: unknown): value is { $ref: string } {
 
 export function formatValue(value: unknown): string | null {
   if (value === null || value === undefined || value === '') return null;
-  if (isValueRef(value)) return `= ${value.$ref}`;
+  if (isValueRef(value)) return `= ${compactTerm(value.$ref)}`;
+  if (Array.isArray(value)) return `one of ${value.map((item) => JSON.stringify(item)).join(', ')}`;
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+const KNOWN_PREFIXES: Array<[string, string]> = [
+  ['https://firebim.org/ontologies/fbo/dk#', 'fbo-dk:'],
+  ['https://firebim.org/ontologies/fbo/lt#', 'fbo-lt:'],
+  ['https://firebim.org/ontologies/fbo/be#', 'fbo-be:'],
+  ['https://firebim.org/ontologies/fbo/nl#', 'fbo-nl:'],
+  ['https://firebim.org/ontologies/fbo/pt#', 'fbo-pt:'],
+  ['https://firebim.org/ontologies/fbo#', 'fbo:'],
+  ['https://firebim.org/ontologies/ifc#', 'ifc:'],
+  ['http://example.org/fbo/1.0/', 'ex-fbo:'],
+  ['http://example.org/firebim/', 'ex:'],
+];
+
+/** `https://firebim.org/ontologies/fbo/dk#AreaFireCompartment` → `fbo-dk:AreaFireCompartment`; paths and `^` kept. */
+export function compactTerm(iriOrPath: string | null | undefined): string {
+  if (!iriOrPath) return '';
+  return String(iriOrPath)
+    .split('/')
+    .reduce<string[]>((parts, segment, index, all) => {
+      // a path is split on "/", but IRIs contain "/" too: re-join until a segment ends in "#term" or a prefix matches
+      const previous = parts.length > 0 ? parts[parts.length - 1] : null;
+      if (previous !== null && !/[#][^/]+$/.test(previous) && !previous.startsWith('http')) {
+        parts[parts.length - 1] = `${previous}/${segment}`;
+        return parts;
+      }
+      if (previous !== null && previous.startsWith('http') && !/#[^/]*$/.test(previous)) {
+        parts[parts.length - 1] = `${previous}/${segment}`;
+        return parts;
+      }
+      parts.push(segment);
+      void index;
+      void all;
+      return parts;
+    }, [])
+    .map((segment) => {
+      const inverse = segment.startsWith('^');
+      const iri = inverse ? segment.slice(1) : segment;
+      const hit = KNOWN_PREFIXES.find(([base]) => iri.startsWith(base));
+      const compact = hit ? `${hit[1]}${iri.slice(hit[0].length)}` : iri;
+      return `${inverse ? '^' : ''}${compact}`;
+    })
+    .join('/');
+}
+
+/** Expressions: compact every `$<iri>` and `$<iri>/<iri>` reference. */
+export function compactExpression(expression: string | null | undefined): string {
+  if (!expression) return '';
+  return String(expression).replace(
+    /\$([^\s()+*^,]+)/g,
+    (_match, ref: string) => `$${compactTerm(ref)}`,
+  );
 }
 
 type VisualState = 'normal' | 'dimmed' | 'completeness-issue' | 'ontology-issue';
@@ -212,17 +265,17 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
         <div
           className={`px-3 py-2 text-xs ${isOntologyIssue ? 'text-red-900' : isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
         >
-          <div>
-            <span className="font-medium">Target:</span> {rule.target_class || '—'}
+          <div title={rule.target_class || undefined}>
+            <span className="font-medium">Target:</span> {compactTerm(rule.target_class) || '—'}
+          </div>
+          <div className="mt-1" title={rule.property_path || undefined}>
+            <span className="font-medium">Property:</span> {compactTerm(rule.property_path) || '—'}
           </div>
           <div className="mt-1">
-            <span className="font-medium">Property:</span> {rule.property_path || '—'}
-          </div>
-          <div className="mt-1">
-            <span className="font-medium">Operator:</span> {rule.operator || '—'}
-          </div>
-          <div className="mt-1">
-            <span className="font-medium">Value:</span> {formatValue(rule.value) ?? '—'}
+            <span className="font-medium">Test:</span>{' '}
+            {rule.operator === 'exists'
+              ? 'has a value (exists)'
+              : `${rule.operator || '—'} ${formatValue(rule.value) ?? '—'}`}
           </div>
         </div>
       )}
@@ -231,11 +284,11 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
         <div
           className={`px-3 py-2 text-xs ${isOntologyIssue ? 'text-red-900' : isCompletenessIssue ? 'text-slate-800' : 'text-slate-600'}`}
         >
-          <div>
-            <span className="font-medium">Target:</span> {rule.target_class || '—'}
+          <div title={rule.target_class || undefined}>
+            <span className="font-medium">Target:</span> {compactTerm(rule.target_class) || '—'}
           </div>
-          <div className="mt-1">
-            <span className="font-medium">Writes:</span> {rule.property_path || '—'}
+          <div className="mt-1" title={rule.property_path || undefined}>
+            <span className="font-medium">Writes:</span> {compactTerm(rule.property_path) || '—'}
           </div>
           <div className="mt-1">
             <span className="font-medium">Expression:</span>
@@ -246,7 +299,7 @@ export default function RuleElementNode({ data, selected }: NodeProps) {
             }`}
             title={rule.expression?.trim() || undefined}
           >
-            {rule.expression?.trim() || '—'}
+            {compactExpression(rule.expression?.trim()) || '—'}
           </div>
         </div>
       )}

@@ -9,7 +9,10 @@ export type RuleElementType = 'start' | 'decision' | 'end' | 'derive';
 
 export type RuleListItem = {
   rule_id: string;
+  /** Human-facing name (the API's title; falls back to the start label without "Start:"). */
   label: string;
+  /** The start element's raw label, kept for reference. */
+  start_label?: string | null;
   graph_uri?: string | null;
   source: 'api' | 'example';
   entry?: string | null;
@@ -118,6 +121,43 @@ export type GraphHealthResponse = {
   graph_uri_example?: string;
 };
 
+/** A fact a person asserts about the building graph: `subject property value`. */
+export type GraphAssertion = {
+  subject: string;
+  property: string;
+  value: unknown;
+  datatype?: string | null;
+  replace?: boolean;
+};
+
+/** What a rule would need to know about one target to get past an Unknown (from the API). */
+export type CheckQuestion = {
+  target_node: string;
+  node_id: string;
+  node_type: 'decision' | 'derive' | string;
+  label?: string | null;
+  property_path: string;
+  operator?: string | null;
+  value?: unknown;
+  reason_code?: string | null;
+  message?: string | null;
+  kind: 'boolean' | 'choice' | 'number' | 'text' | string;
+  options: unknown[];
+  current_value?: unknown;
+  write_subject?: string | null;
+  write_property?: string | null;
+  problem?: string | null;
+};
+
+/** A question as the Rule Runner shows it: which run asked it. */
+export type OpenQuestion = CheckQuestion & {
+  rule_id: string;
+  rule_label: string;
+  runner_item_id: string;
+  /** stable key: write_subject|write_property (or target|path when the answer cannot be written) */
+  key: string;
+};
+
 export type CheckRunOptions = {
   solver?: 'standard' | 'horizontal' | 'vertical';
   inference?: 'none' | 'rdfs' | 'owlrl' | 'both';
@@ -131,6 +171,8 @@ export type CheckRunOptions = {
   use_derived_from?: string[];
   target_nodes?: string[];
   schema?: string;
+  overrides?: GraphAssertion[];
+  include_questions?: boolean;
 };
 
 export type DerivedValue = components['schemas']['CheckDerivedValue'];
@@ -182,6 +224,7 @@ export type CheckRunResponse = {
   derived_values?: DerivedValue[];
   derived_graph_uri?: string | null;
   derived_persisted?: boolean;
+  questions?: CheckQuestion[];
   end_nodes?: Array<{
     end_node_id: string;
     terminal_value?: string | null;
@@ -279,4 +322,6 @@ export type ExecutionTimeline = {
   graph_id: string;
   steps: ExecutionStep[];
   raw_result?: unknown;
+  /** Open questions (Unknown targets) collected over every run of the timeline. */
+  questions?: OpenQuestion[];
 };

@@ -76,11 +76,16 @@ function RuleCard({
       <div className="border-b border-gray-100 px-3 py-2">
         <div className="text-[11px] font-semibold tracking-wide text-sky-700 uppercase">Rule</div>
         <div className="mt-1 font-medium text-gray-900">{display_label}</div>
+        <div className="mt-0.5 truncate font-mono text-[10px] text-gray-400" title={rule.rule_id}>
+          {rule.rule_id}
+        </div>
       </div>
 
       <div className="space-y-1 px-3 py-2">
         {rule.description ? (
-          <div className="line-clamp-2 text-xs text-gray-500">{rule.description}</div>
+          <div className="line-clamp-3 text-xs text-gray-500" title={rule.description}>
+            {rule.description}
+          </div>
         ) : (
           <div className="text-xs text-gray-400">Stored rule ready for the Rule Runner</div>
         )}

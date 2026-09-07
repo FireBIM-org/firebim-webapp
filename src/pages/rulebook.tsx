@@ -7,6 +7,7 @@ import { env } from '../config/env';
 import { BuildingGraphView } from '../features/rulebook/components/BuildingGraphView';
 import { ExecutionConsole } from '../features/rulebook/components/ExecutionConsole';
 import { GraphToolbar } from '../features/rulebook/components/GraphToolbar';
+import { OpenQuestionsPanel } from '../features/rulebook/components/OpenQuestionsPanel';
 import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibraryPanel';
 import { RuleRunner } from '../features/rulebook/components/RuleRunner';
 import { RuleSummaryPanel } from '../features/rulebook/components/RuleSummaryPanel';
@@ -23,6 +24,7 @@ export default function RuleBookPage() {
   const graph_loaded = useRuleBookStore((state: RuleBookStore) => state.graph_loaded);
   const execution_solver = useRuleBookStore((state: RuleBookStore) => state.execution_solver);
   const chain_derived = useRuleBookStore((state: RuleBookStore) => state.chain_derived);
+  const overrides = useRuleBookStore((state: RuleBookStore) => state.overrides);
   const execution_status = useRuleBookStore((state: RuleBookStore) => state.execution_status);
   const execution_timeline = useRuleBookStore((state: RuleBookStore) => state.execution_timeline);
   const current_step_index = useRuleBookStore((state: RuleBookStore) => state.current_step_index);
@@ -77,6 +79,16 @@ export default function RuleBookPage() {
   ]);
 
   const handleRun = useCallback(async () => {
+    // read the live store: this may be called right after the answered graph was loaded
+    const {
+      graph_loaded,
+      active_graph_data,
+      runner_rule_items,
+      available_rules,
+      execution_solver,
+      chain_derived,
+      overrides,
+    } = useRuleBookStore.getState();
     if (!graph_loaded || !active_graph_data || runner_rule_items.length === 0) {
       return;
     }
@@ -99,6 +111,7 @@ export default function RuleBookPage() {
         available_rules,
         solver: execution_solver,
         chain_derived,
+        overrides,
       });
 
       setExecutionTimeline(timeline);
@@ -116,6 +129,7 @@ export default function RuleBookPage() {
     active_graph_data,
     available_rules,
     chain_derived,
+    overrides,
     execution_solver,
     graph_loaded,
     runner_rule_items,
@@ -128,6 +142,16 @@ export default function RuleBookPage() {
   ]);
 
   const handleCanvasRun = useCallback(async () => {
+    // read the live store: this may be called right after the answered graph was loaded
+    const {
+      graph_loaded,
+      active_graph_data,
+      runner_rule_items,
+      available_rules,
+      execution_solver,
+      chain_derived,
+      overrides,
+    } = useRuleBookStore.getState();
     if (!graph_loaded || !active_graph_data || runner_rule_items.length === 0) {
       return;
     }
@@ -150,6 +174,7 @@ export default function RuleBookPage() {
         available_rules,
         solver: execution_solver,
         chain_derived,
+        overrides,
       });
 
       setExecutionTimeline(timeline);
@@ -167,6 +192,7 @@ export default function RuleBookPage() {
     active_graph_data,
     available_rules,
     chain_derived,
+    overrides,
     execution_solver,
     graph_loaded,
     runner_rule_items,
@@ -247,6 +273,7 @@ export default function RuleBookPage() {
           <div className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-slate-50">
             {!graphExpanded && <GraphToolbar />}
             {!graphExpanded && <RuleRunner onRun={() => void handleRun()} />}
+            {!graphExpanded && <OpenQuestionsPanel onRun={handleRun} />}
 
             <div className={graphPaneClass}>
               <BuildingGraphView

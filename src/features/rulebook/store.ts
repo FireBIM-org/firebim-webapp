@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import type {
   BuildingGraphData,
   ExecutionTimeline,
+  GraphAssertion,
   RuleBookLibraryState,
   RuleDefinition,
   RuleLibrarySelection,
@@ -126,6 +127,12 @@ export type RuleBookStore = {
   execution_status: 'idle' | 'ready' | 'running' | 'paused' | 'complete';
   execution_solver: 'standard' | 'horizontal' | 'vertical';
   chain_derived: boolean;
+  /** show the open questions of a run and let the person answer them */
+  ask_user: boolean;
+  /** facts asserted for the next run only (what-if) */
+  overrides: GraphAssertion[];
+  /** drafted answers keyed by OpenQuestion.key */
+  answer_drafts: Record<string, unknown>;
   execution_timeline: ExecutionTimeline | null;
   current_step_index: number;
   execution_playback_ms: number;
@@ -175,6 +182,10 @@ export type RuleBookStore = {
   setExecutionStatus: (value: 'idle' | 'ready' | 'running' | 'paused' | 'complete') => void;
   setExecutionSolver: (value: 'standard' | 'horizontal' | 'vertical') => void;
   setChainDerived: (value: boolean) => void;
+  setAskUser: (value: boolean) => void;
+  setOverrides: (value: GraphAssertion[]) => void;
+  setAnswerDraft: (key: string, value: unknown) => void;
+  clearAnswerDrafts: () => void;
   setExecutionTimeline: (timeline: ExecutionTimeline | null) => void;
   setCurrentStepIndex: (value: number) => void;
   setExecutionPlaybackMs: (value: number) => void;
@@ -209,6 +220,9 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
   execution_status: 'idle',
   execution_solver: 'standard',
   chain_derived: true,
+  ask_user: true,
+  overrides: [],
+  answer_drafts: {},
   execution_timeline: null,
   current_step_index: 0,
   execution_playback_ms: 900,
@@ -550,6 +564,11 @@ export const useRuleBookStore = create<RuleBookStore>((set, get) => ({
   setExecutionStatus: (value) => set({ execution_status: value }),
   setExecutionSolver: (value) => set({ execution_solver: value }),
   setChainDerived: (value) => set({ chain_derived: value }),
+  setAskUser: (value) => set({ ask_user: value }),
+  setOverrides: (value) => set({ overrides: value }),
+  setAnswerDraft: (key, value) =>
+    set((state) => ({ answer_drafts: { ...state.answer_drafts, [key]: value } })),
+  clearAnswerDrafts: () => set({ answer_drafts: {} }),
   setExecutionTimeline: (timeline) => set({ execution_timeline: timeline }),
   setCurrentStepIndex: (value) => set({ current_step_index: value }),
   setExecutionPlaybackMs: (value) => set({ execution_playback_ms: value }),
