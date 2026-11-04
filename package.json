@@ -23,7 +23,7 @@
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.9.1",
     "@ifc-lite/data": "^2.5.0",
-    "@ifc-lite/geometry": "^1.18.5",
+    "@ifc-lite/geometry": "^8.0.2",
     "@ifc-lite/parser": "^2.4.1",
     "@ifc-lite/renderer": "^1.41.1",
     "@tailwindcss/forms": "^0.5.10",
