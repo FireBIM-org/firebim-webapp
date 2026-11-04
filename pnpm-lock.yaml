@@ -31,8 +31,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
       '@ifc-lite/geometry':
-        specifier: ^1.18.5
-        version: 1.18.5
+        specifier: ^8.0.2
+        version: 8.0.2
       '@ifc-lite/parser':
         specifier: ^2.4.1
         version: 2.4.1
@@ -260,28 +260,29 @@ packages:
   '@ifc-lite/data@2.5.0':
     resolution: {integrity: sha512-LQGbld27TiH+nEuOCMcW3lXrsN9n4eDMCsz48821eNtBRN5viV8UksrtSouvDzS39hnKap19ysDT/vy5nOC03A==}
 
-  '@ifc-lite/data@3.2.3':
-    resolution: {integrity: sha512-nrI4TT6fY/d63xnfbogsQW6/oJq22Os0aVHznJOwC7wx6IACrimaiTDEw7BTVXDHuFGEHAs+1wXVSroKmRP26Q==}
+  '@ifc-lite/data@3.5.1':
+    resolution: {integrity: sha512-P09Z47hsvVfb9t/i/BJZwGrL/9M5qYnz6/VL6m4st+eUVJdif1CC81ZAfSydI+i4axfdFxjQJUUzDUD4ZaBx0w==}
+
+  '@ifc-lite/data@6.4.0':
+    resolution: {integrity: sha512-TaWu3ZCza02xmufl/KUq2ppp7z805NkW4a3ggGhf6lLebN7BqInZaJEF77S/kDwu1G4Xv5imrusJEShj6gGSJg==}
 
   '@ifc-lite/encoding@1.14.6':
     resolution: {integrity: sha512-B3zTnUm8mQBa6kXNy7g2ad+WSvIChk8VVj87oFtmuMnipj6Kd9iwUGNVL3R/WEYhWgKSUkkXYTUvaDehI+eFqQ==}
 
-  '@ifc-lite/encoding@1.16.0':
-    resolution: {integrity: sha512-IUTJTTYjDrfmkNjA43vCTY1d2Kcmdh2Ide2yLeMRkeEMPAhwf/ElPmaL0xQxUbWcbneWevEG4cvN1sjAr58XAQ==}
+  '@ifc-lite/encoding@2.4.0':
+    resolution: {integrity: sha512-nrwbL4rvjKH7MR+YWVuV+rYj2oGbzW3QM5UfHYPgZWpA1koBDU1kH3mqTeaL//yxYV7cQmx2eKDEP66IyAzjbQ==}
 
-  '@ifc-lite/geometry@1.18.5':
-    resolution: {integrity: sha512-LVZ2D2gsLipyANCD2jBtBc3fSHmQ9KnTTdO4oW3Ws5o49oDP9cqFWOkANr2SekKpgE0hNfTQ1+o6zhKfIHI5Rw==}
-    peerDependencies:
-      '@ifc-lite/wasm-threaded': '*'
-    peerDependenciesMeta:
-      '@ifc-lite/wasm-threaded':
-        optional: true
+  '@ifc-lite/geometry@3.8.4':
+    resolution: {integrity: sha512-UZ9DOpk6yXvmxNSR7Vv67HqQ3xoZ3NoTojtgaw/2AY5OWbz7M8cvRTyL7+LLI5EWY4ujI2cKc4fwGU6it99D9A==}
 
-  '@ifc-lite/geometry@3.8.0':
-    resolution: {integrity: sha512-Q1g45i39KW8gYTmHAUpeC/ObN5Zmhek9TiXXp0tgd316yWlAaEqJxkZZjtsvlQS30WbKDVwd75JMCNRxpXcV1Q==}
+  '@ifc-lite/geometry@8.0.2':
+    resolution: {integrity: sha512-KDhK8a9IK8zS4wAvJ8MZ1i6plOp6Fh+dmyeTgquGAoswNtjzKf7u0cV0q1qZGKUvbgJRmEybyL/zTQIKW75lLA==}
 
   '@ifc-lite/ifcx@2.1.1':
     resolution: {integrity: sha512-aFpLhYYoblOQU73+0XcJ+7Qe1uBHLgiyUym11LJmvlkeYyvkLGCCtZguuV16l2Ap9ICiyNEnIPMjIkSKdshVoQ==}
+
+  '@ifc-lite/load-trace@0.3.0':
+    resolution: {integrity: sha512-PJhQ/W13JeZaNubVIZeX7hqnSDbt7DKzB2P7NFR15vI22qmvTaL7dqAljcpBeAfEqI67C1kMrjyxuc8frHi15A==}
 
   '@ifc-lite/mutations@1.15.0':
     resolution: {integrity: sha512-WB9jz9zcSt7+jQ/XCHwGBsQTdHwV6Tg58Ps3W6bZ21XMlwbxS2JHr3qcpVfcPV8O7SQPl1mCg/dFdI3kgPHXzA==}
@@ -298,11 +299,17 @@ packages:
   '@ifc-lite/spatial@1.14.13':
     resolution: {integrity: sha512-45602hI2yLq6B1B4Qvkvwzx+cRSeyTi6MYevitguk/qEWmTccYscdlLpsmhJrdaMb6oWo4MYD157n886qAFNzA==}
 
+  '@ifc-lite/wasm-lifecycle@0.2.0':
+    resolution: {integrity: sha512-PEmr5+DfXMnjZLzeupQtiW2b7RcxjmpgLvE73lqnzeq+DUQg9dOrfkyatOQOoLW+1r3gMD3CaOFJBIB7N6L5Kg==}
+
   '@ifc-lite/wasm@1.16.10':
     resolution: {integrity: sha512-wK2Ts522X28uEGcDJC/Qw9gXAllz3DBmKLU5XcIDJc47lHJZb65IMPLHP0Kyyh/HBqxWAU+qh1mqlkBD5VhtdQ==}
 
-  '@ifc-lite/wasm@4.4.0':
-    resolution: {integrity: sha512-bqx2pZ568ibt4TP7XSIU4koYx63mZQsx+RnMjqG9L2jrP2KwSHcIp2OXSIUeyCRo9xK14rkErkJdfUfafA+gnA==}
+  '@ifc-lite/wasm@12.1.0':
+    resolution: {integrity: sha512-tNPpZEtx+/Fvp1QwTAKRTRdI/zLHjxk+craQQlMGLDjaDdyeWxziLZ0RytGi36jRGKDYzmTMIoCoM/jGqfcjuQ==}
+
+  '@ifc-lite/wasm@5.0.0':
+    resolution: {integrity: sha512-zNUfkQJ4FLg67MjxQ5W1Et7m8olM3ButHfoL4l5tedecVrGxi+/Pyg07kCIsz7WEkXSQmyXWKAY2t7OdgdfysQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1062,11 +1069,8 @@ packages:
   '@tanstack/virtual-core@3.13.23':
     resolution: {integrity: sha512-zSz2Z2HNyLjCplANTDyl3BcdQJc2k1+yyFoKhNRmCr7V7dY8o8q5m8uFTI1/Pg1kL+Hgrz6u3Xo6eFUB7l66cg==}
 
-  '@tauri-apps/api@2.11.0':
-    resolution: {integrity: sha512-7CinYODhky9lmO23xHnUFv0Xt43fbtWMyxZcLcRBlFkcgXKuEirBvHpmtJ89YMhyeGcq20Wuc47Fa4XjyniywA==}
-
-  '@tauri-apps/api@2.11.1':
-    resolution: {integrity: sha512-M2FPuYND2m+wh5hfW9ZpSdxMPdEJovPBWwoHJmwUpysTYNHaOkVFN419m/K0LIgjb/7KU2vBgsUepJWugQCvAA==}
+  '@tauri-apps/api@2.12.4':
+    resolution: {integrity: sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==}
 
   '@tybys/wasm-util@0.10.4':
     resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
@@ -2140,33 +2144,41 @@ snapshots:
 
   '@ifc-lite/data@2.5.0': {}
 
-  '@ifc-lite/data@3.2.3':
+  '@ifc-lite/data@3.5.1':
     dependencies:
-      '@ifc-lite/encoding': 1.16.0
+      '@ifc-lite/encoding': 2.4.0
+
+  '@ifc-lite/data@6.4.0':
+    dependencies:
+      '@ifc-lite/encoding': 2.4.0
 
   '@ifc-lite/encoding@1.14.6': {}
 
-  '@ifc-lite/encoding@1.16.0': {}
+  '@ifc-lite/encoding@2.4.0': {}
 
-  '@ifc-lite/geometry@1.18.5':
+  '@ifc-lite/geometry@3.8.4':
     dependencies:
-      '@ifc-lite/data': 1.17.0
-      '@ifc-lite/wasm': 1.16.10
+      '@ifc-lite/data': 3.5.1
+      '@ifc-lite/wasm': 5.0.0
     optionalDependencies:
-      '@tauri-apps/api': 2.11.0
+      '@tauri-apps/api': 2.12.4
 
-  '@ifc-lite/geometry@3.8.0':
+  '@ifc-lite/geometry@8.0.2':
     dependencies:
-      '@ifc-lite/data': 3.2.3
-      '@ifc-lite/wasm': 4.4.0
+      '@ifc-lite/data': 6.4.0
+      '@ifc-lite/load-trace': 0.3.0
+      '@ifc-lite/wasm': 12.1.0
+      '@ifc-lite/wasm-lifecycle': 0.2.0
     optionalDependencies:
-      '@tauri-apps/api': 2.11.1
+      '@tauri-apps/api': 2.12.4
 
   '@ifc-lite/ifcx@2.1.1':
     dependencies:
       '@ifc-lite/data': 1.17.0
       '@ifc-lite/mutations': 1.15.0
       '@ifc-lite/pointcloud': 0.3.1
+
+  '@ifc-lite/load-trace@0.3.0': {}
 
   '@ifc-lite/mutations@1.15.0':
     dependencies:
@@ -2185,16 +2197,20 @@ snapshots:
 
   '@ifc-lite/renderer@1.41.1':
     dependencies:
-      '@ifc-lite/geometry': 3.8.0
+      '@ifc-lite/geometry': 3.8.4
       '@ifc-lite/spatial': 1.14.13
 
   '@ifc-lite/spatial@1.14.13':
     dependencies:
-      '@ifc-lite/geometry': 3.8.0
+      '@ifc-lite/geometry': 3.8.4
+
+  '@ifc-lite/wasm-lifecycle@0.2.0': {}
 
   '@ifc-lite/wasm@1.16.10': {}
 
-  '@ifc-lite/wasm@4.4.0': {}
+  '@ifc-lite/wasm@12.1.0': {}
+
+  '@ifc-lite/wasm@5.0.0': {}
 
   '@img/colour@1.1.0':
     optional: true
@@ -2693,10 +2709,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.13.23': {}
 
-  '@tauri-apps/api@2.11.0':
-    optional: true
-
-  '@tauri-apps/api@2.11.1':
+  '@tauri-apps/api@2.12.4':
     optional: true
 
   '@tybys/wasm-util@0.10.4':
