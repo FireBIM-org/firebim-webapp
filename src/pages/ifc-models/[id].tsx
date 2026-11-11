@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
+import { ModelProcessing } from '@/features/ingestion/ModelProcessing';
+
 import FileInfo from '../../components/FileInfo';
 import IFCViewer from '../../components/IFCViewer';
 import Layout from '../../components/Layout';
@@ -26,9 +28,14 @@ export default function ModelDetail() {
     isLoading: modelLoading,
     isError,
   } = useQuery({
-    queryKey: ['model', id],
+    queryKey: ['model', user?.id, id],
     queryFn: () => apiClient.getModel(id as string),
     enabled: !!user && !!id,
+    refetchInterval: (query) =>
+      query.state.data?.ingestion_backend === 'neo' &&
+      ['queued', 'running', 'retry_wait'].includes(query.state.data.status ?? '')
+        ? 2000
+        : false,
   });
 
   const handleDownload = async () => {
@@ -127,12 +134,14 @@ export default function ModelDetail() {
           </h2>
         </div>
         <div className="mt-4 flex flex-shrink-0 md:mt-0 md:ml-4">
-          <PrimaryButton
-            onClick={() => router.push(`/analysis?model=${model.id}`)}
-            className="ml-3"
-          >
-            Analyze Model
-          </PrimaryButton>
+          {model.ingestion_backend !== 'neo' && (
+            <PrimaryButton
+              onClick={() => router.push(`/analysis?model=${model.id}`)}
+              className="ml-3"
+            >
+              Analyze Model
+            </PrimaryButton>
+          )}
           <button
             type="button"
             onClick={handleDownload}
@@ -144,34 +153,46 @@ export default function ModelDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <IFCViewer modelId={id as string} />
+      {model.ingestion_backend === 'neo' ? (
+        <ModelProcessing key={model.id} model={model} userId={user.id} />
+      ) : (
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div>
+            <IFCViewer modelId={id as string} />
+          </div>
+          <div>
+            <FileInfo
+              title="Model Information"
+              description="Details about your IFC model"
+              fields={[
+                { label: 'Filename', value: model.filename },
+                { label: 'File ID', value: model.id },
+                {
+                  label: 'Size',
+                  value: model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown',
+                },
+                {
+                  label: 'Uploaded',
+                  value: `${new Date(model.created_at).toLocaleDateString()} ${new Date(model.created_at).toLocaleTimeString()}`,
+                },
+                ...(model.schema_version
+                  ? [{ label: 'IFC Schema Version', value: model.schema_version }]
+                  : []),
+                ...(model.entity_count
+                  ? [{ label: 'Entity Count', value: model.entity_count }]
+                  : []),
+                { label: 'Node Count', value: model.node_count?.toLocaleString() ?? 'Unknown' },
+                { label: 'Edge Count', value: model.edge_count?.toLocaleString() ?? 'Unknown' },
+                {
+                  label: 'Conversion Profile',
+                  value: model.conversion_profile_name || model.conversion_profile_id || 'Unknown',
+                },
+              ]}
+            />
+            <ModelAnalysisTable />
+          </div>
         </div>
-        <div>
-          <FileInfo
-            title="Model Information"
-            description="Details about your IFC model"
-            fields={[
-              { label: 'Filename', value: model.filename },
-              { label: 'File ID', value: model.id },
-              {
-                label: 'Size',
-                value: model.size ? `${Math.round(model.size / 1024)} KB` : 'Unknown',
-              },
-              {
-                label: 'Uploaded',
-                value: `${new Date(model.created_at).toLocaleDateString()} ${new Date(model.created_at).toLocaleTimeString()}`,
-              },
-              ...(model.schema_version
-                ? [{ label: 'IFC Schema Version', value: model.schema_version }]
-                : []),
-              ...(model.entity_count ? [{ label: 'Entity Count', value: model.entity_count }] : []),
-            ]}
-          />
-          <ModelAnalysisTable />
-        </div>
-      </div>
+      )}
     </Layout>
   );
 }

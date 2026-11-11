@@ -45,6 +45,7 @@ describe('handleIfcUpload', () => {
 
     vi.mocked(apiClient.getProfile).mockResolvedValue({
       profile_record: {
+        name: 'Fire Safety',
         profile: { target_classes: [], property_paths: [], relation_paths: [] },
       },
     } as any);
@@ -62,7 +63,13 @@ describe('handleIfcUpload', () => {
     expect(apiClient.getProfile).toHaveBeenCalledWith('profile-123');
     expect(apiClient.uploadModel).toHaveBeenCalledWith(mockFile);
     expect(extractAndTransform).toHaveBeenCalled();
-    expect(apiClient.uploadModelData).toHaveBeenCalledWith('model-123', expect.anything());
+    expect(apiClient.uploadModelData).toHaveBeenCalledWith('model-123', {
+      entities: [],
+      properties: [],
+      quantities: [],
+      conversion_profile_id: 'profile-123',
+      conversion_profile_name: 'Fire Safety',
+    });
     expect(onSuccess).toHaveBeenCalled();
     // We expect several progress updates
     expect(onProgress).toHaveBeenCalledWith(expect.any(Number));
@@ -135,6 +142,39 @@ describe('handleIfcUpload', () => {
 
     expect(apiClient.getProfile).not.toHaveBeenCalled();
     expect(extractAndTransform).toHaveBeenCalledWith(expect.anything(), undefined);
+    expect(apiClient.uploadModelData).toHaveBeenCalledWith(
+      'model-full',
+      expect.objectContaining({
+        conversion_profile_id: 'full-hierarchy',
+        conversion_profile_name: 'Full Hierarchy',
+      }),
+    );
     expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it('should preserve an inline derived profile without fetching a saved profile', async () => {
+    const profile = { rule_id: 'derived-123', target_classes: ['IfcWall'] };
+    vi.mocked(apiClient.uploadModel).mockResolvedValue({ id: 'model-derived' } as any);
+    vi.mocked(extractAndTransform).mockReturnValue({
+      entities: [],
+      properties: [],
+      quantities: [],
+    });
+
+    await handleIfcUpload(mockFile, {
+      profileId: 'derived-123',
+      profileName: 'Derived Profile from rules',
+      profile,
+    });
+
+    expect(apiClient.getProfile).not.toHaveBeenCalled();
+    expect(extractAndTransform).toHaveBeenCalledWith(expect.anything(), profile);
+    expect(apiClient.uploadModelData).toHaveBeenCalledWith(
+      'model-derived',
+      expect.objectContaining({
+        conversion_profile_id: 'derived-123',
+        conversion_profile_name: 'Derived Profile from rules',
+      }),
+    );
   });
 });

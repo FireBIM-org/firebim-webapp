@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 import { components } from '../types/api';
 
@@ -6,6 +6,11 @@ const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
 
 // Define User type based on the API schema
 export type User = components['schemas']['User'];
+export type IngestionJob = components['schemas']['IngestionJobResponse'];
+export type IngestionReport = components['schemas']['IngestionReportResponse'];
+export type IngestionRevision = components['schemas']['IngestionRevisionResponse'];
+export type IngestionRevisions = components['schemas']['IngestionRevisionsResponse'];
+export type IfcUploadSession = components['schemas']['IfcUploadResponse'];
 
 // Ontology registry sync (public firebim.org registry -> this API's ontology store)
 export type OntologySyncRequest = components['schemas']['OntologySyncRequest'];
@@ -81,6 +86,16 @@ export interface IFCModel {
   size?: number;
   schema_version?: string;
   entity_count?: number;
+  node_count?: number | null;
+  edge_count?: number | null;
+  conversion_profile_id?: string | null;
+  conversion_profile_name?: string | null;
+  ingestion_backend?: 'legacy' | 'neo';
+  status?: string;
+  latest_job_id?: string | null;
+  latest_successful_job_id?: string | null;
+  latest_successful_graph_id?: string | null;
+  latest_successful_revision_id?: string | null;
   user_id: string;
 }
 
@@ -127,6 +142,8 @@ export interface AsyncCheckResult {
 }
 
 export interface IFCModelData {
+  conversion_profile_id?: string;
+  conversion_profile_name?: string;
   entities: {
     id: string;
     type: string;
@@ -197,6 +214,11 @@ export class ApiClient {
     }
   }
 
+  async request<T>(config: AxiosRequestConfig): Promise<T> {
+    const response = await this.axiosInstance.request<T>(config);
+    return response.data;
+  }
+
   // Get user profile from API server (goes through proxy which adds auth)
   async getCurrentUser(): Promise<User> {
     const response = await this.axiosInstance.get('/api/proxy/users/me');
@@ -204,6 +226,133 @@ export class ApiClient {
   }
 
   // IFC Models endpoints
+  async getIngestionRevisions(signal?: AbortSignal): Promise<IngestionRevisions> {
+    const first = await this.request<IngestionRevisions>({
+      url: '/api/proxy/ifc-models/ingestion-revisions',
+      params: { limit: 100 },
+      signal,
+    });
+    const revisions = [...first.revisions];
+    for (let offset = revisions.length; offset < first.count; offset += 100) {
+      const page = await this.request<IngestionRevisions>({
+        url: '/api/proxy/ifc-models/ingestion-revisions',
+        params: { limit: 100, offset },
+        signal,
+      });
+      revisions.push(...page.revisions);
+      if (!page.revisions.length) break;
+    }
+    return { ...first, revisions };
+  }
+
+  initiateIfcUpload(
+    data: components['schemas']['IfcUploadInitiate'],
+    signal?: AbortSignal,
+  ): Promise<IfcUploadSession> {
+    return this.request({ method: 'POST', url: '/api/proxy/ifc-models/uploads', data, signal });
+  }
+
+  getIfcUpload(id: string, signal?: AbortSignal): Promise<IfcUploadSession> {
+    return this.request({ url: `/api/proxy/ifc-models/uploads/${encodeURIComponent(id)}`, signal });
+  }
+
+  completeIfcUpload(id: string, signal?: AbortSignal): Promise<IngestionJob> {
+    return this.request({
+      method: 'POST',
+      url: `/api/proxy/ifc-models/uploads/${encodeURIComponent(id)}/complete`,
+      data: {},
+      signal,
+    });
+  }
+
+  transferIfcUpload(
+    file: File,
+    session: IfcUploadSession,
+    onProgress?: (loaded: number, total: number) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!session.upload_url || signal?.aborted) {
+        reject(new Error('Upload unavailable or cancelled'));
+        return;
+      }
+      const xhr = new XMLHttpRequest();
+      const abort = () => xhr.abort();
+      const finish = (error?: Error) => {
+        signal?.removeEventListener('abort', abort);
+        if (error) reject(error);
+        else resolve();
+      };
+      xhr.open('PUT', session.upload_url);
+      xhr.timeout = 120_000;
+      xhr.withCredentials = false;
+      // A separate client deliberately sends no proxy auth, cookies or custom headers.
+      // The browser sets Content-Length from the raw File, never from FormData.
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      xhr.upload.onprogress = (event) => onProgress?.(Math.min(event.loaded, file.size), file.size);
+      xhr.onload = () =>
+        finish(
+          xhr.status >= 200 && xhr.status < 300
+            ? undefined
+            : new Error(`Private upload failed (${xhr.status})`),
+        );
+      xhr.onerror = () =>
+        finish(new Error('Private upload failed. Check storage connectivity and CORS.'));
+      xhr.ontimeout = () => finish(new Error('Private upload timed out'));
+      xhr.onabort = () => finish(new DOMException('Upload cancelled', 'AbortError'));
+      signal?.addEventListener('abort', abort, { once: true });
+      xhr.send(file);
+    });
+  }
+
+  getIngestionJob(id: string, signal?: AbortSignal): Promise<IngestionJob> {
+    return this.request({ url: `/api/proxy/ifc-models/jobs/${encodeURIComponent(id)}`, signal });
+  }
+
+  getIngestionReport(id: string, signal?: AbortSignal): Promise<IngestionReport> {
+    return this.request({
+      url: `/api/proxy/ifc-models/jobs/${encodeURIComponent(id)}/report`,
+      signal,
+    });
+  }
+
+  getModelJobs(id: string, offset = 0, signal?: AbortSignal): Promise<IngestionJob[]> {
+    return this.request({
+      url: `/api/proxy/ifc-models/${encodeURIComponent(id)}/jobs`,
+      params: { offset, limit: 50 },
+      signal,
+    });
+  }
+
+  retryIngestionJob(
+    id: string,
+    data: components['schemas']['IngestionRetryRequest'],
+  ): Promise<IngestionJob> {
+    return this.request({
+      method: 'POST',
+      url: `/api/proxy/ifc-models/jobs/${encodeURIComponent(id)}/retry`,
+      data,
+    });
+  }
+
+  cancelIngestionJob(id: string): Promise<IngestionJob> {
+    return this.request({
+      method: 'POST',
+      url: `/api/proxy/ifc-models/jobs/${encodeURIComponent(id)}/cancel`,
+    });
+  }
+
+  reprocessModel(
+    id: string,
+    data: components['schemas']['IngestionReprocessRequest'],
+  ): Promise<IngestionJob> {
+    return this.request({
+      method: 'POST',
+      url: `/api/proxy/ifc-models/${encodeURIComponent(id)}/reprocess`,
+      data,
+    });
+  }
+
   async getModels(): Promise<IFCModel[]> {
     const response = await this.axiosInstance.get('/api/proxy/ifc-models');
     return response.data;

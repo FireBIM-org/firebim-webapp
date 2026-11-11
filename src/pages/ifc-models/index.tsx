@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
+import { ingestionError, rulebookHref } from '@/features/ingestion/status';
+
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -16,10 +18,23 @@ export default function IfcModels() {
   const [modelToDelete, setModelToDelete] = useState<{ id: string; filename: string } | null>(null);
 
   // Fetch user's IFC models
-  const { data: models, isLoading: modelsLoading } = useQuery({
-    queryKey: ['models'],
+  const {
+    data: models,
+    isLoading: modelsLoading,
+    error: modelsError,
+    refetch,
+  } = useQuery({
+    queryKey: ['models', user?.id],
     queryFn: () => apiClient.getModels(),
     enabled: !!user,
+    refetchInterval: (query) =>
+      query.state.data?.some(
+        (model) =>
+          model.ingestion_backend === 'neo' &&
+          ['queued', 'running', 'retry_wait'].includes(model.status ?? ''),
+      )
+        ? 3000
+        : false,
   });
 
   const deleteModelMutation = useMutation({
@@ -69,7 +84,14 @@ export default function IfcModels() {
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
             <div className="ring-opacity-5 overflow-hidden shadow ring-1 ring-black md:rounded-lg">
-              {modelsLoading ? (
+              {modelsError ? (
+                <div role="alert" className="bg-red-50 p-4 text-sm text-red-700">
+                  Could not load your models: {ingestionError(modelsError)}{' '}
+                  <button type="button" onClick={() => void refetch()} className="underline">
+                    Try again
+                  </button>
+                </div>
+              ) : modelsLoading ? (
                 <div className="flex justify-center py-12">
                   <LoadingSpinner />
                 </div>
@@ -134,6 +156,25 @@ export default function IfcModels() {
                                 {model.filename}
                               </Link>
                               <div className="text-gray-500">ID: {model.id}</div>
+                              {model.ingestion_backend === 'neo' && (
+                                <div className="text-gray-600">
+                                  Translation processing: {model.status ?? 'unknown'} ·{' '}
+                                  <Link
+                                    href={`/ifc-models/${encodeURIComponent(model.id)}`}
+                                    className="text-orange-700 underline"
+                                  >
+                                    Progress and diagnostics
+                                  </Link>
+                                </div>
+                              )}
+                              {model.latest_successful_graph_id && (
+                                <Link
+                                  href={rulebookHref(model.latest_successful_graph_id)}
+                                  className="text-orange-700 underline"
+                                >
+                                  Open ready graph in Rulebook
+                                </Link>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -177,7 +218,7 @@ export default function IfcModels() {
         onClose={() => setModelToDelete(null)}
         onConfirm={() => modelToDelete && deleteModelMutation.mutate(modelToDelete.id)}
         title="Delete Model"
-        description={`Are you sure you want to delete "${modelToDelete?.filename}"? This action cannot be undone and all associated data will be removed.`}
+        description={`Delete "${modelToDelete?.filename}"? Access to Neo graph revisions will be revoked and active processing cancelled. Private evidence is retained under the storage retention policy; this is not physical erasure.`}
         isLoading={deleteModelMutation.isPending}
       />
     </Layout>
