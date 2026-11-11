@@ -99,10 +99,14 @@ export async function refreshOntologyLibrary(): Promise<OntologyLibraryEntry[]> 
   const discovered = ontologyLibraryEntriesFromSummaries(response.ontologies ?? []);
 
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(
-      DISCOVERED_ONTOLOGY_LIBRARY_STORAGE_KEY,
-      JSON.stringify(discovered),
-    );
+    try {
+      window.localStorage.setItem(
+        DISCOVERED_ONTOLOGY_LIBRARY_STORAGE_KEY,
+        JSON.stringify(discovered),
+      );
+    } catch {
+      // Discovery remains available when browser storage is blocked or full.
+    }
   }
 
   const entries = [...STANDARD_ONTOLOGY_LIBRARY, ...discovered, ...readUserOntologyLibrary()];

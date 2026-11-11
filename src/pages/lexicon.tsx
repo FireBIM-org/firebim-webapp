@@ -20,6 +20,7 @@ import {
   SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { RuleListItem, RuleRunnerItem } from '@/features/rulebook/types';
@@ -392,10 +393,12 @@ const startOptions: StartOption[] = [
   {
     id: 'standards',
     title: 'Start with standards',
-    description: 'Browse FBO, IFC, or RIR versions and build from selected definitions.',
-    helper: 'Use this when you already know which standard or version matters.',
+    description:
+      'Author, validate, and publish an immutable IFC4 translation profile without selecting rules.',
+    helper:
+      'Publication retains a validated snapshot. Upload execution is separate and not available yet.',
     icon: FunnelIcon,
-    available: false,
+    available: true,
   },
   {
     id: 'recommended',
@@ -2710,6 +2713,7 @@ function InspectResponsePanel({
 
 export default function LexiconPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
+  const router = useRouter();
   const availableRules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
   const runnerRuleItems = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
   const addRuleToRunner = useRuleBookStore((state: RuleBookStore) => state.addRuleToRunner);
@@ -3360,6 +3364,10 @@ export default function LexiconPage() {
   const drawerHeight = drawerState === 'closed' ? 'h-10' : drawerState === 'half' ? 'h-56' : 'h-96';
 
   const openMode = (nextMode: LexiconMode) => {
+    if (nextMode === 'standards') {
+      void router.push('/lexicon/standards');
+      return;
+    }
     setMode(nextMode);
     setLeftCollapsed(true);
     setRightCollapsed(true);
