@@ -147,6 +147,176 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/ifc-models/ingestion-revisions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ingestion Revisions */
+    get: operations['ingestion_revisions_ifc_models_ingestion_revisions_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/uploads': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Initiate Upload */
+    post: operations['initiate_upload_ifc_models_uploads_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/uploads/{upload_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Upload Session */
+    get: operations['upload_session_ifc_models_uploads__upload_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/uploads/{upload_id}/complete': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Complete Upload */
+    post: operations['complete_upload_ifc_models_uploads__upload_id__complete_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/jobs/{job_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ingestion Job */
+    get: operations['ingestion_job_ifc_models_jobs__job_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/jobs/{job_id}/report': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Ingestion Report */
+    get: operations['ingestion_report_ifc_models_jobs__job_id__report_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/jobs/{job_id}/retry': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Retry Ingestion */
+    post: operations['retry_ingestion_ifc_models_jobs__job_id__retry_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/jobs/{job_id}/cancel': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Cancel Ingestion */
+    post: operations['cancel_ingestion_ifc_models_jobs__job_id__cancel_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}/jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Model Jobs */
+    get: operations['model_jobs_ifc_models__id__jobs_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/ifc-models/{id}/reprocess': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reprocess Model */
+    post: operations['reprocess_model_ifc_models__id__reprocess_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/ifc-models': {
     parameters: {
       query?: never;
@@ -846,6 +1016,91 @@ export interface paths {
     post?: never;
     /** Delete Profile */
     delete: operations['delete_profile_lexicon_profiles__profile_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/validate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Validate Translation Profile */
+    post: operations['validate_translation_profile_lexicon_profiles__profile_id__validate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/extract-mappings': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Extract Translation Profile Mappings */
+    post: operations['extract_translation_profile_mappings_lexicon_profiles__profile_id__extract_mappings_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/revisions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Translation Revisions */
+    get: operations['list_translation_revisions_lexicon_profiles__profile_id__revisions_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/revisions/{revision_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Translation Revision */
+    get: operations['get_translation_revision_lexicon_profiles__profile_id__revisions__revision_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/lexicon/profiles/{profile_id}/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Publish Translation Profile */
+    post: operations['publish_translation_profile_lexicon_profiles__profile_id__publish_post'];
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -2670,6 +2925,17 @@ export interface components {
         [key: string]: unknown;
       };
     };
+    /** ClassAssertion */
+    ClassAssertion: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'class';
+      /** Iri */
+      iri: string;
+      grouping?: components['schemas']['ValueSelector'] | null;
+    };
     /** CompatibilityMatch */
     CompatibilityMatch: {
       /** Value */
@@ -2683,6 +2949,102 @@ export interface components {
       code: string;
       /** Message */
       message: string;
+    };
+    /** CompoundCondition */
+    CompoundCondition: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'all_of' | 'any_of';
+      /** Conditions */
+      conditions: (
+        | components['schemas']['LeafCondition']
+        | components['schemas']['CompoundCondition']
+      )[];
+    };
+    /** ConstantValue */
+    ConstantValue: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'constant';
+      /** Value */
+      value: string | boolean | number;
+    };
+    /** DatatypeAssertion */
+    DatatypeAssertion: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'datatype_property';
+      /** Iri */
+      iri: string;
+      /** Datatype */
+      datatype: string;
+      /** Value */
+      value: components['schemas']['ConstantValue'] | components['schemas']['ReadValue'];
+      /**
+       * Cardinality
+       * @enum {string}
+       */
+      cardinality: 'single' | 'many';
+    };
+    /** EntitySelector */
+    EntitySelector: {
+      /**
+       * Schema
+       * @constant
+       */
+      schema: 'IFC4';
+      /** Ifc Class */
+      ifc_class: string;
+      /**
+       * Match
+       * @enum {string}
+       */
+      match: 'exact' | 'subtypes';
+      /** Predefined Type */
+      predefined_type?: string | null;
+    };
+    /** EntityUnionSelector */
+    EntityUnionSelector: {
+      /**
+       * Schema
+       * @constant
+       */
+      schema: 'IFC4';
+      /** Any Of */
+      any_of: components['schemas']['EntitySelector'][];
+    };
+    /** ExecutableMapping */
+    ExecutableMapping: {
+      /**
+       * Language
+       * @constant
+       */
+      language: 'ifc4-mapping/1';
+      /** Source */
+      source:
+        | components['schemas']['EntitySelector']
+        | components['schemas']['EntityUnionSelector'];
+      /**
+       * Subject
+       * @enum {string}
+       */
+      subject: 'entity' | 'relating' | 'related';
+      /** Target */
+      target:
+        | components['schemas']['ClassAssertion']
+        | components['schemas']['DatatypeAssertion']
+        | components['schemas']['ObjectAssertion'];
+      /** Condition */
+      condition?:
+        | (components['schemas']['LeafCondition'] | components['schemas']['CompoundCondition'])
+        | null;
+      policies: components['schemas']['MappingPolicies'];
     };
     /**
      * GraphAnswersRequest
@@ -2784,6 +3146,32 @@ export interface components {
       graph_id: string;
       /** Graph Uri */
       graph_uri: string;
+      /** Backend */
+      backend?: string | null;
+      /**
+       * Immutable
+       * @default false
+       */
+      immutable: boolean;
+      /** Profile Id */
+      profile_id?: string | null;
+      /** Revision Id */
+      revision_id?: string | null;
+      /** Revision Digest */
+      revision_digest?: string | null;
+      /** Total Triples */
+      total_triples?: number | null;
+      /** Total Nodes */
+      total_nodes?: number | null;
+      /** Total Edges */
+      total_edges?: number | null;
+      /** Preview Triples */
+      preview_triples?: number | null;
+      /**
+       * Truncated
+       * @default false
+       */
+      truncated: boolean;
       /** Ttl */
       ttl?: string | null;
       /** Nodes */
@@ -2799,10 +3187,37 @@ export interface components {
     GraphListItem: {
       /** Graph Uri */
       graph_uri: string;
+      /** Graph Id */
+      graph_id?: string | null;
+      /** Backend */
+      backend?: string | null;
+      /** Status */
+      status?: string | null;
+      /**
+       * Immutable
+       * @default false
+       */
+      immutable: boolean;
+      /** Model Id */
+      model_id?: string | null;
+      /** Profile Id */
+      profile_id?: string | null;
+      /** Revision Id */
+      revision_id?: string | null;
+      /** Revision Digest */
+      revision_digest?: string | null;
       /** Triple Count */
       triple_count?: number | null;
-      /** Label */
+      /**
+       * Label
+       * @description What the graph calls itself (`<graph_uri> rdfs:label`)
+       */
       label?: string | null;
+      /**
+       * Description
+       * @description What the graph says about itself (`<graph_uri> rdfs:comment`), e.g. which rules it is meant for
+       */
+      description?: string | null;
       /** Source */
       source?: string | null;
     };
@@ -3000,6 +3415,186 @@ export interface components {
        * @default []
        */
       quantities: components['schemas']['IfcQuantityCreate'][];
+      /** Conversion Profile Id */
+      conversion_profile_id?: string | null;
+      /** Conversion Profile Name */
+      conversion_profile_name?: string | null;
+    };
+    /** IfcUploadComplete */
+    IfcUploadComplete: Record<string, never>;
+    /** IfcUploadInitiate */
+    IfcUploadInitiate: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Filename */
+      filename: string;
+      /** Size Bytes */
+      size_bytes: number;
+      /** Sha256 */
+      sha256: string;
+      /** Profile Id */
+      profile_id: string;
+      /** Revision Id */
+      revision_id: string;
+    };
+    /** IfcUploadResponse */
+    IfcUploadResponse: {
+      /** Id */
+      id: string;
+      /** Model Id */
+      model_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'uploading' | 'completed';
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /**
+       * Upload Method
+       * @default PUT
+       * @constant
+       */
+      upload_method: 'PUT';
+      /** Upload Url */
+      upload_url?: string | null;
+      /** Upload Headers */
+      upload_headers?: {
+        [key: string]: string;
+      };
+      /** Job Id */
+      job_id?: string | null;
+    };
+    /** IngestionJobResponse */
+    IngestionJobResponse: {
+      /** Id */
+      id: string;
+      /** Model Id */
+      model_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'queued' | 'running' | 'retry_wait' | 'succeeded' | 'failed' | 'cancelled';
+      /** Stage */
+      stage: string;
+      /** Profile Id */
+      profile_id: string;
+      /** Revision Id */
+      revision_id: string;
+      /** Revision Digest */
+      revision_digest: string;
+      /** Runtime Fingerprint */
+      runtime_fingerprint: string;
+      /** Raw Sha256 */
+      raw_sha256: string;
+      /** Raw Size */
+      raw_size: number;
+      /** Source Schema */
+      source_schema: string;
+      /** Dispatch Generation */
+      dispatch_generation: number;
+      /** Attempt Count */
+      attempt_count: number;
+      /** Max Attempts */
+      max_attempts: number;
+      /** Cancellation Requested */
+      cancellation_requested: boolean;
+      /** Retryable */
+      retryable: boolean;
+      /** Result Graph Id */
+      result_graph_id: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Completed At */
+      completed_at: string | null;
+    };
+    /** IngestionReportResponse */
+    IngestionReportResponse: {
+      /** Job Id */
+      job_id: string;
+      /** Report Version */
+      report_version: string;
+      /** Diagnostics */
+      diagnostics: {
+        [key: string]: unknown;
+      }[];
+      /** Attempts */
+      attempts: {
+        [key: string]: unknown;
+      }[];
+    };
+    /** IngestionReprocessRequest */
+    IngestionReprocessRequest: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Profile Id */
+      profile_id: string;
+      /** Revision Id */
+      revision_id: string;
+    };
+    /** IngestionRetryRequest */
+    IngestionRetryRequest: {
+      /**
+       * Request Id
+       * Format: uuid
+       */
+      request_id: string;
+      /** Expected Dispatch Generation */
+      expected_dispatch_generation: number;
+    };
+    /** IngestionRevisionResponse */
+    IngestionRevisionResponse: {
+      /** Profile Id */
+      profile_id: string;
+      /** Profile Name */
+      profile_name: string;
+      /** Revision Id */
+      revision_id: string;
+      /** Revision Digest */
+      revision_digest: string;
+      /** Published At */
+      published_at: string;
+    };
+    /** IngestionRevisionsResponse */
+    IngestionRevisionsResponse: {
+      /** Revisions */
+      revisions: components['schemas']['IngestionRevisionResponse'][];
+      /** Count */
+      count: number;
+      /** Max Input Bytes */
+      max_input_bytes: number;
+      /** Runtime Fingerprint */
+      runtime_fingerprint: string;
+    };
+    JsonValue: unknown;
+    /** LeafCondition */
+    LeafCondition: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'equals' | 'in' | 'present';
+      selector: components['schemas']['ValueSelector'];
+      /** Values */
+      values?: (string | boolean | number)[];
     };
     /** LexiconAcceptedTarget */
     LexiconAcceptedTarget: {
@@ -3327,6 +3922,22 @@ export interface components {
       /** Object */
       object?: string | null;
     };
+    /**
+     * LexiconDerivedProperty
+     * @description A property the rule *writes* with a derive element; it is produced, not required from the graph.
+     */
+    LexiconDerivedProperty: {
+      /** Property Path */
+      property_path: string;
+      /** Target Class */
+      target_class?: string | null;
+      /** Node Ids */
+      node_ids?: string[];
+      /** Expressions */
+      expressions?: string[];
+      /** Read By Node Ids */
+      read_by_node_ids?: string[];
+    };
     /** LexiconEntityInput */
     LexiconEntityInput: {
       /** Entity Id */
@@ -3401,6 +4012,8 @@ export interface components {
       relation_paths?: string[];
       /** Targets */
       targets?: components['schemas']['LexiconExecutionTarget'][];
+      /** Derived Properties */
+      derived_properties?: components['schemas']['LexiconDerivedProperty'][];
       /** Nodes */
       nodes?: components['schemas']['LexiconExecutionProfileNode'][];
       /** Warnings */
@@ -3728,6 +4341,12 @@ export interface components {
       property_path: string;
       /** Node Ids */
       node_ids?: string[];
+      /** Via */
+      via?: string | null;
+      /** Instances */
+      instances?: number | null;
+      /** With Value */
+      with_value?: number | null;
     };
     /** LexiconNextNeededResponse */
     LexiconNextNeededResponse: {
@@ -3771,6 +4390,11 @@ export interface components {
       rule?: components['schemas']['RuleDraft'] | null;
       /** Rules */
       rules?: components['schemas']['RuleDraft'][];
+      /**
+       * Graph Id
+       * @description Optional stored building graph: when given, the response also says which of the profile's requirements that graph can satisfy (graph_coverage), without saving the profile first
+       */
+      graph_id?: string | null;
     };
     /** LexiconProfileDeriveResponse */
     LexiconProfileDeriveResponse: {
@@ -3792,6 +4416,7 @@ export interface components {
       /** Rule Profiles */
       rule_profiles?: components['schemas']['LexiconExecutionProfile'][];
       profile: components['schemas']['LexiconExecutionProfile'];
+      graph_coverage?: components['schemas']['LexiconProfileGraphCoverageResponse'] | null;
     };
     /** LexiconProfileGraphAssociation */
     LexiconProfileGraphAssociation: {
@@ -3807,7 +4432,15 @@ export interface components {
       /** Graph Id */
       graph_id: string;
     };
-    /** LexiconProfileGraphCoverageResponse */
+    /**
+     * LexiconProfileGraphCoverageResponse
+     * @description Which of a profile's requirements a stored graph can satisfy.
+     *
+     *     Evaluated on the graph with the selected ontologies' schema merged (sub-classes count as the target class,
+     *     `partOf` follows `hasSubitem` backwards …), so sequence paths are followed the way the rule engine follows them.
+     *     A property is *covered* when at least one instance of the target class has a value at the end of the path;
+     *     `instances` / `with_value` on each entry say how many. `profile_id` is "derived" for an unsaved profile.
+     */
     LexiconProfileGraphCoverageResponse: {
       /** Profile Id */
       profile_id: string;
@@ -3817,6 +4450,12 @@ export interface components {
       graph_uri: string;
       /** Complete */
       complete: boolean;
+      /** Merged Schemas */
+      merged_schemas?: string[];
+      /** Target Instances */
+      target_instances?: {
+        [key: string]: number;
+      };
       /** Covered Target Classes */
       covered_target_classes?: string[];
       /** Missing Target Classes */
@@ -3825,6 +4464,11 @@ export interface components {
       covered_properties?: components['schemas']['LexiconNeededProperty'][];
       /** Missing Properties */
       missing_properties?: components['schemas']['LexiconNeededProperty'][];
+      /**
+       * Partial Properties
+       * @description Covered, but not on every instance — the rule will ask the user for the others
+       */
+      partial_properties?: components['schemas']['LexiconNeededProperty'][];
       /** Associations */
       associations?: components['schemas']['LexiconProfileGraphAssociation'][];
     };
@@ -3833,7 +4477,10 @@ export interface components {
       /** Count */
       count: number;
       /** Profiles */
-      profiles?: components['schemas']['LexiconProfileSummaryItem'][];
+      profiles?: (
+        | components['schemas']['LexiconProfileSummaryItem']
+        | components['schemas']['TranslationProfileSummary']
+      )[];
     };
     /** LexiconProfileMappingCandidate */
     LexiconProfileMappingCandidate: {
@@ -3859,7 +4506,10 @@ export interface components {
     };
     /** LexiconProfileResponse */
     LexiconProfileResponse: {
-      profile_record: components['schemas']['LexiconStoredProfile'];
+      /** Profile Record */
+      profile_record:
+        | components['schemas']['LexiconStoredProfile']
+        | components['schemas']['TranslationStoredProfile'];
     };
     /** LexiconProfileRulesCoverageRequest */
     LexiconProfileRulesCoverageRequest: {
@@ -3949,14 +4599,29 @@ export interface components {
       /** Warnings */
       warnings?: string[];
     };
-    /** LexiconPropertyRequirement */
+    /**
+     * LexiconPropertyRequirement
+     * @description A fact the graph has to hold for a target so the rule can decide (rule elements v2 aware).
+     *
+     *     `property_path` may be a sequence path (`fbo-dk:partOf/fbo-dk:FunctionType`): `steps` are its expanded IRIs, `via`
+     *     the relation prefix (None for a direct property) and `property` the last step — the term the fact is stored under.
+     *     `aggregates` lists the aggregate functions a derive element applies over the path (count, sum, min, max …).
+     */
     LexiconPropertyRequirement: {
       /** Property Path */
       property_path: string;
+      /** Property */
+      property?: string | null;
+      /** Via */
+      via?: string | null;
+      /** Steps */
+      steps?: string[];
       /** Node Ids */
       node_ids?: string[];
       /** Operators */
       operators?: string[];
+      /** Aggregates */
+      aggregates?: string[];
       /** Sample Values */
       sample_values?: string[];
     };
@@ -4170,7 +4835,7 @@ export interface components {
        * Field
        * @enum {string}
        */
-      field: 'target_class' | 'property_path';
+      field: 'target_class' | 'property_path' | 'value' | 'expression';
       /**
        * Expected Kind
        * @enum {string}
@@ -4194,13 +4859,16 @@ export interface components {
        * Field
        * @enum {string}
        */
-      field: 'target_class' | 'property_path';
+      field: 'target_class' | 'property_path' | 'value' | 'expression';
       /**
        * Expected Kind
        * @enum {string}
        */
       expected_kind: 'class' | 'property';
-      /** Value */
+      /**
+       * Value
+       * @description The term that was checked (one step of a path, or the whole field)
+       */
       value: string;
       /**
        * Code
@@ -4209,6 +4877,11 @@ export interface components {
       code: 'unknown_term' | 'wrong_term_kind';
       /** Message */
       message: string;
+      /**
+       * Context
+       * @description The whole field value when `value` is one step of it
+       */
+      context?: string | null;
     };
     /** LexiconRuleTermValidationMatch */
     LexiconRuleTermValidationMatch: {
@@ -4415,6 +5088,61 @@ export interface components {
       datatype_uri?: string | null;
       /** Language */
       language?: string | null;
+    };
+    /** LookupEntry */
+    LookupEntry: {
+      /** Input */
+      input: string | boolean | number;
+      /** Output */
+      output: string | boolean | number;
+    };
+    /** MappingPolicies */
+    MappingPolicies: {
+      /**
+       * Identity
+       * @constant
+       */
+      identity: 'model_scoped';
+      /**
+       * Property Precedence
+       * @constant
+       */
+      property_precedence: 'occurrence_over_type';
+      /**
+       * Missing
+       * @constant
+       */
+      missing: 'skip';
+      /**
+       * Invalid
+       * @constant
+       */
+      invalid: 'error';
+      /**
+       * Conflicts
+       * @constant
+       */
+      conflicts: 'error';
+    };
+    /** ObjectAssertion */
+    ObjectAssertion: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'object_property';
+      /** Iri */
+      iri: string;
+      /**
+       * Object
+       * @enum {string}
+       */
+      object: 'relating' | 'related';
+      /**
+       * Cardinality
+       * @enum {string}
+       */
+      cardinality: 'single' | 'many';
     };
     /** OntologyDeleteResponse */
     OntologyDeleteResponse: {
@@ -5240,6 +5968,25 @@ export interface components {
       publish_ready: boolean;
       /** Warnings */
       warnings?: string[];
+    };
+    /** ReadValue */
+    ReadValue: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: 'read';
+      selector: components['schemas']['ValueSelector'];
+      /** Fallback */
+      fallback?: components['schemas']['ValueSelector'][];
+      /**
+       * Transform
+       * @default identity
+       * @enum {string}
+       */
+      transform: 'identity' | 'lookup' | 'numeric_cast';
+      /** Lookup */
+      lookup?: components['schemas']['LookupEntry'][];
     };
     /** RuleAssembleCompileResponse */
     RuleAssembleCompileResponse: {
@@ -6325,6 +7072,336 @@ export interface components {
        */
       fallback: boolean;
     };
+    /**
+     * TranslationContract
+     * @description Draft envelope; semantic validity and production execution availability are checked separately.
+     */
+    TranslationContract: {
+      /**
+       * Kind
+       * @default ifc_translation
+       * @constant
+       */
+      kind: 'ifc_translation';
+      /**
+       * Contract Version
+       * @default 1
+       * @constant
+       */
+      contract_version: '1';
+      source?: components['schemas']['TranslationSource'];
+      /**
+       * Destination Release
+       * @default 2026.09.04
+       * @constant
+       */
+      destination_release: '2026.09.04';
+      /** Destination Modules */
+      destination_modules?: components['schemas']['TranslationOntologyPin'][];
+      /** Mappings */
+      mappings?: components['schemas']['TranslationDraftMapping'][];
+      /** Optional Rule Ids */
+      optional_rule_ids?: string[];
+    };
+    /**
+     * TranslationDraftMapping
+     * @description Opaque authoring data, including incomplete or unsupported definitions.
+     *
+     *     Saving never implies validation. Enabled, accepted definitions are checked separately
+     *     against the bounded IFC4 language; unsupported data can still be retained in drafts.
+     */
+    TranslationDraftMapping: {
+      /** Id */
+      id: string;
+      /**
+       * Enabled
+       * @default false
+       */
+      enabled: boolean;
+      /**
+       * Review State
+       * @default unresolved
+       * @enum {string}
+       */
+      review_state: 'suggestion' | 'accepted' | 'rejected' | 'unresolved';
+      /** Seed Provenance */
+      seed_provenance?: {
+        [key: string]: components['schemas']['JsonValue'];
+      } | null;
+      /** Definition */
+      definition?: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+    };
+    /** TranslationGenerationRequest */
+    TranslationGenerationRequest: {
+      /** Expected Generation */
+      expected_generation: number;
+    };
+    /**
+     * TranslationMappingExtractionReport
+     * @description Read-only suggestions for one saved generation; save explicitly to retain them.
+     */
+    TranslationMappingExtractionReport: {
+      /** Profile Id */
+      profile_id: string;
+      /** Generation */
+      generation: number;
+      /** Mappings */
+      mappings: components['schemas']['TranslationDraftMapping'][];
+      /**
+       * Skipped Existing
+       * @default 0
+       */
+      skipped_existing: number;
+      /** Diagnostics */
+      diagnostics: components['schemas']['TranslationValidationDiagnostic'][];
+    };
+    /** TranslationOntologyArtifact */
+    TranslationOntologyArtifact: {
+      pin: components['schemas']['TranslationOntologyPin'];
+      /** Ttl */
+      ttl: string;
+    };
+    /**
+     * TranslationOntologyPin
+     * @description Draft module identity and optional pin metadata; no resolution or verification is performed.
+     */
+    TranslationOntologyPin: {
+      /** Family */
+      family: string;
+      /** Country */
+      country: string;
+      /**
+       * Version
+       * @default 2026.09.04
+       */
+      version: string;
+      /** Ontology Iri */
+      ontology_iri?: string | null;
+      /** Version Iri */
+      version_iri?: string | null;
+      /** Sha256 */
+      sha256?: string | null;
+      /** Artifact Ref */
+      artifact_ref?: string | null;
+      /** Dependencies */
+      dependencies?: string[];
+    };
+    /** TranslationProfileSummary */
+    TranslationProfileSummary: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /**
+       * Kind
+       * @default ifc_translation
+       * @constant
+       */
+      kind: 'ifc_translation';
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status: 'draft' | 'archived';
+      /**
+       * Generation
+       * @default 1
+       */
+      generation: number;
+      /** Updated At */
+      updated_at: string;
+    };
+    /**
+     * TranslationPublishedRevision
+     * @description Validated immutable contract; publication does not attest to runtime availability.
+     */
+    TranslationPublishedRevision: {
+      /** Revision Id */
+      revision_id: string;
+      /** Published At */
+      published_at: string;
+      /** Content Digest */
+      content_digest: string;
+      content: components['schemas']['TranslationRevisionContent'];
+    };
+    /**
+     * TranslationRevisionContent
+     * @description Self-contained execution snapshot; no mutable library lookups are needed to read it.
+     */
+    TranslationRevisionContent: {
+      /**
+       * Snapshot Version
+       * @default 1
+       * @constant
+       */
+      snapshot_version: '1';
+      /** Profile Id */
+      profile_id: string;
+      /** Draft Generation */
+      draft_generation: number;
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      source_contract: components['schemas']['TranslationContract'];
+      contract: components['schemas']['TranslationContract'];
+      /** Compiled Mappings */
+      compiled_mappings: {
+        [key: string]: components['schemas']['ExecutableMapping'];
+      };
+      /** Ontology Artifacts */
+      ontology_artifacts: components['schemas']['TranslationOntologyArtifact'][];
+      /** Diagnostics */
+      diagnostics: components['schemas']['TranslationValidationDiagnostic'][];
+      /**
+       * Compiler Version
+       * @default ifc4-module-compiler/1
+       * @constant
+       */
+      compiler_version: 'ifc4-module-compiler/1';
+      /** Source Schema Provenance */
+      source_schema_provenance: {
+        [key: string]: components['schemas']['JsonValue'];
+      };
+    };
+    /** TranslationRevisionListResponse */
+    TranslationRevisionListResponse: {
+      /** Count */
+      count: number;
+      /** Revisions */
+      revisions: components['schemas']['TranslationRevisionReference'][];
+    };
+    /** TranslationRevisionReference */
+    TranslationRevisionReference: {
+      /** Revision Id */
+      revision_id: string;
+      /** Draft Generation */
+      draft_generation: number;
+      /** Content Digest */
+      content_digest: string;
+      /** Published At */
+      published_at: string;
+    };
+    /**
+     * TranslationSource
+     * @description Native IFC input; schema_ is serialized and accepted as the JSON field schema.
+     */
+    TranslationSource: {
+      /**
+       * Schema
+       * @default IFC4
+       * @constant
+       */
+      schema: 'IFC4';
+      /**
+       * Adapter
+       * @default native_ifc
+       * @constant
+       */
+      adapter: 'native_ifc';
+      /**
+       * Extraction Contract
+       * @default native-ifc-record/1
+       * @constant
+       */
+      extraction_contract: 'native-ifc-record/1';
+    };
+    /** TranslationStoredProfile */
+    TranslationStoredProfile: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      /** Description */
+      description?: string | null;
+      /**
+       * Kind
+       * @default ifc_translation
+       * @constant
+       */
+      kind: 'ifc_translation';
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status: 'draft' | 'archived';
+      /**
+       * Generation
+       * @default 1
+       */
+      generation: number;
+      contract: components['schemas']['TranslationContract'];
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+      /** Revision Refs */
+      revision_refs?: components['schemas']['TranslationRevisionReference'][];
+    };
+    /** TranslationValidationDiagnostic */
+    TranslationValidationDiagnostic: {
+      /** Code */
+      code: string;
+      /**
+       * Severity
+       * @enum {string}
+       */
+      severity: 'error' | 'warning' | 'info';
+      /** Mapping Id */
+      mapping_id?: string | null;
+      /** Field Path */
+      field_path: string;
+      /** Message */
+      message: string;
+    };
+    /**
+     * TranslationValidationReport
+     * @description publish_ready permits retaining a validated revision, not executing it on uploads.
+     */
+    TranslationValidationReport: {
+      /** Profile Id */
+      profile_id: string;
+      /** Generation */
+      generation: number;
+      /** Authoring Valid */
+      authoring_valid: boolean;
+      /**
+       * Runtime Available
+       * @default false
+       * @constant
+       */
+      runtime_available: false;
+      /**
+       * Publish Ready
+       * @default false
+       */
+      publish_ready: boolean;
+      /** Steps */
+      steps: components['schemas']['TranslationValidationStep'][];
+      /** Diagnostics */
+      diagnostics: components['schemas']['TranslationValidationDiagnostic'][];
+    };
+    /** TranslationValidationStep */
+    TranslationValidationStep: {
+      /**
+       * Id
+       * @enum {string}
+       */
+      id: 'destination_ontologies' | 'mappings' | 'publication';
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'passed' | 'failed' | 'unavailable';
+      /** Message */
+      message: string;
+    };
     /** User */
     User: {
       /** Username */
@@ -6351,6 +7428,27 @@ export interface components {
       input?: unknown;
       /** Context */
       ctx?: Record<string, never>;
+    };
+    /** ValueSelector */
+    ValueSelector: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: 'attribute' | 'property' | 'quantity';
+      /** Name */
+      name: string;
+      /** Pset */
+      pset?: string | null;
+      /** Datatype */
+      datatype: string;
+      /**
+       * Required
+       * @default false
+       */
+      required: boolean;
+      /** Unit */
+      unit?: ('unitless' | 'ifc_length' | 'ifc_area') | null;
     };
   };
   responses: never;
@@ -6591,6 +7689,334 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['GraphSchemaExtractResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ingestion_revisions_ifc_models_ingestion_revisions_get: {
+    parameters: {
+      query?: {
+        offset?: number;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionRevisionsResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  initiate_upload_ifc_models_uploads_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IfcUploadInitiate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IfcUploadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  upload_session_ifc_models_uploads__upload_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IfcUploadResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  complete_upload_ifc_models_uploads__upload_id__complete_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IfcUploadComplete'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ingestion_job_ifc_models_jobs__job_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  ingestion_report_ifc_models_jobs__job_id__report_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionReportResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  retry_ingestion_ifc_models_jobs__job_id__retry_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IngestionRetryRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  cancel_ingestion_ifc_models_jobs__job_id__cancel_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  model_jobs_ifc_models__id__jobs_get: {
+    parameters: {
+      query?: {
+        offset?: number;
+        limit?: number;
+      };
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reprocess_model_ifc_models__id__reprocess_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['IngestionReprocessRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IngestionJobResponse'];
         };
       };
       /** @description Validation Error */
@@ -7950,6 +9376,8 @@ export interface operations {
         ontology_family?: string | null;
         country?: string | null;
         rule_id?: string | null;
+        kind?: 'rule_execution' | 'ifc_translation';
+        include_archived?: boolean;
       };
       header?: never;
       path?: never;
@@ -8061,7 +9489,9 @@ export interface operations {
   };
   delete_profile_lexicon_profiles__profile_id__delete: {
     parameters: {
-      query?: never;
+      query?: {
+        expected_generation?: number | null;
+      };
       header?: never;
       path: {
         profile_id: string;
@@ -8076,7 +9506,180 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LexiconProfileDeleteResponse'];
+          'application/json':
+            | components['schemas']['LexiconProfileDeleteResponse']
+            | components['schemas']['LexiconProfileResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  validate_translation_profile_lexicon_profiles__profile_id__validate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TranslationGenerationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TranslationValidationReport'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  extract_translation_profile_mappings_lexicon_profiles__profile_id__extract_mappings_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TranslationGenerationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TranslationMappingExtractionReport'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_translation_revisions_lexicon_profiles__profile_id__revisions_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TranslationRevisionListResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_translation_revision_lexicon_profiles__profile_id__revisions__revision_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+        revision_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TranslationPublishedRevision'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  publish_translation_profile_lexicon_profiles__profile_id__publish_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        profile_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TranslationGenerationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TranslationPublishedRevision'];
         };
       };
       /** @description Validation Error */
