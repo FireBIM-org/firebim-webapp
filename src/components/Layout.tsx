@@ -36,7 +36,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
         <Analytics />
       </Head>
 
-      <nav className="bg-white shadow-sm">
+      <nav className="overflow-x-auto bg-white shadow-sm">
         <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">
           <div className="flex h-16 justify-between">
             <div className="flex">

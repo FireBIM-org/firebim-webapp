@@ -189,6 +189,7 @@ export function RuleSummaryPanel() {
   const [collapsed, setCollapsed] = useState(false);
   const [liveCompatibilities, setLiveCompatibilities] = useState<CheckCompatibilityResponse[]>([]);
   const [liveCompatibilityLoading, setLiveCompatibilityLoading] = useState(false);
+  const [liveCompatibilityError, setLiveCompatibilityError] = useState<string | null>(null);
   const [ruleStructureStats, setRuleStructureStats] = useState<RuleStructureStats[]>([]);
   const [ruleStructureLoading, setRuleStructureLoading] = useState(false);
 
@@ -258,6 +259,7 @@ export function RuleSummaryPanel() {
   }, [available_rules, runner_rule_items]);
 
   useEffect(() => {
+    setLiveCompatibilityError(null);
     if (!graph_loaded || !active_graph_data || active_graph_data.source !== 'api') {
       setLiveCompatibilities([]);
       setLiveCompatibilityLoading(false);
@@ -271,6 +273,7 @@ export function RuleSummaryPanel() {
     }
 
     let cancelled = false;
+    const controller = new AbortController();
 
     async function loadLiveCompatibilities() {
       const graphId = active_graph_data?.id;
@@ -281,20 +284,24 @@ export function RuleSummaryPanel() {
       }
 
       setLiveCompatibilityLoading(true);
+      setLiveCompatibilities([]);
 
       try {
-        const results = await Promise.all(
-          runner_rule_items.map(async (runnerItem: { rule_id: string }) => {
-            try {
-              return await runCompatibilityCheck({
-                rule_id: runnerItem.rule_id,
-                graph_id: graphId,
-              });
-            } catch {
-              return null;
-            }
-          }),
-        );
+        const check = (runnerItem: { rule_id: string }) =>
+          runCompatibilityCheck({
+            rule_id: runnerItem.rule_id,
+            graph_id: graphId,
+            signal: controller.signal,
+          });
+        const results: CheckCompatibilityResponse[] = [];
+        if (active_graph_data?.immutable || active_graph_data?.backend === 'neo') {
+          for (const item of runner_rule_items) {
+            controller.signal.throwIfAborted();
+            results.push(await check(item));
+          }
+        } else {
+          results.push(...(await Promise.all(runner_rule_items.map(check))));
+        }
 
         if (cancelled) return;
 
@@ -304,6 +311,11 @@ export function RuleSummaryPanel() {
               Boolean(result),
           ),
         );
+      } catch (error) {
+        if (!cancelled)
+          setLiveCompatibilityError(
+            error instanceof Error ? error.message : 'Compatibility unavailable',
+          );
       } finally {
         if (!cancelled) {
           setLiveCompatibilityLoading(false);
@@ -315,6 +327,7 @@ export function RuleSummaryPanel() {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [active_graph_data, graph_loaded, runner_rule_items, compatibilityRefreshKey]);
 
@@ -402,7 +415,7 @@ export function RuleSummaryPanel() {
   }
 
   return (
-    <aside className="flex w-80 flex-col border-l border-gray-200 bg-white">
+    <aside className="flex w-full shrink-0 flex-col border-l border-gray-200 bg-white xl:w-80">
       <div className="border-b border-gray-200 px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -508,6 +521,11 @@ export function RuleSummaryPanel() {
             Matching classes
           </div>
 
+          {liveCompatibilityError && (
+            <p role="alert" className="text-sm text-red-700">
+              Compatibility unavailable (not a compatibility result): {liveCompatibilityError}
+            </p>
+          )}
           {liveCompatibilityLoading && compatibilityTargetClassRows.length === 0 ? (
             <div className="text-sm text-gray-400">Updating matching classes...</div>
           ) : compatibilityTargetClassRows.length === 0 ? (

@@ -220,11 +220,18 @@ export function RuleRunner({ onRun }: Props) {
         >
           <input
             type="checkbox"
-            checked={chain_derived}
+            checked={
+              !!chain_derived &&
+              !active_graph_data?.immutable &&
+              active_graph_data?.backend !== 'neo'
+            }
+            disabled={active_graph_data?.immutable || active_graph_data?.backend === 'neo'}
             onChange={(event) => setChainDerived(event.target.checked)}
             className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
           />
-          Chain derived values
+          {active_graph_data?.immutable || active_graph_data?.backend === 'neo'
+            ? 'Derived persistence disabled (immutable revision)'
+            : 'Chain derived values'}
         </label>
 
         <label

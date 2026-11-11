@@ -106,6 +106,14 @@ export type BuildingGraphEdge = {
 
 export type BuildingGraphData = {
   id: string;
+  backend?: string | null;
+  immutable?: boolean;
+  model_id?: string | null;
+  revision_id?: string | null;
+  total_nodes?: number;
+  total_edges?: number;
+  preview_triples?: number;
+  truncated?: boolean;
   label: string;
   /** the graph's own note about itself (rdfs:comment on the graph URI) — e.g. expected rule outcomes */
   description?: string | null;
@@ -115,7 +123,7 @@ export type BuildingGraphData = {
   ttl?: string | null;
   nodes: BuildingGraphNode[];
   edges: BuildingGraphEdge[];
-  ontology_catalog: Record<BuildingGraphTargetClass, BuildingGraphPropertyDefinition[]>;
+  ontology_catalog: Partial<Record<BuildingGraphTargetClass, BuildingGraphPropertyDefinition[]>>;
 };
 
 export type GraphHealthResponse = {

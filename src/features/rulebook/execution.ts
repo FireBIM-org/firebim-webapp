@@ -715,7 +715,10 @@ export async function buildRuleRunnerExecutionTimeline(input: {
   const seen_questions = new Set<string>();
   const run_summaries: RunSummary[] = [];
   let next_step_index = 0;
-  const chain_derived = input.chain_derived ?? true;
+  const chain_derived =
+    !input.active_graph_data.immutable &&
+    input.active_graph_data.backend !== 'neo' &&
+    (input.chain_derived ?? true);
   const earlier_rule_ids: string[] = [];
 
   // Items run sequentially (one awaited iteration per item) so a later rule can
@@ -746,12 +749,8 @@ export async function buildRuleRunnerExecutionTimeline(input: {
           ...(runner_item.target_nodes && runner_item.target_nodes.length > 0
             ? { target_nodes: runner_item.target_nodes }
             : {}),
-          ...(chain_derived
-            ? {
-                persist_derived: true,
-                use_derived_from,
-              }
-            : {}),
+          persist_derived: chain_derived,
+          use_derived_from: chain_derived ? use_derived_from : [],
         },
       }),
       getRuleOrNull(runner_item.rule_id),

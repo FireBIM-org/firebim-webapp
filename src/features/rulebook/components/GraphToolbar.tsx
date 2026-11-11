@@ -3,12 +3,8 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'reac
 
 import type { BuildingGraphData } from '../types';
 
-import {
-  fetchStoredBuildingGraphRaw,
-  listStoredBuildingGraphs,
-  parseBuildingGraphTtl,
-  publishBuildingGraphJson,
-} from '../api';
+import { listStoredBuildingGraphs, publishBuildingGraphJson } from '../api';
+import { loadStoredGraph } from '../graph-loading';
 import { cloneDefaultOntologyCatalog } from '../ontologyCatalog';
 import { useRuleBookStore, type RuleBookStore } from '../store';
 
@@ -38,67 +34,63 @@ export function GraphToolbar() {
   const setSelectedGraphSource = useRuleBookStore(
     (state: RuleBookStore) => state.setSelectedGraphSource,
   );
-  const setActiveGraphData = useRuleBookStore((state: RuleBookStore) => state.setActiveGraphData);
-  const setActiveGraphUri = useRuleBookStore((state: RuleBookStore) => state.setActiveGraphUri);
-  const setGraphLoaded = useRuleBookStore((state: RuleBookStore) => state.setGraphLoaded);
   const setGraphLoading = useRuleBookStore((state: RuleBookStore) => state.setGraphLoading);
   const setGraphError = useRuleBookStore((state: RuleBookStore) => state.setGraphError);
-  const setExecutionStatus = useRuleBookStore((state: RuleBookStore) => state.setExecutionStatus);
-  const resetExecution = useRuleBookStore((state: RuleBookStore) => state.resetExecution);
   const graphUploadInputRef = useRef<HTMLInputElement | null>(null);
   const [graphUploading, setGraphUploading] = useState(false);
   const [graphUploadMessage, setGraphUploadMessage] = useState<string | null>(null);
+  const [discovering, setDiscovering] = useState(false);
 
-  const loadStoredGraphs = useCallback(async () => {
-    setGraphLoading(true);
+  const loadStoredGraphs = useCallback(
+    async (signal?: AbortSignal) => {
+      setDiscovering(true);
 
-    try {
-      setGraphError(null);
-      const graphs = await listStoredBuildingGraphs();
-      const nextGraphs = graphs.map((graph): BuildingGraphData => ({
-        id: graph.graph_id,
-        label: graph.label ?? graph.graph_id,
-        description: graph.description ?? null,
-        graph_uri: graph.graph_uri ?? null,
-        source: graph.source ?? 'api',
-        triple_count: graph.triple_count ?? null,
-        ttl: null,
-        nodes: [],
-        edges: [],
-        ontology_catalog: cloneDefaultOntologyCatalog(),
-      }));
+      try {
+        setGraphError(null);
+        const graphs = await listStoredBuildingGraphs(signal);
+        if (signal?.aborted) return;
+        const nextGraphs = graphs.map((graph): BuildingGraphData => ({
+          id: graph.graph_id,
+          backend: graph.backend,
+          immutable: graph.immutable,
+          model_id: graph.model_id,
+          revision_id: graph.revision_id,
+          label: graph.label ?? graph.graph_id,
+          description: graph.description ?? null,
+          graph_uri: graph.graph_uri ?? null,
+          source: graph.source ?? 'api',
+          triple_count: graph.triple_count ?? null,
+          ttl: null,
+          nodes: [],
+          edges: [],
+          ontology_catalog: cloneDefaultOntologyCatalog(),
+        }));
 
-      setAvailableGraphs(nextGraphs);
+        setAvailableGraphs(nextGraphs);
 
-      if (nextGraphs.length === 0) {
-        setSelectedGraphSource('');
-        return;
+        if (nextGraphs.length === 0) {
+          return;
+        }
+
+        if (!useRuleBookStore.getState().selected_graph_source) {
+          setSelectedGraphSource(nextGraphs[0].id);
+        }
+      } catch (error) {
+        if (signal?.aborted) return;
+        setGraphError(
+          error instanceof Error ? error.message : 'Failed to load stored building graphs',
+        );
+      } finally {
+        if (!signal?.aborted) setDiscovering(false);
       }
-
-      const hasSelectedGraph = nextGraphs.some(
-        (graph: BuildingGraphData) => graph.id === selected_graph_source,
-      );
-
-      if (!selected_graph_source || !hasSelectedGraph) {
-        setSelectedGraphSource(nextGraphs[0].id);
-      }
-    } catch (error) {
-      setGraphError(
-        error instanceof Error ? error.message : 'Failed to load stored building graphs',
-      );
-    } finally {
-      setGraphLoading(false);
-    }
-  }, [
-    selected_graph_source,
-    setAvailableGraphs,
-    setGraphError,
-    setGraphLoading,
-    setSelectedGraphSource,
-  ]);
+    },
+    [setAvailableGraphs, setGraphError, setSelectedGraphSource],
+  );
 
   useEffect(() => {
-    void loadStoredGraphs();
+    const controller = new AbortController();
+    void loadStoredGraphs(controller.signal);
+    return () => controller.abort();
   }, [loadStoredGraphs]);
 
   const handleLoadBuildingGraph = async () => {
@@ -107,33 +99,7 @@ export function GraphToolbar() {
       return;
     }
 
-    setGraphLoading(true);
-    setGraphError(null);
-
-    try {
-      const response = await fetchStoredBuildingGraphRaw(selected_graph_source);
-      const parsed = parseBuildingGraphTtl(response, cloneDefaultOntologyCatalog());
-      const listed = available_graphs.find((item) => item.id === selected_graph_source);
-      const graph: BuildingGraphData = {
-        ...parsed,
-        label: listed?.label ?? parsed.label,
-        description: listed?.description ?? parsed.description ?? null,
-      };
-
-      setActiveGraphData(graph);
-      setActiveGraphUri(graph.graph_uri ?? graph.id);
-      setGraphLoaded(true);
-      resetExecution();
-      setExecutionStatus('ready');
-    } catch (error) {
-      setGraphLoaded(false);
-      setActiveGraphData(null);
-      setActiveGraphUri(null);
-      setExecutionStatus('idle');
-      setGraphError(error instanceof Error ? error.message : 'Failed to load building graph');
-    } finally {
-      setGraphLoading(false);
-    }
+    await loadStoredGraph(selected_graph_source);
   };
 
   const handleUploadGraphJson = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -165,17 +131,25 @@ export function GraphToolbar() {
 
   return (
     <div className="border-b border-gray-200 bg-white px-4 py-3">
-      <div className="flex flex-nowrap items-center gap-3 overflow-x-auto">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <label className="shrink-0 text-xs font-semibold tracking-wide text-gray-500 uppercase">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-3">
+          <label
+            htmlFor="stored-building-graph"
+            className="shrink-0 text-xs font-semibold tracking-wide text-gray-500 uppercase"
+          >
             Building graph
           </label>
 
           <select
+            id="stored-building-graph"
             value={selected_graph_source}
             onChange={(event) => setSelectedGraphSource(event.target.value)}
-            className="min-w-[320px] flex-1 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="min-w-0 flex-1 basis-48 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
           >
+            {selected_graph_source &&
+              !available_graphs.some((graph) => graph.id === selected_graph_source) && (
+                <option value={selected_graph_source}>{selected_graph_source}</option>
+              )}
             {available_graphs.length === 0 ? (
               <option value="">No stored graphs found</option>
             ) : (
@@ -183,7 +157,7 @@ export function GraphToolbar() {
                 <option key={graph.id} value={graph.id} title={graph.description ?? undefined}>
                   {graph.source === 'ontop' ? '[Ontop] ' : ''}
                   {graph.label}
-                  {graph.triple_count ? ` - ${graph.triple_count} triples` : ''}
+                  {graph.triple_count != null ? ` - ${graph.triple_count} triples` : ''}
                 </option>
               ))
             )}
@@ -193,14 +167,14 @@ export function GraphToolbar() {
         <button
           type="button"
           onClick={() => void loadStoredGraphs()}
-          disabled={graph_loading}
+          disabled={graph_loading || discovering}
           className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <ArrowPathIcon className={['h-4 w-4', graph_loading ? 'animate-spin' : ''].join(' ')} />
-          {graph_loading ? 'Refreshing...' : 'Refresh graphs'}
+          {discovering ? 'Refreshing...' : 'Refresh graphs'}
         </button>
 
-        <div className="flex shrink-0 flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => void handleLoadBuildingGraph()}
@@ -246,7 +220,7 @@ export function GraphToolbar() {
             : 'No graph loaded'}
         </div>
 
-        {active_graph_data?.triple_count ? (
+        {active_graph_data?.triple_count != null ? (
           <div className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">
             {active_graph_data.triple_count} triples
           </div>
@@ -262,6 +236,21 @@ export function GraphToolbar() {
           </div>
         ) : null}
       </div>
+
+      {graph_loaded && active_graph_data?.backend === 'neo' && (
+        <p role="status" className="mt-2 text-xs text-slate-600">
+          Immutable revision {active_graph_data.revision_id}. Preview:{' '}
+          {active_graph_data.preview_triples ?? active_graph_data.edges.length} of{' '}
+          {active_graph_data.triple_count ?? 0} triples · {active_graph_data.nodes.length} of{' '}
+          {active_graph_data.total_nodes ?? 0} nodes.
+          {active_graph_data.truncated
+            ? ' Preview truncated; checks use the complete qualified server dataset.'
+            : ' Checks use the complete qualified server dataset.'}
+          {active_graph_data.nodes.length === 0
+            ? ' This ready graph has an empty preview; it is still available for compatibility and checks.'
+            : ''}
+        </p>
+      )}
 
       {graph_loaded && active_graph_data?.description ? (
         <p

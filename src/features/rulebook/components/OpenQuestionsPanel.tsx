@@ -345,7 +345,12 @@ export function OpenQuestionsPanel({ onRun }: Props) {
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button
               type="button"
-              disabled={assertions.length === 0 || busy !== null}
+              disabled={
+                assertions.length === 0 ||
+                busy !== null ||
+                active_graph_data?.immutable ||
+                active_graph_data?.backend === 'neo'
+              }
               onClick={() => void handleAnswerAndRerun()}
               className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
               title={`Writes the answers into ${answered_graph} (the original graph is never changed), loads that graph and runs the Rule Runner again`}
@@ -362,8 +367,14 @@ export function OpenQuestionsPanel({ onRun }: Props) {
               What-if (don't save)
             </button>
             <span className="text-[11px] text-amber-800">
-              Answers go to <span className="font-mono">{answered_graph}</span>; the source graph
-              stays as it is.
+              {active_graph_data?.immutable || active_graph_data?.backend === 'neo' ? (
+                'Immutable revision: persisted answers are disabled. Use unsaved what-if facts instead.'
+              ) : (
+                <>
+                  Answers go to <span className="font-mono">{answered_graph}</span>; the source
+                  graph stays as it is.
+                </>
+              )}
             </span>
             {notice ? <span className="ml-auto text-[11px] text-amber-900">{notice}</span> : null}
           </div>

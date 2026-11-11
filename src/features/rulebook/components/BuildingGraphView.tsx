@@ -51,12 +51,25 @@ type GraphBounds = {
   maxRing: number;
 };
 
+type CanvasGesture = {
+  startX: number;
+  startY: number;
+  startPanX: number;
+  startPanY: number;
+  isDragging: boolean;
+};
+
 type PropertyBubble = {
   key: string;
   label: string;
   value: string;
   x: number;
   y: number;
+};
+
+type HoveredPropertyBubble = {
+  nodeId: string;
+  propertyKey: string;
 };
 
 type VisualNodeState = 1 | 2 | 3;
@@ -174,11 +187,14 @@ function formatPropertyKey(key: string) {
 }
 
 function buildPropertyBubbles(node: PositionedNode | null): PropertyBubble[] {
-  if (!node?.metadata) {
+  if (!node) {
     return [];
   }
 
-  const entries = Object.entries(node.metadata)
+  const entries: [string, unknown][] = [
+    ['label', node.label] as [string, unknown],
+    ...Object.entries(node.metadata ?? {}).filter(([key]) => key !== 'label'),
+  ]
     .filter(([, value]) => value !== null && value !== undefined && value !== '')
     .slice(0, 8);
 
@@ -192,7 +208,7 @@ function buildPropertyBubbles(node: PositionedNode | null): PropertyBubble[] {
     return {
       key,
       label: formatPropertyKey(key),
-      value: shortenValue(value),
+      value: String(value),
       x: node.x + Math.cos(angle) * orbitRadius,
       y: node.y + Math.sin(angle) * orbitRadius,
     };
@@ -450,8 +466,10 @@ export function BuildingGraphView({
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState<null | { x: number; y: number }>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hoveredPropertyBubble, setHoveredPropertyBubble] = useState<HoveredPropertyBubble | null>(
+    null,
+  );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [expandedLogStepKey, setExpandedLogStepKey] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -460,6 +478,8 @@ export function BuildingGraphView({
   const [logCollapsed, setLogCollapsed] = useState(false);
   const [successIconCelebrating, setSuccessIconCelebrating] = useState(false);
   const graphViewportRef = useRef<HTMLDivElement | null>(null);
+  const canvasGestureRef = useRef<CanvasGesture | null>(null);
+  const suppressClickRef = useRef(false);
   const logScrollRef = useRef<HTMLDivElement | null>(null);
   const stepCardRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -606,6 +626,17 @@ export function BuildingGraphView({
     y: layout.bounds.centerY,
   };
   const propertyBubbles = useMemo(() => buildPropertyBubbles(selectedNode), [selectedNode]);
+  const hoveredProperty = useMemo(() => {
+    if (!selectedNode || hoveredPropertyBubble?.nodeId !== selectedNode.id) {
+      return null;
+    }
+
+    return (
+      propertyBubbles.find(
+        (property: PropertyBubble) => property.key === hoveredPropertyBubble.propertyKey,
+      ) ?? null
+    );
+  }, [hoveredPropertyBubble, propertyBubbles, selectedNode]);
   const graphNodesById = useMemo(
     () =>
       new Map<string, GraphNode>(
@@ -657,10 +688,12 @@ export function BuildingGraphView({
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setHoveredNodeId(null);
+    setHoveredPropertyBubble(null);
     setSelectedNodeId(null);
   }, [active_graph_data?.id, collapsed, expanded]);
 
   useEffect(() => {
+    setHoveredPropertyBubble(null);
     setSelectedNodeId(null);
     setExpandedLogStepKey(null);
     setStatusMessage(null);
@@ -741,20 +774,52 @@ export function BuildingGraphView({
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (collapsed) {
+    if (collapsed || event.button !== 0) {
       return;
     }
 
-    setDragging({ x: event.clientX - pan.x, y: event.clientY - pan.y });
+    event.currentTarget.focus();
+    setHoveredPropertyBubble(null);
+    suppressClickRef.current = false;
+    canvasGestureRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startPanX: pan.x,
+      startPanY: pan.y,
+      isDragging: false,
+    };
   };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging || collapsed) return;
-    setPan({ x: event.clientX - dragging.x, y: event.clientY - dragging.y });
+    const gesture = canvasGestureRef.current;
+    if (!gesture || collapsed) return;
+
+    const deltaX = event.clientX - gesture.startX;
+    const deltaY = event.clientY - gesture.startY;
+    if (!gesture.isDragging && Math.hypot(deltaX, deltaY) < 5) return;
+
+    gesture.isDragging = true;
+    suppressClickRef.current = true;
+    setPan({ x: gesture.startPanX + deltaX, y: gesture.startPanY + deltaY });
   };
 
   const handleMouseUp = () => {
-    setDragging(null);
+    canvasGestureRef.current = null;
+  };
+
+  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!suppressClickRef.current) return;
+
+    suppressClickRef.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleCanvasKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      setHoveredPropertyBubble(null);
+      setSelectedNodeId(null);
+    }
   };
 
   const getUserUnitsPerScreenPixel = () => {
@@ -824,6 +889,7 @@ export function BuildingGraphView({
 
     if (canvasSentiment === 'success') {
       setStatusMessage('All rules passed.');
+      setHoveredPropertyBubble(null);
       setSelectedNodeId(null);
       setExpandedLogStepKey(null);
       setSuccessOverviewActive(true);
@@ -844,6 +910,7 @@ export function BuildingGraphView({
     setStatusMessage(sentimentIssue.message);
     setCurrentStepIndex(sentimentIssue.stepIndex);
     setExpandedLogStepKey(stepKey);
+    setHoveredPropertyBubble(null);
     setSelectedNodeId(sentimentIssue.targetNodeId ?? null);
     setZoom(1.15);
     setPan({ x: 0, y: 0 });
@@ -852,6 +919,19 @@ export function BuildingGraphView({
   const graphPan = {
     x: pan.x * userUnitsPerScreenPixel,
     y: pan.y * userUnitsPerScreenPixel,
+  };
+  const handlePropertyBubbleEnter = (propertyKey: string) => {
+    if (!selectedNode) return;
+
+    setHoveredPropertyBubble({ nodeId: selectedNode.id, propertyKey });
+  };
+  const handlePropertyBubbleLeave = (propertyKey: string) => {
+    if (!selectedNode) return;
+
+    const nodeId = selectedNode.id;
+    setHoveredPropertyBubble((value: HoveredPropertyBubble | null) =>
+      value?.nodeId === nodeId && value.propertyKey === propertyKey ? null : value,
+    );
   };
 
   return (
@@ -874,12 +954,20 @@ export function BuildingGraphView({
               <div
                 ref={graphViewportRef}
                 className="absolute inset-0 cursor-grab overflow-hidden active:cursor-grabbing"
+                role="region"
+                aria-label="Building graph canvas"
+                tabIndex={0}
                 onWheel={handleWheel}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                onClick={() => setSelectedNodeId(null)}
+                onKeyDown={handleCanvasKeyDown}
+                onClickCapture={handleClickCapture}
+                onClick={() => {
+                  setHoveredPropertyBubble(null);
+                  setSelectedNodeId(null);
+                }}
               >
                 <svg
                   className="h-full w-full"
@@ -955,7 +1043,18 @@ export function BuildingGraphView({
                     })}
 
                     {propertyBubbles.map((property: PropertyBubble) => (
-                      <g key={property.key} transform={`translate(${property.x} ${property.y})`}>
+                      <g
+                        key={property.key}
+                        transform={`translate(${property.x} ${property.y})`}
+                        role="group"
+                        aria-label={`${property.label}: ${property.value}`}
+                        tabIndex={0}
+                        onMouseEnter={() => handlePropertyBubbleEnter(property.key)}
+                        onMouseLeave={() => handlePropertyBubbleLeave(property.key)}
+                        onFocus={() => handlePropertyBubbleEnter(property.key)}
+                        onBlur={() => handlePropertyBubbleLeave(property.key)}
+                      >
+                        <title>{`${property.label}: ${property.value}`}</title>
                         <circle
                           r={22}
                           fill="rgba(255,255,255,0.97)"
@@ -972,7 +1071,7 @@ export function BuildingGraphView({
                           {property.label}
                         </text>
                         <text y={9} textAnchor="middle" fontSize="7" fill="#475569">
-                          {property.value}
+                          {shortenValue(property.value)}
                         </text>
                       </g>
                     ))}
@@ -1002,6 +1101,7 @@ export function BuildingGraphView({
                           }
                           onClick={(event) => {
                             event.stopPropagation();
+                            setHoveredPropertyBubble(null);
                             setSuccessOverviewActive(false);
                             setSelectedNodeId((value: string | null) =>
                               value === node.id ? null : node.id,
@@ -1044,9 +1144,15 @@ export function BuildingGraphView({
                 </svg>
               </div>
 
-              {hoveredNode ? (
-                <div className="pointer-events-none absolute bottom-4 left-4 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
-                  {hoveredNode.label}
+              {hoveredProperty || hoveredNode ? (
+                <div
+                  role="status"
+                  aria-label="Graph hover details"
+                  className="pointer-events-none absolute bottom-4 left-4 max-w-[min(32rem,calc(100%-2rem))] rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-sm font-medium break-words whitespace-normal text-slate-700 shadow-sm"
+                >
+                  {hoveredProperty
+                    ? `${hoveredProperty.label}: ${hoveredProperty.value}`
+                    : hoveredNode?.label}
                 </div>
               ) : null}
             </>

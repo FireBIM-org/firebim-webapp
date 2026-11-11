@@ -540,7 +540,7 @@ export default function RuleBookLibraryPanel({
   }
 
   return (
-    <aside className="flex w-80 flex-col border-r border-gray-200 bg-white">
+    <aside className="flex w-full shrink-0 flex-col border-r border-gray-200 bg-white xl:w-80">
       <div className="border-b border-gray-200 px-3 py-3">
         <div className="flex items-start justify-between gap-3">
           <div>

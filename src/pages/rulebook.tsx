@@ -1,4 +1,5 @@
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import Layout from '../components/Layout';
@@ -12,11 +13,32 @@ import RuleBookLibraryPanel from '../features/rulebook/components/RuleBookLibrar
 import { RuleRunner } from '../features/rulebook/components/RuleRunner';
 import { RuleSummaryPanel } from '../features/rulebook/components/RuleSummaryPanel';
 import { buildRuleRunnerExecutionTimeline } from '../features/rulebook/execution';
+import { clearStoredGraph, loadStoredGraph } from '../features/rulebook/graph-loading';
 import { useRuleBookStore, type RuleBookStore } from '../features/rulebook/store';
 import { useRequireAuth } from '../hooks/useRequireAuth';
 
 export default function RuleBookPage() {
   const { user, isLoading: authLoading } = useRequireAuth();
+  const router = useRouter();
+  const userId = user?.id;
+  const requestedGraph = router.query.graph_id;
+
+  useEffect(() => {
+    clearStoredGraph();
+    useRuleBookStore.getState().setAvailableGraphs([]);
+    useRuleBookStore.getState().setSelectedGraphSource('');
+    if (!userId || !router.isReady) return;
+    const controller = new AbortController();
+    if (typeof requestedGraph === 'string' && requestedGraph.trim()) {
+      void loadStoredGraph(requestedGraph, controller.signal);
+    } else if (requestedGraph !== undefined) {
+      useRuleBookStore.getState().setGraphError('Expected one graph_id for a ready graph revision');
+    }
+    return () => {
+      controller.abort();
+      clearStoredGraph();
+    };
+  }, [userId, router.isReady, requestedGraph]);
   const rules_api_online = useRuleBookStore((state: RuleBookStore) => state.rules_api_online);
   const runner_rule_items = useRuleBookStore((state: RuleBookStore) => state.runner_rule_items);
   const available_rules = useRuleBookStore((state: RuleBookStore) => state.available_rules);
@@ -267,10 +289,10 @@ export default function RuleBookPage() {
           </div>
         </div>
 
-        <div className="flex h-[78vh] min-h-[680px]">
+        <div className="flex min-h-[680px] flex-col xl:h-[78vh] xl:flex-row">
           {!graphExpanded && <RuleBookLibraryPanel showApiStatus={false} />}
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-slate-50">
+          <div className="order-first flex min-h-[680px] min-w-0 flex-1 flex-col overflow-y-auto bg-slate-50 xl:order-none xl:min-h-0">
             {!graphExpanded && <GraphToolbar />}
             {!graphExpanded && <RuleRunner onRun={() => void handleRun()} />}
             {!graphExpanded && <OpenQuestionsPanel onRun={handleRun} />}

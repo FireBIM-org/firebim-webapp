@@ -13,6 +13,8 @@ import type {
   RuleListItem,
 } from './types';
 
+import { requestGraphCheck } from './neo-checks';
+
 const ruleDefinitionCache = new Map<string, RuleDefinition>();
 const missingRuleDefinitionCache = new Set<string>();
 
@@ -40,6 +42,10 @@ type DeleteRuleInput = {
 
 type GraphListApiItem = {
   graph_id: string;
+  backend?: string | null;
+  immutable?: boolean;
+  model_id?: string | null;
+  revision_id?: string | null;
   graph_uri?: string | null;
   label?: string | null;
   /** what the graph says about itself (`<graph_uri> rdfs:comment`), e.g. which rules it is meant for */
@@ -50,6 +56,16 @@ type GraphListApiItem = {
 
 type GraphFetchApiResponse = {
   success?: boolean;
+  backend?: string | null;
+  immutable?: boolean;
+  model_id?: string | null;
+  revision_id?: string | null;
+  total_triples?: number;
+  total_nodes?: number;
+  total_edges?: number;
+  preview_triples?: number;
+  truncated?: boolean;
+  description?: string | null;
   graph_id: string;
   graph_uri: string;
   ttl?: string | null;
@@ -234,6 +250,10 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
 
     result.push({
       graph_id,
+      backend: typeof graph.backend === 'string' ? graph.backend : null,
+      immutable: graph.immutable === true,
+      model_id: typeof graph.model_id === 'string' ? graph.model_id : null,
+      revision_id: typeof graph.revision_id === 'string' ? graph.revision_id : null,
       graph_uri,
       label: (graph.label as string | undefined) ?? (graph.name as string | undefined) ?? graph_id,
       description: (graph.description as string | undefined) ?? null,
@@ -246,6 +266,10 @@ function normalizeGraphListItems(input: unknown): GraphListApiItem[] {
 }
 
 function localNameFromToken(token: string): string {
+  if (token.startsWith('<') && token.endsWith('>')) {
+    return token.slice(1, -1).split(/[/#]/).pop() ?? token;
+  }
+
   if (token.includes(':')) {
     return token.split(':').pop() ?? token;
   }
@@ -329,13 +353,22 @@ export function parseBuildingGraphTtl(
   payload: GraphFetchApiResponse,
   ontology_catalog: BuildingGraphData['ontology_catalog'],
 ): BuildingGraphData {
-  if (payload.nodes && payload.nodes.length > 0) {
+  if (Array.isArray(payload.nodes)) {
     return {
       id: payload.graph_id,
       label: payload.label ?? payload.graph_id,
+      description: payload.description,
+      backend: payload.backend,
+      immutable: payload.immutable,
+      model_id: payload.model_id,
+      revision_id: payload.revision_id,
+      total_nodes: payload.total_nodes,
+      total_edges: payload.total_edges,
+      preview_triples: payload.preview_triples,
+      truncated: payload.truncated,
       graph_uri: payload.graph_uri,
       source: payload.source ?? 'api',
-      triple_count: payload.triple_count ?? null,
+      triple_count: payload.total_triples ?? payload.triple_count ?? null,
       ttl: payload.ttl ?? null,
       nodes: payload.nodes,
       edges: payload.edges ?? [],
@@ -348,94 +381,89 @@ export function parseBuildingGraphTtl(
   }
 
   const prefixes = Object.fromEntries(
-    Array.from(payload.ttl.matchAll(/PREFIX\s+([A-Za-z][\w-]*):\s*<([^>]+)>/g)).map((match) => [
-      match[1],
-      match[2],
-    ]),
+    Array.from(payload.ttl.matchAll(/(?:@prefix|PREFIX)\s+([A-Za-z][\w-]*):\s*<([^>]+)>/gi)).map(
+      (match) => [match[1], match[2]],
+    ),
   );
 
   const nodes = new Map<string, BuildingGraphData['nodes'][number]>();
   const edges = new Map<string, BuildingGraphData['edges'][number]>();
 
-  const statement_regex = /([^\s;]+)\s+a\s+([^\s;]+)\s*;([\s\S]*?)\./g;
+  // shortcut: flat triples and double-quoted literals only; use an RDF parser for nested Turtle.
+  const statement_regex =
+    /(?:@prefix|PREFIX)\s+[A-Za-z][\w-]*:\s*<[^>]*>\s*\.?|#[^\r\n]*|<[^>]*>|"(?:\\.|[^"\\])*"(?:@[A-Za-z-]+|\^\^(?:<[^>]*>|[^\s;,.]+(?:\.[^\s;,.]+)*))?|[^\s;,."<>#]+(?:\.[^\s;,."<>#]+)*|[;,.]/gi;
   const statements = Array.from(payload.ttl.matchAll(statement_regex));
+  let subject_token = '';
+  let predicate_token = '';
 
   for (const statement of statements) {
-    const subject_token = statement[1]?.trim();
-    const type_token = statement[2]?.trim();
-    const body = statement[3] ?? '';
+    const token = statement[0];
+    if (token.startsWith('#') || /^(?:@prefix|PREFIX)\s/i.test(token)) continue;
 
-    if (!subject_token || !type_token) continue;
+    if (token === '.') {
+      subject_token = '';
+      predicate_token = '';
+      continue;
+    }
+    if (token === ';') {
+      predicate_token = '';
+      continue;
+    }
+    if (token === ',') continue;
+
+    if (!subject_token) {
+      subject_token = token;
+      continue;
+    }
+    if (!predicate_token) {
+      predicate_token = token;
+      continue;
+    }
 
     const subject_id = localNameFromToken(subject_token);
-    const kind = kindFromTypeToken(type_token);
-
+    const predicate_iri = expandPrefixedIri(predicate_token, prefixes);
     const existing = nodes.get(subject_id);
-    nodes.set(subject_id, {
+    const node: BuildingGraphData['nodes'][number] = {
       id: subject_id,
-      kind,
+      kind: existing?.kind ?? 'Room',
       label: subject_id,
       parent_id: existing?.parent_id ?? null,
       metadata: { ...(existing?.metadata ?? {}) },
+    };
+    nodes.set(subject_id, node);
+
+    if (predicate_iri === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
+      const kind = kindFromTypeToken(token);
+      node.kind = kind === 'Room' ? (existing?.kind ?? kind) : kind;
+      continue;
+    }
+
+    if (isLikelyLiteral(token)) {
+      node.metadata = { ...node.metadata, [predicate_iri]: parseLiteralValue(token) };
+      continue;
+    }
+
+    const relation = localNameFromToken(predicate_token);
+    const target_id = localNameFromToken(token);
+    const edge_id = `${subject_id}-${relation}-${target_id}`;
+
+    edges.set(edge_id, {
+      id: edge_id,
+      source: subject_id,
+      target: target_id,
+      relation,
     });
 
-    const predicate_parts = body
-      .split(';')
-      .map((part) => part.trim())
-      .filter(Boolean);
-
-    for (const part of predicate_parts) {
-      const first_space_index = part.search(/\s/);
-      if (first_space_index === -1) continue;
-
-      const predicate_token = part.slice(0, first_space_index).trim();
-      const object_chunk = part.slice(first_space_index).trim();
-      if (!predicate_token || !object_chunk) continue;
-
-      const predicate_iri = expandPrefixedIri(predicate_token, prefixes);
-      const relation = localNameFromToken(predicate_token);
-      const objects = object_chunk
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      for (const object_token of objects) {
-        if (isLikelyLiteral(object_token)) {
-          const node = nodes.get(subject_id);
-          if (!node) continue;
-
-          nodes.set(subject_id, {
-            ...node,
-            metadata: {
-              ...(node.metadata ?? {}),
-              [predicate_iri]: parseLiteralValue(object_token),
-            },
-          });
-          continue;
-        }
-
-        const target_id = localNameFromToken(object_token);
-        const edge_id = `${subject_id}-${relation}-${target_id}`;
-
-        edges.set(edge_id, {
-          id: edge_id,
-          source: subject_id,
-          target: target_id,
-          relation,
-        });
-
-        const target_node = nodes.get(target_id);
-        nodes.set(target_id, {
-          id: target_id,
-          kind: target_node?.kind ?? 'Room',
-          label: target_id,
-          parent_id:
-            target_node?.parent_id ??
-            (relation === 'hasRoom' || relation === 'contains' ? subject_id : null),
-          metadata: { ...(target_node?.metadata ?? {}) },
-        });
-      }
-    }
+    const target_node = nodes.get(target_id);
+    nodes.set(target_id, {
+      id: target_id,
+      kind: target_node?.kind ?? 'Room',
+      label: target_id,
+      parent_id:
+        target_node?.parent_id ??
+        (relation === 'hasRoom' || relation === 'contains' ? subject_id : null),
+      metadata: { ...(target_node?.metadata ?? {}) },
+    });
   }
 
   return {
@@ -653,31 +681,26 @@ export async function publishBuildingGraphJson(input: unknown): Promise<PublishG
   return parseJsonResponse<PublishGraphJsonResponse>(res);
 }
 
-export async function listStoredBuildingGraphs(): Promise<GraphListApiItem[]> {
-  const data = await requestJsonWithFallback<unknown>([
-    { url: `${env.apiBaseUrl}/graphs` },
-    { url: `${env.apiBaseUrl}/graphs/list` },
-  ]);
+export async function listStoredBuildingGraphs(signal?: AbortSignal): Promise<GraphListApiItem[]> {
+  const data = await parseJsonResponse<unknown>(
+    await fetch(`${env.apiBaseUrl}/graphs`, { signal, credentials: 'same-origin' }),
+  );
 
   return normalizeGraphListItems(data);
 }
 
 export async function fetchStoredBuildingGraphRaw(
   graph_id: string,
+  signal?: AbortSignal,
 ): Promise<GraphFetchApiResponse> {
-  return requestJsonWithFallback<GraphFetchApiResponse>([
-    { url: `${env.apiBaseUrl}/graphs/${graph_id}` },
-    {
-      url: `${env.apiBaseUrl}/graphs/fetch`,
-      init: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ graph_id }),
-      },
-    },
-  ]);
+  const response = await fetch(`${env.apiBaseUrl}/graphs/${encodeURIComponent(graph_id)}`, {
+    signal,
+    credentials: 'same-origin',
+  });
+  const payload = await parseJsonResponse<GraphFetchApiResponse>(response);
+  if (payload.graph_id !== graph_id || payload.success === false)
+    throw new Error('The requested graph is not ready or did not match its revision identity');
+  return payload;
 }
 
 export async function runBackendCheck(input: {
@@ -685,7 +708,7 @@ export async function runBackendCheck(input: {
   graph_id: string;
   options?: CheckRunOptions;
 }): Promise<CheckRunResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/checks/run`, {
+  const res = await requestGraphCheck(input.graph_id, `${env.apiBaseUrl}/checks/run`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -706,8 +729,10 @@ export async function runBackendCheck(input: {
 export async function runCompatibilityCheck(input: {
   rule_id: string;
   graph_id: string;
+  signal?: AbortSignal;
 }): Promise<CheckCompatibilityResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/checks/compatibility`, {
+  const res = await requestGraphCheck(input.graph_id, `${env.apiBaseUrl}/checks/compatibility`, {
+    signal: input.signal,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -726,7 +751,7 @@ export async function runDiagnosticCheck(input: {
   graph_id: string;
   options?: CheckRunOptions;
 }): Promise<DiagnosticRunResponse> {
-  const res = await fetch(`${env.apiBaseUrl}/checks/run-diagnostic`, {
+  const res = await requestGraphCheck(input.graph_id, `${env.apiBaseUrl}/checks/run-diagnostic`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

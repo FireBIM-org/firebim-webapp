@@ -310,6 +310,38 @@ describe('rule links: order and missing rules', () => {
 });
 
 describe('open questions and overrides', () => {
+  it('never persists derived values or chains overlays for an immutable Neo revision', async () => {
+    const api = await import('./api');
+    const { buildRuleRunnerExecutionTimeline } = await import('./execution');
+    vi.mocked(api.runDiagnosticCheck)
+      .mockReset()
+      .mockImplementation(async (input) => makeDiagnosticRun({ rule_id: input.rule_id }));
+    vi.mocked(api.getRuleOrNull).mockResolvedValue(null);
+    await buildRuleRunnerExecutionTimeline({
+      active_graph_data: {
+        id: 'neo_ready',
+        label: 'Ready',
+        backend: 'neo',
+        immutable: true,
+        triple_count: 1200,
+        truncated: true,
+      } as never,
+      runner_rule_items: [
+        { runner_item_id: 'a', rule_id: 'first', label: 'First' },
+        { runner_item_id: 'b', rule_id: 'second', label: 'Second' },
+      ],
+      available_rules: [],
+      solver: 'standard',
+      chain_derived: true,
+    });
+    expect(api.runDiagnosticCheck).toHaveBeenCalledTimes(2);
+    for (const [input] of vi.mocked(api.runDiagnosticCheck).mock.calls) {
+      expect(input.graph_id).toBe('neo_ready');
+      expect(input.options?.persist_derived).toBe(false);
+      expect(input.options?.use_derived_from).toEqual([]);
+    }
+  });
+
   it('collects the questions of every run (deduped by where the answer is written) and passes overrides', async () => {
     const api = await import('./api');
     const { buildRuleRunnerExecutionTimeline } = await import('./execution');
