@@ -33,6 +33,7 @@ import {
   extractRulesFromCanvasNodes,
 } from '@/features/rulebuilder/buildTree';
 import { BuildTreeRequest, BuiltTreeResult, RuleData } from '@/features/rulebuilder/editorStore';
+import { createRequestId } from '@/utils/request-id';
 
 import { getRuleElement } from '../api';
 import RuleBranchEdge from './RuleBranchEdge';
@@ -611,7 +612,7 @@ function RuleCanvasInner({
         }
       }
 
-      const canvasNodeId = `${payload.nodeType}-${crypto.randomUUID()}`;
+      const canvasNodeId = `${payload.nodeType}-${createRequestId()}`;
 
       const templateLabel =
         typeof template === 'object' &&
@@ -720,7 +721,7 @@ function RuleCanvasInner({
       const sourceRule = (sourceNode.data?.rule as RuleData) || null;
       if (!sourceRule) return current;
 
-      const newId = `${sourceRule.element_type}-${crypto.randomUUID()}`;
+      const newId = `${sourceRule.element_type}-${createRequestId()}`;
       const copiedBaseLabel = sourceRule.label || sourceRule.id || 'New rule element';
       const copiedLabel = nextLabelWithBase(copiedBaseLabel, current);
 
