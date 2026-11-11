@@ -181,4 +181,26 @@ describe('buildRuleTreeFromStart / buildRuleDraftFromTree', () => {
     expect(element?.value).toEqual(ref);
     expect(validateRuleDraft(draft)).toEqual([]);
   });
+
+  it.each([
+    ['numeric threshold', 15],
+    ['decimal', -1.25],
+    ['zero', 0],
+    ['numeric-looking string', '15'],
+    ['false-looking string', 'false'],
+    ['true', true],
+    ['false', false],
+  ])('preserves the %s literal through draft JSON serialization', (_description, value) => {
+    const rules = [
+      start('start', 'q1'),
+      decision('q1', { value, true_path: 'end', false_path: 'end' }),
+      end('end'),
+    ];
+
+    const tree = buildRuleTreeFromStart('start', rules);
+    const draft = buildRuleDraftFromTree('rule', tree, 'Rule');
+    const serializedDraft = JSON.parse(JSON.stringify(draft)) as RuleDraft;
+
+    expect(serializedDraft.elements.find((element) => element.id === 'q1')?.value).toBe(value);
+  });
 });

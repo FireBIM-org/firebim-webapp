@@ -11,6 +11,8 @@ import {
 } from '@/features/ontologies/library';
 import { isValueRef } from '@/features/rulebuilder/components/RuleElementNode';
 
+import RuleLiteralValueEditor from './RuleLiteralValueEditor';
+
 type RuleElementType = RuleData['element_type'];
 
 type Props = {
@@ -759,6 +761,13 @@ export default function RuleInspectorPanel({
                         </p>
                         {renderIssue(refValueIssue, null, 'ref-validation-error')}
                       </>
+                    ) : isDecision ? (
+                      <RuleLiteralValueEditor
+                        key={selectedRule.id}
+                        value={selectedRule.value}
+                        onChange={(value) => onChange({ value })}
+                        inputClassName={activeClass}
+                      />
                     ) : (
                       <input
                         value={inputValue(selectedRule.value)}
