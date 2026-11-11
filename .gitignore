@@ -12,6 +12,8 @@
 .idea
 # testing
 /coverage
+/.test-results/
+/.translation-chrome-smoke/
 
 # next.js
 /.next/

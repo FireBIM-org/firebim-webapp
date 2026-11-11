@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  allowedDevOrigins: ['100.95.221.15'],
   turbopack: {
     root: __dirname,
     resolveAlias: {
