@@ -6,6 +6,17 @@ import React, { ReactNode } from 'react';
 import Analytics from '@/components/Analytics';
 
 import { useAuth } from '../contexts/AuthContext';
+import { isActiveRoute } from '../utils/nav';
+
+interface NavItem {
+  name: string;
+  href: string;
+  requiresAuth: boolean;
+  /** Shown only to admins (GET /users/me is_admin). */
+  requiresAdmin?: boolean;
+  /** Also highlight on nested routes, e.g. /admin/users for /admin. */
+  matchPrefix?: boolean;
+}
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,7 +27,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const navigation = [
+  const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', requiresAuth: true },
     { name: 'IFC Models', href: '/ifc-models', requiresAuth: true },
     { name: 'IDS Files', href: '/ids-files', requiresAuth: true },
@@ -25,6 +36,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
     { name: 'RuleBook', href: '/rulebook', requiresAuth: true },
     { name: 'Lexicon', href: '/lexicon', requiresAuth: true },
     { name: 'Ontologies', href: '/ontologies', requiresAuth: true },
+    { name: 'Admin', href: '/admin', requiresAuth: true, requiresAdmin: true, matchPrefix: true },
   ];
 
   return (
@@ -48,13 +60,14 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navigation.map((item) => {
                   if (!user && item.requiresAuth) return null;
+                  if (item.requiresAdmin && !user?.isAdmin) return null;
 
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
                       className={`${
-                        router.pathname === item.href
+                        isActiveRoute(router.pathname, item.href, item.matchPrefix)
                           ? 'border-orange-500 text-gray-900'
                           : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                       } inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium`}

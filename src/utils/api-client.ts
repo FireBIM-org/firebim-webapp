@@ -197,6 +197,11 @@ export class ApiClient {
     }
   }
 
+  /** The proxy axios instance (with the 401 re-login interceptor) for feature API modules. */
+  get http(): AxiosInstance {
+    return this.axiosInstance;
+  }
+
   // Get user profile from API server (goes through proxy which adds auth)
   async getCurrentUser(): Promise<User> {
     const response = await this.axiosInstance.get('/api/proxy/users/me');
