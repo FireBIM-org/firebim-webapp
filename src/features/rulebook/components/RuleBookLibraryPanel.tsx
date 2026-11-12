@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 
 import type { RuleListItem } from '../types';
 
+import { getLimitErrorMessage } from '../../../utils/api-errors';
 import { deleteRule, getRule, getRulesHealth, listRules, publishRuleJson } from '../api';
 import { getVisibleRuleLibraryGroups, useRuleBookStore, type RuleBookStore } from '../store';
 
@@ -400,7 +401,10 @@ export default function RuleBookLibraryPanel({
         );
       } catch (error) {
         setRuleUploadMessage(null);
-        setRulesError(error instanceof Error ? error.message : 'Rule upload failed');
+        setRulesError(
+          getLimitErrorMessage(error) ??
+            (error instanceof Error ? error.message : 'Rule upload failed'),
+        );
       } finally {
         setRuleUploading(false);
       }

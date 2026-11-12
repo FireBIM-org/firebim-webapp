@@ -7,6 +7,7 @@ import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import apiClient from '../../utils/api-client';
+import { getUploadErrorMessage } from '../../utils/api-errors';
 
 export default function UploadIdsFile() {
   const { user, isLoading: authLoading } = useRequireAuth();
@@ -37,7 +38,7 @@ export default function UploadIdsFile() {
         router.push('/ids-files');
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error('Failed to upload IDS file. Please try again.');
+        toast.error(getUploadErrorMessage(error, 'Failed to upload IDS file. Please try again.'));
       } finally {
         setIsUploading(false);
       }

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'reac
 
 import type { BuildingGraphData } from '../types';
 
+import { getLimitErrorMessage } from '../../../utils/api-errors';
 import {
   fetchStoredBuildingGraphRaw,
   listStoredBuildingGraphs,
@@ -156,7 +157,10 @@ export function GraphToolbar() {
       setGraphUploadMessage(`Uploaded graph: ${result.graph_id}`);
     } catch (error) {
       setGraphUploadMessage(null);
-      setGraphError(error instanceof Error ? error.message : 'Graph upload failed');
+      setGraphError(
+        getLimitErrorMessage(error) ??
+          (error instanceof Error ? error.message : 'Graph upload failed'),
+      );
     } finally {
       setGraphUploading(false);
       setGraphLoading(false);

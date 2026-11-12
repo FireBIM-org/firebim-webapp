@@ -16,6 +16,7 @@ import apiClient, {
   type OntologySyncRequest,
   type OntologySyncResponse,
 } from '../utils/api-client';
+import { getLimitErrorMessage } from '../utils/api-errors';
 
 const ACTION_STYLES: Record<string, string> = {
   publish: 'bg-green-100 text-green-800',
@@ -46,6 +47,8 @@ function Badge({ text, className }: { text: string; className: string }) {
 }
 
 function errorMessage(error: unknown): string {
+  const limitMessage = getLimitErrorMessage(error);
+  if (limitMessage) return limitMessage;
   if (typeof error === 'object' && error !== null) {
     const maybe = error as { response?: { data?: { detail?: unknown } }; message?: string };
     const detail = maybe.response?.data?.detail;

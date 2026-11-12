@@ -38,6 +38,7 @@ import RuleBookLibraryPanel from '@/features/rulebook/components/RuleBookLibrary
 import { useRuleBookStore, type RuleBookStore } from '@/features/rulebook/store';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import apiClient from '@/utils/api-client';
+import { getLimitErrorMessage } from '@/utils/api-errors';
 
 type CoverageState = 'covered' | 'partial' | 'missing' | 'suggested';
 type DrawerState = 'closed' | 'half' | 'full';
@@ -1044,6 +1045,8 @@ function StandardLibraryPanel({
   const [uploadVersion, setUploadVersion] = useState(today.replaceAll('-', '.'));
 
   const messageFromError = (caught: unknown) => {
+    const limitMessage = getLimitErrorMessage(caught);
+    if (limitMessage) return limitMessage;
     const candidate = caught as {
       response?: { data?: { detail?: unknown } };
       message?: unknown;

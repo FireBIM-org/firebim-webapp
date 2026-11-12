@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { listRules } from '@/features/rulebook/api';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { components } from '@/types/api';
+import { getUploadErrorMessage } from '@/utils/api-errors';
 import { handleIfcUpload } from '@/utils/upload-manager';
 
 import Layout from '../../components/Layout';
@@ -121,7 +122,7 @@ export default function UploadModel() {
         },
         onError: (error) => {
           console.error('Upload error:', error);
-          toast.error('Failed to upload model. Please try again.');
+          toast.error(getUploadErrorMessage(error, 'Failed to upload model. Please try again.'));
         },
       });
 
