@@ -33,8 +33,9 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
         <title>{title}</title>
         <meta name="description" content="FireBIM webapp - BIM model analysis" />
         <link rel="icon" href="/favicon.ico" />
-        <Analytics />
       </Head>
+      {/* Not inside <Head>: next/head drops component children in the browser. */}
+      <Analytics />
 
       <nav className="bg-white shadow-sm">
         <div className="mx-auto w-full max-w-[calc(50vw+40rem)] px-2 sm:px-3 lg:px-4">

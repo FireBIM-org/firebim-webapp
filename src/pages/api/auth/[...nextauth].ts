@@ -97,6 +97,9 @@ export const authOptions: NextAuthOptions = {
       client: {
         token_endpoint_auth_method: 'client_secret_post',
       },
+      // openid-client's default 3.5 s timeout is too short when Authentik is slow
+      // (discovery alone can take 2–4 s), which surfaced as OAUTH_CALLBACK_ERROR timeouts.
+      httpOptions: { timeout: 10000 },
       profile(profile) {
         return {
           id: profile.sub,

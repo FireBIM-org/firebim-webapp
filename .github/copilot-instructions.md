@@ -22,7 +22,7 @@ The backend API is in a separate repo (firebim-api-server).
 - For lexicon-oriented local stacks, the backend network is often `firebim_api_server_lexicon_default`; set `FIREBIM_API_NETWORK=firebim_api_server_lexicon_default` before `make up-build`.
 - Docker runtime should use `API_BACKEND_URL=http://api:8000`, with browser API calls still going through `/api/proxy/...`.
 - `.env.local` is for local `pnpm` development. `.docker/.env` only provides build-time placeholders for public Next.js variables.
-- `/api/health` has a short upstream timeout. If it reports `degraded`, verify the backend directly at `http://localhost:8000/health` or from the webapp container with `http://api:8000/health` before assuming the network is broken.
+- `/api/health` checks the API (`HEALTH_API_TIMEOUT_MS`, default 8 s) and Authentik (5 s) and reports each check's `latency_ms`; Kubernetes probes use `/api/livez` instead. If it reports `degraded`, verify the backend directly at `http://localhost:8000/health` or from the webapp container with `http://api:8000/health` before assuming the network is broken.
 
 ## Conventions
 - All components use TypeScript — no `any`, no implicit types
