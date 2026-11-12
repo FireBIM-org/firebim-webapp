@@ -105,7 +105,25 @@ make dev      # starts Next.js with Turbopack at http://localhost:3000
 
 `/api/livez` is the Kubernetes liveness/readiness path: it always returns 200 while the Next.js server is serving and does not call the API or Authentik.
 
-The local health endpoint is available at [http://localhost:3000/api/health](http://localhost:3000/api/health). It checks the API and Authentik concurrently with a short timeout. A `degraded` response can happen when the backend `/health` endpoint is slow even though the backend is reachable; test the backend directly with:
+`/api/health` is the aggregate health endpoint for humans, blackbox probes and dashboards (local: [http://localhost:3000/api/health](http://localhost:3000/api/health)). Kubernetes probes must not use it. It checks the API's `/health` and Authentik's OIDC discovery document concurrently, and returns 200 `ok` or 503 `degraded` with each check's result and latency:
+
+```json
+{
+  "status": "ok",
+  "checks": {
+    "api": { "status": "ok", "latency_ms": 2140 },
+    "authentik": { "status": "ok", "latency_ms": 38 }
+  }
+}
+```
+
+A check's `status` is `ok`, `not configured` (Authentik without an issuer URL, counts as healthy), `error: HTTP <code>`, `error: timeout after <n> ms` or `error: unreachable`.
+
+| Env var | Default | Meaning |
+|---------|---------|---------|
+| `HEALTH_API_TIMEOUT_MS` | `8000` | Max wait for the API's `/health`, which itself checks the database, S3, Celery and Authentik and can take several seconds |
+
+The Authentik discovery check times out after 5 s. If the API check reports a timeout even though the backend is reachable, test the backend directly with:
 
 ```bash
 curl http://localhost:8000/health
