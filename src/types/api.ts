@@ -1964,6 +1964,47 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/livez': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Livez
+     * @description Liveness: answers while the process serves requests. Checks no dependencies.
+     */
+    get: operations['livez_livez_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/readyz': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Readyz
+     * @description Readiness: the database and object storage are reachable. Authentik and Celery are deliberately excluded,
+     *     so an outage there does not take the API out of rotation.
+     */
+    get: operations['readyz_readyz_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/health': {
     parameters: {
       query?: never;
@@ -1981,10 +2022,332 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/admin/users': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Users */
+    get: operations['list_users_admin_users_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/users/{user_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get User */
+    get: operations['get_user_admin_users__user_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Update User
+     * @description Activate or deactivate a user. A deactivated user gets 400 "Inactive user" on every authenticated route.
+     */
+    patch: operations['update_user_admin_users__user_id__patch'];
+    trace?: never;
+  };
+  '/admin/overview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Overview */
+    get: operations['overview_admin_overview_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/storage': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Storage */
+    get: operations['storage_admin_storage_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/storage/reconcile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reconcile
+     * @description Recompute the storage counters from a bucket listing now (rate limited as an expensive route).
+     */
+    post: operations['reconcile_admin_storage_reconcile_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/admin/system': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** System */
+    get: operations['system_admin_system_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdminContentCounts */
+    AdminContentCounts: {
+      /** Ifc Models */
+      ifc_models: number;
+      /** Ids Files */
+      ids_files: number;
+      /** Models Pending */
+      models_pending: number;
+      /** Models Processing */
+      models_processing: number;
+      /** Models Processed */
+      models_processed: number;
+    };
+    /** AdminIdsFileSummary */
+    AdminIdsFileSummary: {
+      /** Id */
+      id: string;
+      /** Filename */
+      filename: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** AdminModelSummary */
+    AdminModelSummary: {
+      /** Id */
+      id: string;
+      /** Filename */
+      filename: string;
+      /** Processed */
+      processed: boolean;
+      /** Processing Status */
+      processing_status: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** AdminOverview */
+    AdminOverview: {
+      users: components['schemas']['AdminUserCounts'];
+      content: components['schemas']['AdminContentCounts'];
+      storage: components['schemas']['StorageSummary'];
+      /**
+       * Generated At
+       * Format: date-time
+       */
+      generated_at: string;
+    };
+    /** AdminStorage */
+    AdminStorage: {
+      /** Used Bytes */
+      used_bytes: number;
+      /** Object Count */
+      object_count: number;
+      /** Limit Bytes */
+      limit_bytes: number;
+      /** User Quota Bytes */
+      user_quota_bytes: number;
+      /** Usage Ratio */
+      usage_ratio: number;
+      /** Warn Ratio */
+      warn_ratio: number;
+      /** Last Reconciled At */
+      last_reconciled_at: string | null;
+      /** By Prefix */
+      by_prefix: components['schemas']['StoragePrefixUsage'][];
+      /** Top Users */
+      top_users: components['schemas']['AdminStorageUser'][];
+    };
+    /** AdminStorageUser */
+    AdminStorageUser: {
+      /** User Id */
+      user_id: string;
+      /** Username */
+      username: string | null;
+      /** Email */
+      email: string | null;
+      /** Bytes */
+      bytes: number;
+      /** Objects */
+      objects: number;
+    };
+    /** AdminSystem */
+    AdminSystem: {
+      build: components['schemas']['BuildInfo'];
+      /** Environment */
+      environment: string;
+      checks: components['schemas']['AdminSystemChecks'];
+      limits: components['schemas']['AdminSystemLimits'];
+    };
+    /** AdminSystemChecks */
+    AdminSystemChecks: {
+      /** Database */
+      database: string;
+      /** S3 */
+      s3: string;
+      /** Celery */
+      celery: string;
+      /** Authentik */
+      authentik: string;
+    };
+    /** AdminSystemLimits */
+    AdminSystemLimits: {
+      /** Storage Hard Limit Bytes */
+      storage_hard_limit_bytes: number;
+      /** Storage User Quota Bytes */
+      storage_user_quota_bytes: number;
+      /** Max Upload Bytes */
+      max_upload_bytes: number;
+      /** Max Json Body Bytes */
+      max_json_body_bytes: number;
+      /** Rate Limit Default */
+      rate_limit_default: string;
+      /** Rate Limit Expensive */
+      rate_limit_expensive: string;
+      /** Rate Limit Anon */
+      rate_limit_anon: string;
+      /** Rate Limit Enabled */
+      rate_limit_enabled: boolean;
+    };
+    /** AdminUser */
+    AdminUser: {
+      /** Id */
+      id: string;
+      /** Username */
+      username: string;
+      /** Email */
+      email: string;
+      /** Is Active */
+      is_active: boolean;
+      /** Is Admin */
+      is_admin: boolean | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Last Seen At */
+      last_seen_at: string | null;
+      /** Ifc Models */
+      ifc_models: number;
+      /** Ids Files */
+      ids_files: number;
+      /** Storage Bytes */
+      storage_bytes: number;
+      /** Storage Objects */
+      storage_objects: number;
+    };
+    /** AdminUserCounts */
+    AdminUserCounts: {
+      /** Total */
+      total: number;
+      /** Active */
+      active: number;
+      /** New 7D */
+      new_7d: number;
+      /** New 30D */
+      new_30d: number;
+      /** Active 7D */
+      active_7d: number;
+    };
+    /** AdminUserDetail */
+    AdminUserDetail: {
+      /** Id */
+      id: string;
+      /** Username */
+      username: string;
+      /** Email */
+      email: string;
+      /** Is Active */
+      is_active: boolean;
+      /** Is Admin */
+      is_admin: boolean | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Last Seen At */
+      last_seen_at: string | null;
+      /** Ifc Models */
+      ifc_models: number;
+      /** Ids Files */
+      ids_files: number;
+      /** Storage Bytes */
+      storage_bytes: number;
+      /** Storage Objects */
+      storage_objects: number;
+      /** Recent Models */
+      recent_models: components['schemas']['AdminModelSummary'][];
+      /** Recent Ids Files */
+      recent_ids_files: components['schemas']['AdminIdsFileSummary'][];
+      /** Storage By Prefix */
+      storage_by_prefix: components['schemas']['StoragePrefixUsage'][];
+      /** Storage By Prefix Complete */
+      storage_by_prefix_complete: boolean;
+    };
+    /** AdminUserList */
+    AdminUserList: {
+      /** Items */
+      items: components['schemas']['AdminUser'][];
+      /** Total */
+      total: number;
+    };
+    /** AdminUserUpdate */
+    AdminUserUpdate: {
+      /** Is Active */
+      is_active: boolean;
+    };
     /** BlindCheckRunOptions */
     BlindCheckRunOptions: {
       /**
@@ -2801,8 +3164,16 @@ export interface components {
       graph_uri: string;
       /** Triple Count */
       triple_count?: number | null;
-      /** Label */
+      /**
+       * Label
+       * @description What the graph calls itself (`<graph_uri> rdfs:label`)
+       */
       label?: string | null;
+      /**
+       * Description
+       * @description What the graph says about itself (`<graph_uri> rdfs:comment`), e.g. which rules it is meant for
+       */
+      description?: string | null;
       /** Source */
       source?: string | null;
     };
@@ -3327,6 +3698,22 @@ export interface components {
       /** Object */
       object?: string | null;
     };
+    /**
+     * LexiconDerivedProperty
+     * @description A property the rule *writes* with a derive element; it is produced, not required from the graph.
+     */
+    LexiconDerivedProperty: {
+      /** Property Path */
+      property_path: string;
+      /** Target Class */
+      target_class?: string | null;
+      /** Node Ids */
+      node_ids?: string[];
+      /** Expressions */
+      expressions?: string[];
+      /** Read By Node Ids */
+      read_by_node_ids?: string[];
+    };
     /** LexiconEntityInput */
     LexiconEntityInput: {
       /** Entity Id */
@@ -3401,6 +3788,8 @@ export interface components {
       relation_paths?: string[];
       /** Targets */
       targets?: components['schemas']['LexiconExecutionTarget'][];
+      /** Derived Properties */
+      derived_properties?: components['schemas']['LexiconDerivedProperty'][];
       /** Nodes */
       nodes?: components['schemas']['LexiconExecutionProfileNode'][];
       /** Warnings */
@@ -3728,6 +4117,12 @@ export interface components {
       property_path: string;
       /** Node Ids */
       node_ids?: string[];
+      /** Via */
+      via?: string | null;
+      /** Instances */
+      instances?: number | null;
+      /** With Value */
+      with_value?: number | null;
     };
     /** LexiconNextNeededResponse */
     LexiconNextNeededResponse: {
@@ -3771,6 +4166,11 @@ export interface components {
       rule?: components['schemas']['RuleDraft'] | null;
       /** Rules */
       rules?: components['schemas']['RuleDraft'][];
+      /**
+       * Graph Id
+       * @description Optional stored building graph: when given, the response also says which of the profile's requirements that graph can satisfy (graph_coverage), without saving the profile first
+       */
+      graph_id?: string | null;
     };
     /** LexiconProfileDeriveResponse */
     LexiconProfileDeriveResponse: {
@@ -3792,6 +4192,7 @@ export interface components {
       /** Rule Profiles */
       rule_profiles?: components['schemas']['LexiconExecutionProfile'][];
       profile: components['schemas']['LexiconExecutionProfile'];
+      graph_coverage?: components['schemas']['LexiconProfileGraphCoverageResponse'] | null;
     };
     /** LexiconProfileGraphAssociation */
     LexiconProfileGraphAssociation: {
@@ -3807,7 +4208,15 @@ export interface components {
       /** Graph Id */
       graph_id: string;
     };
-    /** LexiconProfileGraphCoverageResponse */
+    /**
+     * LexiconProfileGraphCoverageResponse
+     * @description Which of a profile's requirements a stored graph can satisfy.
+     *
+     *     Evaluated on the graph with the selected ontologies' schema merged (sub-classes count as the target class,
+     *     `partOf` follows `hasSubitem` backwards …), so sequence paths are followed the way the rule engine follows them.
+     *     A property is *covered* when at least one instance of the target class has a value at the end of the path;
+     *     `instances` / `with_value` on each entry say how many. `profile_id` is "derived" for an unsaved profile.
+     */
     LexiconProfileGraphCoverageResponse: {
       /** Profile Id */
       profile_id: string;
@@ -3817,6 +4226,12 @@ export interface components {
       graph_uri: string;
       /** Complete */
       complete: boolean;
+      /** Merged Schemas */
+      merged_schemas?: string[];
+      /** Target Instances */
+      target_instances?: {
+        [key: string]: number;
+      };
       /** Covered Target Classes */
       covered_target_classes?: string[];
       /** Missing Target Classes */
@@ -3825,6 +4240,11 @@ export interface components {
       covered_properties?: components['schemas']['LexiconNeededProperty'][];
       /** Missing Properties */
       missing_properties?: components['schemas']['LexiconNeededProperty'][];
+      /**
+       * Partial Properties
+       * @description Covered, but not on every instance — the rule will ask the user for the others
+       */
+      partial_properties?: components['schemas']['LexiconNeededProperty'][];
       /** Associations */
       associations?: components['schemas']['LexiconProfileGraphAssociation'][];
     };
@@ -3949,14 +4369,29 @@ export interface components {
       /** Warnings */
       warnings?: string[];
     };
-    /** LexiconPropertyRequirement */
+    /**
+     * LexiconPropertyRequirement
+     * @description A fact the graph has to hold for a target so the rule can decide (rule elements v2 aware).
+     *
+     *     `property_path` may be a sequence path (`fbo-dk:partOf/fbo-dk:FunctionType`): `steps` are its expanded IRIs, `via`
+     *     the relation prefix (None for a direct property) and `property` the last step — the term the fact is stored under.
+     *     `aggregates` lists the aggregate functions a derive element applies over the path (count, sum, min, max …).
+     */
     LexiconPropertyRequirement: {
       /** Property Path */
       property_path: string;
+      /** Property */
+      property?: string | null;
+      /** Via */
+      via?: string | null;
+      /** Steps */
+      steps?: string[];
       /** Node Ids */
       node_ids?: string[];
       /** Operators */
       operators?: string[];
+      /** Aggregates */
+      aggregates?: string[];
       /** Sample Values */
       sample_values?: string[];
     };
@@ -4170,7 +4605,7 @@ export interface components {
        * Field
        * @enum {string}
        */
-      field: 'target_class' | 'property_path';
+      field: 'target_class' | 'property_path' | 'value' | 'expression';
       /**
        * Expected Kind
        * @enum {string}
@@ -4194,13 +4629,16 @@ export interface components {
        * Field
        * @enum {string}
        */
-      field: 'target_class' | 'property_path';
+      field: 'target_class' | 'property_path' | 'value' | 'expression';
       /**
        * Expected Kind
        * @enum {string}
        */
       expected_kind: 'class' | 'property';
-      /** Value */
+      /**
+       * Value
+       * @description The term that was checked (one step of a path, or the whole field)
+       */
       value: string;
       /**
        * Code
@@ -4209,6 +4647,11 @@ export interface components {
       code: 'unknown_term' | 'wrong_term_kind';
       /** Message */
       message: string;
+      /**
+       * Context
+       * @description The whole field value when `value` is one step of it
+       */
+      context?: string | null;
     };
     /** LexiconRuleTermValidationMatch */
     LexiconRuleTermValidationMatch: {
@@ -6325,6 +6768,37 @@ export interface components {
        */
       fallback: boolean;
     };
+    /** StoragePrefixUsage */
+    StoragePrefixUsage: {
+      /** Prefix */
+      prefix: string;
+      /** Bytes */
+      bytes: number;
+      /** Objects */
+      objects: number;
+    };
+    /**
+     * StorageSummary
+     * @description Bucket usage as tracked by the storage accounting tables (see app/storage/quota.py).
+     */
+    StorageSummary: {
+      /** Used Bytes */
+      used_bytes: number;
+      /** Object Count */
+      object_count: number;
+      /** Limit Bytes */
+      limit_bytes: number;
+      /** User Quota Bytes */
+      user_quota_bytes: number;
+      /** Usage Ratio */
+      usage_ratio: number;
+      /** Warn Ratio */
+      warn_ratio: number;
+      /** Last Reconciled At */
+      last_reconciled_at: string | null;
+      /** By Prefix */
+      by_prefix: components['schemas']['StoragePrefixUsage'][];
+    };
     /** User */
     User: {
       /** Username */
@@ -6338,6 +6812,8 @@ export interface components {
       id: string;
       /** Is Active */
       is_active: boolean;
+      /** Is Admin */
+      is_admin: boolean;
     };
     /** ValidationError */
     ValidationError: {
@@ -10304,6 +10780,55 @@ export interface operations {
       };
     };
   };
+  livez_livez_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: string;
+          };
+        };
+      };
+    };
+  };
+  readyz_readyz_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   health_health_get: {
     parameters: {
       query?: never;
@@ -10328,6 +10853,214 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  list_users_admin_users_get: {
+    parameters: {
+      query?: {
+        /** @description Case-insensitive match on username or email */
+        search?: string | null;
+        limit?: number;
+        offset?: number;
+        sort?: 'created_at' | 'last_seen_at' | 'storage_bytes' | 'username';
+        order?: 'desc' | 'asc';
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminUserList'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_user_admin_users__user_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminUserDetail'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  update_user_admin_users__user_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AdminUserUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminUser'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  overview_admin_overview_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminOverview'];
+        };
+      };
+    };
+  };
+  storage_admin_storage_get: {
+    parameters: {
+      query?: {
+        /** @description Number of top_users */
+        top?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminStorage'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reconcile_admin_storage_reconcile_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['StorageSummary'];
+        };
+      };
+      /** @description Another reconcile is running */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Reconcile failed */
+      502: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  system_admin_system_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AdminSystem'];
+        };
       };
     };
   };

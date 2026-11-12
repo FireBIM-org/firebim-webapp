@@ -17,6 +17,7 @@ Frontend for [firebim-api-server](https://github.com/FireBIM-org/firebim-api-ser
 * Make analysis of IFC file using IDS file
 * Build, save, and publish rule elements and rules in RuleBuilder
 * Review, run, and inspect rules against graphs in RuleBook
+* Admin dashboard (admins only): usage overview, users, storage and system status
 
 ## Prerequisites
 
@@ -147,6 +148,16 @@ The webapp also includes two authenticated rule-focused areas:
 * `RuleBook` for loading graphs, checking rule compatibility, running diagnostics, and inspecting graph execution
 
 Both features follow the same Authentik/NextAuth setup and proxy-based API access as the rest of the application.
+
+## Admin dashboard
+
+`/admin` (overview), `/admin/users`, `/admin/users/[id]`, `/admin/storage` and `/admin/system` call the
+API's `/admin/*` routes. Whether the signed-in user is an admin comes from `GET /users/me` (`is_admin`),
+fetched after sign-in under the React Query key `['me']`; the "Admin" nav item and the pages are hidden
+from everyone else. A failed lookup (a 401 included) just means "not an admin": it shows no error toast and
+does not redirect to the login. That flag is cosmetic: the API decides who is an admin (membership of the Authentik group
+`ADMIN_GROUP`, default `firebim-admins`, or the `ADMIN_EMAILS` fallback) and answers 403 otherwise. The code
+lives in `src/features/admin/`.
 
 ## Ontologies page (registry sync)
 
