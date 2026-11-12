@@ -103,6 +103,8 @@ make dev      # starts Next.js with Turbopack at http://localhost:3000
 
 ### Health checks
 
+`/api/livez` is the Kubernetes liveness/readiness path: it always returns 200 while the Next.js server is serving and does not call the API or Authentik.
+
 The local health endpoint is available at [http://localhost:3000/api/health](http://localhost:3000/api/health). It checks the API and Authentik concurrently with a short timeout. A `degraded` response can happen when the backend `/health` endpoint is slow even though the backend is reachable; test the backend directly with:
 
 ```bash
@@ -138,6 +140,19 @@ Browser  ──►  Next.js (port 3000)
 ```
 
 Server-side NextAuth callbacks and the proxy route reach the backend and Authentik directly via the Docker network. The browser-facing Authentik issuer stays on `localhost:9080`, with `extra_hosts` allowing the container to resolve that host binding when needed.
+
+### API proxy
+
+`/api/proxy/…` streams request and response bodies, adds the user's bearer token, forwards `X-Forwarded-For`, `X-Request-ID` and `traceparent`/`tracestate`, and mirrors `Retry-After`, `X-RateLimit-*` and `X-Request-ID` back to the browser. It only ever calls `API_BACKEND_URL`. Optional limits:
+
+| Env var | Default | Meaning |
+|---------|---------|---------|
+| `API_PROXY_TIMEOUT_MS` | `120000` | Max wait for the API's response headers, counted after the request body has been sent (slow uploads don't use it up) → 504 `UPSTREAM_TIMEOUT` |
+| `API_PROXY_MAX_BODY_BYTES` | `524288000` (500 MiB) | Max request body → 413 `PAYLOAD_TOO_LARGE` |
+
+### Telemetry
+
+The Next.js server is traced with OpenTelemetry (`src/instrumentation.ts`), configured by the standard `OTEL_*` env vars: `OTEL_EXPORTER_OTLP_ENDPOINT` (or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`), `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_SERVICE_NAME` (default `firebim-webapp`), `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_TRACES_SAMPLER`/`OTEL_TRACES_SAMPLER_ARG` and `OTEL_SDK_DISABLED`. Without an OTLP endpoint, telemetry is a complete no-op. In Kubernetes these come from the `firebim-otel` ConfigMap.
 
 ## Rule Features
 
