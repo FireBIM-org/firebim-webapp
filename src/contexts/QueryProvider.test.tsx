@@ -42,6 +42,11 @@ async function failQuery(meta?: Record<string, unknown>, status = 500) {
     .catch(() => undefined);
 }
 
+/** The messages toasted so far (ignoring toast options such as a dedupe toastId). */
+function toasted(): unknown[] {
+  return vi.mocked(toast.error).mock.calls.map(([message]) => message);
+}
+
 describe('QueryProvider error toasts', () => {
   beforeEach(() => {
     vi.mocked(toast.error).mockClear();
@@ -49,19 +54,19 @@ describe('QueryProvider error toasts', () => {
 
   it('toasts a failed query', async () => {
     await failQuery();
-    expect(toast.error).toHaveBeenCalledWith('failed with 500');
+    expect(toasted()).toEqual(['failed with 500']);
   });
 
   it('does not toast a query with meta.suppressErrorToast', async () => {
     await failQuery({ suppressErrorToast: true });
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(toasted()).toEqual([]);
   });
 
   it('asks a suppressErrorToast predicate about each error', async () => {
     const notFound = (error: unknown) => (error as AxiosError).response?.status === 404;
     await failQuery({ suppressErrorToast: notFound }, 404);
-    expect(toast.error).not.toHaveBeenCalled();
+    expect(toasted()).toEqual([]);
     await failQuery({ suppressErrorToast: notFound }, 500);
-    expect(toast.error).toHaveBeenCalledWith('failed with 500');
+    expect(toasted()).toEqual(['failed with 500']);
   });
 });
