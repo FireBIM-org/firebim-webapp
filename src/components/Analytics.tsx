@@ -16,7 +16,9 @@ const subscribe = () => () => {};
 export default function Analytics() {
   // Pages are prerendered at build time, when the Docker image still holds a placeholder ID
   // that is only substituted at container start. Decide in the browser, after hydration,
-  // so an empty runtime ID really renders nothing.
+  // so an empty runtime ID really renders nothing. This only works when the component is
+  // rendered in the page body: next/head never renders component children in the browser.
+  // React hoists the async script into <head> and loads it once.
   const isClient = useSyncExternalStore(
     subscribe,
     () => true,
