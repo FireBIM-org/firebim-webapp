@@ -36,6 +36,13 @@ function listen(server: http.Server): Promise<number> {
 }
 
 function upstreamHandler(req: http.IncomingMessage, res: http.ServerResponse) {
+  if (req.url?.startsWith('/early')) {
+    // Answers at once without reading the body, like the API's rate limiter or auth check.
+    received.push({ method: req.method, url: req.url, headers: req.headers, body: '' });
+    res.writeHead(429, { 'content-type': 'application/json', 'retry-after': '3' });
+    res.end(JSON.stringify({ code: 'RATE_LIMITED', detail: 'Rate limit exceeded' }));
+    return;
+  }
   const chunks: Buffer[] = [];
   req.on('data', (chunk: Buffer) => chunks.push(chunk));
   req.on('end', () => {
@@ -119,10 +126,16 @@ beforeAll(async () => {
   const handler = (await import('../pages/api/proxy/[...path]')).default as Handler;
 
   // Minimal stand-in for Next's API resolver: query parsing plus res.status/res.json.
+  // Like Next's route matcher, the catch-all is split on '/' first, then each segment decoded.
   proxy = http.createServer((req, res) => {
-    const url = new URL(req.url ?? '/', 'http://proxy.local');
+    const pathname = (req.url ?? '/').split('?')[0];
     const apiReq = Object.assign(req, {
-      query: { path: url.pathname.replace(/^\/api\/proxy\//, '').split('/') },
+      query: {
+        path: pathname
+          .replace(/^\/api\/proxy\//, '')
+          .split('/')
+          .map((segment) => decodeURIComponent(segment)),
+      },
     }) as unknown as NextApiRequest;
     const apiRes = Object.assign(res, {
       status(code: number) {
@@ -243,6 +256,85 @@ describe('API proxy route', () => {
     expect(res.body).toHaveLength(256 * 1024);
     expect(res.headers['content-length']).toBe(String(256 * 1024));
     expect(res.headers['content-disposition']).toBe('attachment; filename="model.ifc"');
+  });
+
+  it('keeps absolute and protocol-relative paths on the API host', async () => {
+    const evilRequests: (string | undefined)[] = [];
+    const evil = http.createServer((req, res) => {
+      evilRequests.push(req.headers.authorization);
+      res.end('stolen');
+    });
+    const evilPort = await listen(evil);
+    try {
+      for (const path of [
+        `/api/proxy/http:%2F%2F127.0.0.1:${evilPort}%2Fsteal`,
+        `/api/proxy/%2F%2F127.0.0.1:${evilPort}%2Fsteal`,
+        `/api/proxy/https:/127.0.0.1:${evilPort}/steal`,
+      ]) {
+        const res = await request(path);
+        expect(res.status).toBe(200);
+      }
+      expect(evilRequests).toEqual([]);
+      expect(received.map((r) => r.url)).toEqual([
+        `/http%3A%2F%2F127.0.0.1%3A${evilPort}%2Fsteal`,
+        `/%2F%2F127.0.0.1%3A${evilPort}%2Fsteal`,
+        `/https%3A/127.0.0.1%3A${evilPort}/steal`,
+      ]);
+    } finally {
+      evil.closeAllConnections();
+      await new Promise((resolve) => evil.close(resolve));
+    }
+  });
+
+  it('rejects dot segments with 400', async () => {
+    const res = await request('/api/proxy/%2E%2E/admin');
+    expect(res.status).toBe(400);
+    expect(JSON.parse(res.body).code).toBe('INVALID_PATH');
+    expect(received).toHaveLength(0);
+  });
+
+  it('returns an early API answer and closes the connection while the client is uploading', async () => {
+    const agent = new http.Agent({ keepAlive: true });
+    try {
+      const result = await new Promise<{ status?: number; connection?: string; body: string }>(
+        (resolve, reject) => {
+          const req = http.request({
+            host: '127.0.0.1',
+            port: proxyPort,
+            path: '/api/proxy/early',
+            method: 'POST',
+            agent,
+            headers: { 'content-type': 'application/octet-stream', 'content-length': '900' },
+          });
+          // Send only part of the declared body and never finish it.
+          req.write('x'.repeat(100));
+          req.on('error', () => {}); // the proxy closes the socket mid-upload
+          req.on('response', (res) => {
+            const chunks: Buffer[] = [];
+            res.on('data', (chunk: Buffer) => chunks.push(chunk));
+            res.on('end', () => {
+              const body = Buffer.concat(chunks).toString();
+              const timeout = setTimeout(() => reject(new Error('socket left open')), 2000);
+              const done = () => {
+                clearTimeout(timeout);
+                resolve({
+                  status: res.statusCode,
+                  connection: res.headers.connection,
+                  body,
+                });
+              };
+              if (req.socket?.destroyed) done();
+              else req.socket?.once('close', done);
+            });
+          });
+        },
+      );
+      expect(result.status).toBe(429);
+      expect(result.connection).toBe('close');
+      expect(JSON.parse(result.body).code).toBe('RATE_LIMITED');
+    } finally {
+      agent.destroy();
+    }
   });
 
   it('returns 504 when the API does not answer in time', async () => {

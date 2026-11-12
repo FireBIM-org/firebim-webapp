@@ -10,6 +10,7 @@ import {
   DEFAULT_PROXY_MAX_BODY_BYTES,
   DEFAULT_PROXY_TIMEOUT_MS,
   buildUpstreamHeaders,
+  buildUpstreamUrl,
   exceedsBodyLimit,
   hasRequestBody,
   limitBody,
@@ -40,9 +41,18 @@ export const config = {
   },
 };
 
-function sendPayloadTooLarge(res: NextApiResponse) {
-  // The client may still be sending; close the connection instead of draining the rest.
+/**
+ * For responses sent while the client may still be uploading: nothing reads the rest of
+ * the body any more, so close the connection afterwards instead of leaving the client
+ * stalled on a paused keep-alive socket (or draining up to MAX_BODY_BYTES for nothing).
+ */
+function closeAfterResponse(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Connection', 'close');
+  res.once('finish', () => req.destroy());
+}
+
+function sendPayloadTooLarge(req: NextApiRequest, res: NextApiResponse) {
+  closeAfterResponse(req, res);
   res.status(413).json({
     code: 'PAYLOAD_TOO_LARGE',
     detail: `Request body exceeds the ${MAX_BODY_BYTES} byte limit`,
@@ -68,13 +78,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (exceedsBodyLimit(req.headers['content-length'], MAX_BODY_BYTES)) {
-    return sendPayloadTooLarge(res);
+    return sendPayloadTooLarge(req, res);
   }
 
-  // Build the upstream URL from the catch-all segments
+  // Build the upstream URL from the catch-all segments. They are appended to the backend
+  // URL, not resolved against it, so the request (and its bearer token) stays on the API.
   const { path } = req.query;
-  const upstream = Array.isArray(path) ? path.join('/') : (path ?? '');
-  const url = new URL(upstream, API_BACKEND);
+  const segments = Array.isArray(path) ? path : path ? [path] : [];
+  const url = buildUpstreamUrl(API_BACKEND, segments);
+  if (!url) {
+    return res.status(400).json({ code: 'INVALID_PATH', detail: 'Invalid API path' });
+  }
 
   // Forward query-string parameters
   const qs = req.url?.split('?')[1];
@@ -150,6 +164,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         span.setAttribute('http.response.status_code', upstreamRes.status);
         if (upstreamRes.status >= 500) span.setStatus({ code: SpanStatusCode.ERROR });
 
+        // The API answered before reading the whole body (e.g. 429, 401, 413, 507).
+        if (body && !req.complete) {
+          closeAfterResponse(req, res);
+        }
+
         // Mirror status and relevant headers
         res.status(upstreamRes.status);
         for (const [name, value] of pickResponseHeaders(upstreamRes.headers)) {
@@ -175,7 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return;
         }
         if (bodyTooLarge) {
-          return sendPayloadTooLarge(res);
+          return sendPayloadTooLarge(req, res);
         }
         if (timedOut) {
           console.error(`Proxy timeout after ${PROXY_TIMEOUT_MS} ms: ${method} ${url.pathname}`);

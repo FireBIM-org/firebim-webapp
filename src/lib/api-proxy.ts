@@ -43,6 +43,20 @@ export function parsePositiveInt(value: string | undefined, fallback: number): n
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+/**
+ * Builds the API URL for the proxied catch-all path segments (already decoded by Next).
+ * Each segment is re-encoded and appended to the backend URL, never resolved against it,
+ * so a segment such as `http://evil.example` or `//evil.example` cannot change the host.
+ * Returns null for dot segments or anything that would leave the backend origin.
+ */
+export function buildUpstreamUrl(backend: string, segments: readonly string[]): URL | null {
+  if (segments.some((segment) => segment === '.' || segment === '..')) return null;
+  const base = new URL(backend);
+  const prefix = base.pathname.replace(/\/+$/, '');
+  const url = new URL(`${base.origin}${prefix}/${segments.map(encodeURIComponent).join('/')}`);
+  return url.origin === base.origin ? url : null;
+}
+
 function firstHeader(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }

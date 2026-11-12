@@ -4,6 +4,7 @@ import {
   PayloadTooLargeError,
   buildForwardedFor,
   buildUpstreamHeaders,
+  buildUpstreamUrl,
   exceedsBodyLimit,
   hasRequestBody,
   limitBody,
@@ -22,6 +23,46 @@ async function collect(source: AsyncIterable<Uint8Array>): Promise<string> {
 async function* chunks(...parts: string[]): AsyncGenerator<Uint8Array> {
   for (const part of parts) yield Buffer.from(part);
 }
+
+describe('buildUpstreamUrl', () => {
+  const backend = 'http://firebim-api:8000';
+
+  it('appends the segments to the backend URL', () => {
+    expect(buildUpstreamUrl(backend, ['ifc-models', '42', 'download'])?.href).toBe(
+      'http://firebim-api:8000/ifc-models/42/download',
+    );
+    expect(buildUpstreamUrl(`${backend}/`, ['users', 'me'])?.href).toBe(
+      'http://firebim-api:8000/users/me',
+    );
+    expect(buildUpstreamUrl(`${backend}/prefix/`, ['users'])?.href).toBe(
+      'http://firebim-api:8000/prefix/users',
+    );
+  });
+
+  it('re-encodes decoded segments', () => {
+    expect(buildUpstreamUrl(backend, ['lexicon', 'profiles', 'a b/c?d#e'])?.pathname).toBe(
+      '/lexicon/profiles/a%20b%2Fc%3Fd%23e',
+    );
+  });
+
+  it('never leaves the backend origin for absolute or protocol-relative segments', () => {
+    for (const segments of [
+      ['http://evil.example/steal'],
+      ['//evil.example/steal'],
+      ['https:', 'evil.example', 'x'],
+      ['', '', 'evil.example', 'x'],
+      ['\\\\evil.example\\x'],
+    ]) {
+      const url = buildUpstreamUrl(backend, segments);
+      expect(url?.origin).toBe('http://firebim-api:8000');
+    }
+  });
+
+  it('rejects dot segments', () => {
+    expect(buildUpstreamUrl(backend, ['..', 'admin'])).toBeNull();
+    expect(buildUpstreamUrl(`${backend}/prefix`, ['models', '.', 'x'])).toBeNull();
+  });
+});
 
 describe('parsePositiveInt', () => {
   it('falls back for unset, empty, invalid and non-positive values', () => {
