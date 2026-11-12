@@ -24,7 +24,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const router = useRouter();
 
   const navigation: NavItem[] = [
@@ -60,7 +60,7 @@ const Layout = ({ children, title = 'FireBIM App' }: LayoutProps) => {
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navigation.map((item) => {
                   if (!user && item.requiresAuth) return null;
-                  if (item.requiresAdmin && !user?.isAdmin) return null;
+                  if (item.requiresAdmin && !isAdmin) return null;
 
                   return (
                     <Link

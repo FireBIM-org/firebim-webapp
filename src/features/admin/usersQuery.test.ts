@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_USERS_STATE,
+  USERS_SEARCH_MAX_LENGTH,
   nextSort,
   pageCount,
+  pageRange,
   parseUsersQuery,
   toUsersParams,
   toUsersQuery,
@@ -37,6 +39,16 @@ describe('parseUsersQuery', () => {
   it('defaults the order to the column default', () => {
     expect(parseUsersQuery({ sort: 'username' }).order).toBe('asc');
     expect(parseUsersQuery({ sort: 'last_seen_at' }).order).toBe('desc');
+  });
+});
+
+describe('search length', () => {
+  it('clamps a long search to the API maxLength', () => {
+    const long = 'a'.repeat(USERS_SEARCH_MAX_LENGTH + 50);
+    expect(parseUsersQuery({ q: long }).search).toHaveLength(USERS_SEARCH_MAX_LENGTH);
+    expect(toUsersParams({ ...DEFAULT_USERS_STATE, search: ` ${long} ` }).search).toHaveLength(
+      USERS_SEARCH_MAX_LENGTH,
+    );
   });
 });
 
@@ -101,5 +113,21 @@ describe('pageCount', () => {
     expect(pageCount(0, 25)).toBe(1);
     expect(pageCount(25, 25)).toBe(1);
     expect(pageCount(26, 25)).toBe(2);
+  });
+});
+
+describe('pageRange', () => {
+  it('shows the rows of the current page', () => {
+    expect(pageRange(1, 60, 25)).toEqual({ page: 1, pages: 3, first: 1, last: 25 });
+    expect(pageRange(3, 60, 25)).toEqual({ page: 3, pages: 3, first: 51, last: 60 });
+  });
+
+  it('shows no rows for an empty result', () => {
+    expect(pageRange(1, 0, 25)).toEqual({ page: 1, pages: 1, first: 0, last: 0 });
+  });
+
+  it('clamps a page past the end to the last page', () => {
+    expect(pageRange(99, 25, 25)).toEqual({ page: 1, pages: 1, first: 1, last: 25 });
+    expect(pageRange(99, 0, 25)).toEqual({ page: 1, pages: 1, first: 0, last: 0 });
   });
 });

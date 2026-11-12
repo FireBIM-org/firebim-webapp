@@ -9,14 +9,18 @@ export interface AuthUser {
   username: string;
   email: string;
   is_active: boolean;
-  /** From GET /users/me (`is_admin`); false until that answer arrives. Cosmetic only: the API enforces admin. */
-  isAdmin: boolean;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  /** True while a signed-in user's GET /users/me is still in flight, i.e. `user.isAdmin` is not known yet. */
+  /**
+   * From GET /users/me (`is_admin`); false until that answer arrives and when it fails. Cosmetic
+   * only: the API enforces admin. Kept out of `user` so that `user` stays the same object when the
+   * answer arrives, and effects keyed on `user` do not run again.
+   */
+  isAdmin: boolean;
+  /** True while a signed-in user's GET /users/me is still in flight, i.e. `isAdmin` is not known yet. */
   isAdminLoading: boolean;
   login: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
@@ -25,9 +29,11 @@ interface AuthContextType {
 /** GET /users/me, shared by every component that needs the API's view of the signed-in user. */
 export const meQueryOptions = queryOptions({
   queryKey: ['me'],
-  queryFn: () => apiClient.getCurrentUser(),
+  // A background lookup: on any failure (a 401 included) the user is simply treated as a
+  // non-admin, without an error toast or a re-login redirect. Session expiry is handled by
+  // next-auth's refresh error below and by the pages' own API calls.
+  queryFn: () => apiClient.getCurrentUser({ skipAuthRedirect: true }),
   staleTime: 5 * 60 * 1000,
-  // A background lookup: on failure the user is simply treated as a non-admin, no error toast.
   meta: { suppressErrorToast: true },
 });
 
@@ -52,11 +58,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         username: session.user.username ?? session.user.name ?? '',
         email: session.user.email ?? '',
         is_active: true,
-        isAdmin,
       };
     }
     return null;
-  }, [session, status, isAdmin]);
+  }, [session, status]);
 
   useEffect(() => {
     if (session?.error === 'RefreshAccessTokenError') {
@@ -83,6 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         isLoading: status === 'loading',
+        isAdmin,
         isAdminLoading: isAuthenticated && meLoading,
         login,
         logout,

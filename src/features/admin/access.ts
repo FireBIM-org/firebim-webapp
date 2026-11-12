@@ -12,10 +12,11 @@ export type AdminAccess = 'loading' | 'login' | 'forbidden' | 'allowed';
 export function adminAccess(state: {
   sessionLoading: boolean;
   adminLoading: boolean;
-  user: { isAdmin: boolean } | null;
+  signedIn: boolean;
+  isAdmin: boolean;
 }): AdminAccess {
   if (state.sessionLoading) return 'loading';
-  if (!state.user) return 'login';
+  if (!state.signedIn) return 'login';
   if (state.adminLoading) return 'loading';
-  return state.user.isAdmin ? 'allowed' : 'forbidden';
+  return state.isAdmin ? 'allowed' : 'forbidden';
 }

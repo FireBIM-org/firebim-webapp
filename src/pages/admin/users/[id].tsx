@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
@@ -24,7 +23,7 @@ import {
   formatNumber,
   formatRelativeTime,
 } from '../../../features/admin/format';
-import { useAdminUser, useSetUserActive } from '../../../features/admin/hooks';
+import { isNotFound, useAdminUser, useSetUserActive } from '../../../features/admin/hooks';
 import { useRequireAdmin } from '../../../hooks/useRequireAdmin';
 
 export default function AdminUserPage() {
@@ -37,7 +36,7 @@ export default function AdminUserPage() {
 
   if (!user) return <AdminLoading />;
 
-  const notFound = isAxiosError(error) && error.response?.status === 404;
+  const notFound = isNotFound(error);
 
   return (
     <AdminLayout

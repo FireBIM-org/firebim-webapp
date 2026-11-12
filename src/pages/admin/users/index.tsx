@@ -19,9 +19,9 @@ import {
 } from '../../../features/admin/format';
 import { useAdminUsers } from '../../../features/admin/hooks';
 import {
-  USERS_PAGE_SIZE,
+  USERS_SEARCH_MAX_LENGTH,
   nextSort,
-  pageCount,
+  pageRange,
   parseUsersQuery,
   toUsersParams,
   toUsersQuery,
@@ -64,7 +64,18 @@ function UsersTable() {
   const router = useRouter();
   const state = parseUsersQuery(router.query);
   const [searchInput, setSearchInput] = useState(state.search);
-  const { data, isLoading, isFetching, isError, refetch } = useAdminUsers(
+  // ?q as last seen in the URL, and the search this table last wrote there itself. When ?q changes
+  // to anything else, the change came from outside (the Users tab, back/forward): the search box
+  // follows it instead of writing its old text back.
+  const [seenSearch, setSeenSearch] = useState(state.search);
+  const [writtenSearch, setWrittenSearch] = useState<string | null>(null);
+  if (state.search !== seenSearch) {
+    setSeenSearch(state.search);
+    setWrittenSearch(null);
+    if (state.search !== writtenSearch) setSearchInput(state.search);
+  }
+
+  const { data, isLoading, isFetching, isPlaceholderData, isError, refetch } = useAdminUsers(
     toUsersParams(state),
     true,
   );
@@ -73,20 +84,25 @@ function UsersTable() {
 
   // Debounce typing into the URL (and so into the query key). Sorting meanwhile restarts the
   // timer with the new sort, so neither change is lost.
-  const { search, sort, order } = state;
+  const { search, page, sort, order } = state;
   useEffect(() => {
     if (searchInput.trim() === search.trim()) return;
-    const timer = setTimeout(
-      () => replaceTableState(router, { search: searchInput, page: 1, sort, order }),
-      SEARCH_DEBOUNCE_MS,
-    );
+    const timer = setTimeout(() => {
+      setWrittenSearch(searchInput.trim());
+      replaceTableState(router, { search: searchInput, page: 1, sort, order });
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [searchInput, search, sort, order, router]);
 
   const total = data?.total ?? 0;
-  const pages = pageCount(total);
-  const first = total === 0 ? 0 : (state.page - 1) * USERS_PAGE_SIZE + 1;
-  const last = Math.min(state.page * USERS_PAGE_SIZE, total);
+  const range = pageRange(page, total);
+
+  // A page past the end (an old bookmark, or users deactivated or filtered away meanwhile): go to
+  // the last page that exists.
+  const pastEnd = !!data && !isPlaceholderData && page > range.pages;
+  useEffect(() => {
+    if (pastEnd) replaceTableState(router, { search, page: range.pages, sort, order });
+  }, [pastEnd, search, range.pages, sort, order, router]);
 
   return (
     <div>
@@ -102,6 +118,7 @@ function UsersTable() {
           id="admin-user-search"
           type="search"
           value={searchInput}
+          maxLength={USERS_SEARCH_MAX_LENGTH}
           onChange={(event) => setSearchInput(event.target.value)}
           placeholder="Search username or email"
           className="block w-full rounded-md border-gray-300 pl-10 text-sm shadow-sm focus:border-orange-500 focus:ring-orange-500"
@@ -223,21 +240,21 @@ function UsersTable() {
           <p>
             {total === 0
               ? 'No users'
-              : `Showing ${formatNumber(first)}–${formatNumber(last)} of ${formatNumber(total)}`}
+              : `Showing ${formatNumber(range.first)}–${formatNumber(range.last)} of ${formatNumber(total)}`}
           </p>
           <div className="flex items-center gap-3">
             <span>
-              Page {formatNumber(state.page)} of {formatNumber(pages)}
+              Page {formatNumber(range.page)} of {formatNumber(range.pages)}
             </span>
             <PageButton
-              disabled={state.page <= 1}
-              onClick={() => update({ ...state, page: Math.min(state.page - 1, pages) })}
+              disabled={range.page <= 1}
+              onClick={() => update({ ...state, page: range.page - 1 })}
             >
               Previous
             </PageButton>
             <PageButton
-              disabled={state.page >= pages}
-              onClick={() => update({ ...state, page: state.page + 1 })}
+              disabled={range.page >= range.pages}
+              onClick={() => update({ ...state, page: range.page + 1 })}
             >
               Next
             </PageButton>

@@ -3,6 +3,8 @@ import { isAxiosError } from 'axios';
 import React, { ReactNode } from 'react';
 import { toast } from 'react-toastify';
 
+import { isErrorToastSuppressed } from '../utils/query-meta';
+
 /**
  * Extracts a human-readable error message from an API error.
  * Returns null for 401s — those are handled by the auth interceptor (re-login redirect).
@@ -30,7 +32,7 @@ const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
       // Background queries (e.g. ['me']) opt out of the toast with meta.suppressErrorToast.
-      if (query.meta?.suppressErrorToast) return;
+      if (isErrorToastSuppressed(error, query.meta)) return;
       const message = getApiErrorMessage(error);
       if (message) toast.error(message);
     },

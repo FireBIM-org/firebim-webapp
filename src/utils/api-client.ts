@@ -4,6 +4,13 @@ import { components } from '../types/api';
 
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST ?? '';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Don't redirect to the login on a 401 (background lookups that may fail quietly). */
+    skipAuthRedirect?: boolean;
+  }
+}
+
 // Define User type based on the API schema
 export type User = components['schemas']['User'];
 
@@ -179,7 +186,7 @@ export class ApiClient {
             error.response?.status === 401 &&
             (error.config?.url as string | undefined)?.startsWith('/api/proxy/');
 
-          if (isProxy401 && !isSigningIn) {
+          if (isProxy401 && !error.config?.skipAuthRedirect && !isSigningIn) {
             isSigningIn = true;
             try {
               const { signIn } = await import('next-auth/react');
@@ -203,8 +210,8 @@ export class ApiClient {
   }
 
   // Get user profile from API server (goes through proxy which adds auth)
-  async getCurrentUser(): Promise<User> {
-    const response = await this.axiosInstance.get('/api/proxy/users/me');
+  async getCurrentUser({ skipAuthRedirect = false } = {}): Promise<User> {
+    const response = await this.axiosInstance.get('/api/proxy/users/me', { skipAuthRedirect });
     return response.data;
   }
 

@@ -12,9 +12,14 @@ import { useRequireAuth } from './useRequireAuth';
  */
 export function useRequireAdmin(): { user: AuthUser | null; isLoading: boolean } {
   const { user, isLoading } = useRequireAuth();
-  const { isAdminLoading } = useAuth();
+  const { isAdmin, isAdminLoading } = useAuth();
   const router = useRouter();
-  const access = adminAccess({ sessionLoading: isLoading, adminLoading: isAdminLoading, user });
+  const access = adminAccess({
+    sessionLoading: isLoading,
+    adminLoading: isAdminLoading,
+    signedIn: !!user,
+    isAdmin,
+  });
 
   useEffect(() => {
     if (access === 'forbidden') {

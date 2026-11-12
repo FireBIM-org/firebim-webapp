@@ -154,7 +154,8 @@ Both features follow the same Authentik/NextAuth setup and proxy-based API acces
 `/admin` (overview), `/admin/users`, `/admin/users/[id]`, `/admin/storage` and `/admin/system` call the
 API's `/admin/*` routes. Whether the signed-in user is an admin comes from `GET /users/me` (`is_admin`),
 fetched after sign-in under the React Query key `['me']`; the "Admin" nav item and the pages are hidden
-from everyone else. That flag is cosmetic: the API decides who is an admin (membership of the Authentik group
+from everyone else. A failed lookup (a 401 included) just means "not an admin": it shows no error toast and
+does not redirect to the login. That flag is cosmetic: the API decides who is an admin (membership of the Authentik group
 `ADMIN_GROUP`, default `firebim-admins`, or the `ADMIN_EMAILS` fallback) and answers 403 otherwise. The code
 lives in `src/features/admin/`.
 

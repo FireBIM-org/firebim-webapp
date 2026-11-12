@@ -1,9 +1,21 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 
 import adminApi, { adminKeys, type AdminUsersParams } from './api';
 
 // Admin numbers change slowly and every call costs the API a few aggregate queries.
 const STALE_TIME = 30 * 1000;
+
+export function isNotFound(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 404;
+}
+
+/** The app's default retry policy (one retry, none for a 401), but an unknown id is not retried. */
+export function retryUnlessNotFound(failureCount: number, error: unknown): boolean {
+  if (isNotFound(error)) return false;
+  if (isAxiosError(error) && error.response?.status === 401) return false;
+  return failureCount < 1;
+}
 
 /** Pass `enabled: !!user` from useRequireAdmin so nothing is fetched before admin is confirmed. */
 export function useAdminOverview(enabled: boolean) {
@@ -32,6 +44,9 @@ export function useAdminUser(id: string | undefined, enabled: boolean) {
     queryFn: () => adminApi.getUser(id as string),
     staleTime: STALE_TIME,
     enabled: enabled && !!id,
+    // An unknown id stays unknown: no retry, and the page says so inline instead of a toast.
+    retry: retryUnlessNotFound,
+    meta: { suppressErrorToast: isNotFound },
   });
 }
 
