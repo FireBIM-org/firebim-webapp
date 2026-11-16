@@ -37,8 +37,8 @@ importers:
         specifier: ^2.4.1
         version: 2.4.1
       '@ifc-lite/renderer':
-        specifier: ^1.41.1
-        version: 1.41.1
+        specifier: ^7.1.0
+        version: 7.1.0(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.11(tailwindcss@4.3.3)
@@ -260,14 +260,14 @@ packages:
   '@ifc-lite/data@2.5.0':
     resolution: {integrity: sha512-LQGbld27TiH+nEuOCMcW3lXrsN9n4eDMCsz48821eNtBRN5viV8UksrtSouvDzS39hnKap19ysDT/vy5nOC03A==}
 
-  '@ifc-lite/data@3.2.3':
-    resolution: {integrity: sha512-nrI4TT6fY/d63xnfbogsQW6/oJq22Os0aVHznJOwC7wx6IACrimaiTDEw7BTVXDHuFGEHAs+1wXVSroKmRP26Q==}
+  '@ifc-lite/data@6.4.0':
+    resolution: {integrity: sha512-TaWu3ZCza02xmufl/KUq2ppp7z805NkW4a3ggGhf6lLebN7BqInZaJEF77S/kDwu1G4Xv5imrusJEShj6gGSJg==}
 
   '@ifc-lite/encoding@1.14.6':
     resolution: {integrity: sha512-B3zTnUm8mQBa6kXNy7g2ad+WSvIChk8VVj87oFtmuMnipj6Kd9iwUGNVL3R/WEYhWgKSUkkXYTUvaDehI+eFqQ==}
 
-  '@ifc-lite/encoding@1.16.0':
-    resolution: {integrity: sha512-IUTJTTYjDrfmkNjA43vCTY1d2Kcmdh2Ide2yLeMRkeEMPAhwf/ElPmaL0xQxUbWcbneWevEG4cvN1sjAr58XAQ==}
+  '@ifc-lite/encoding@2.4.0':
+    resolution: {integrity: sha512-nrwbL4rvjKH7MR+YWVuV+rYj2oGbzW3QM5UfHYPgZWpA1koBDU1kH3mqTeaL//yxYV7cQmx2eKDEP66IyAzjbQ==}
 
   '@ifc-lite/geometry@1.18.5':
     resolution: {integrity: sha512-LVZ2D2gsLipyANCD2jBtBc3fSHmQ9KnTTdO4oW3Ws5o49oDP9cqFWOkANr2SekKpgE0hNfTQ1+o6zhKfIHI5Rw==}
@@ -277,11 +277,14 @@ packages:
       '@ifc-lite/wasm-threaded':
         optional: true
 
-  '@ifc-lite/geometry@3.8.0':
-    resolution: {integrity: sha512-Q1g45i39KW8gYTmHAUpeC/ObN5Zmhek9TiXXp0tgd316yWlAaEqJxkZZjtsvlQS30WbKDVwd75JMCNRxpXcV1Q==}
+  '@ifc-lite/geometry@8.1.0':
+    resolution: {integrity: sha512-sYlg1yVB/vxVYijuANwllQfibzSrIZV7gVKTRYpcL9YRMlhXSsUhFSDF79vs2uXSeE6Ipx25vEoLNl1J5ijp+A==}
 
   '@ifc-lite/ifcx@2.1.1':
     resolution: {integrity: sha512-aFpLhYYoblOQU73+0XcJ+7Qe1uBHLgiyUym11LJmvlkeYyvkLGCCtZguuV16l2Ap9ICiyNEnIPMjIkSKdshVoQ==}
+
+  '@ifc-lite/load-trace@0.3.0':
+    resolution: {integrity: sha512-PJhQ/W13JeZaNubVIZeX7hqnSDbt7DKzB2P7NFR15vI22qmvTaL7dqAljcpBeAfEqI67C1kMrjyxuc8frHi15A==}
 
   '@ifc-lite/mutations@1.15.0':
     resolution: {integrity: sha512-WB9jz9zcSt7+jQ/XCHwGBsQTdHwV6Tg58Ps3W6bZ21XMlwbxS2JHr3qcpVfcPV8O7SQPl1mCg/dFdI3kgPHXzA==}
@@ -292,17 +295,20 @@ packages:
   '@ifc-lite/pointcloud@0.3.1':
     resolution: {integrity: sha512-wMLXmJFUfZPT5SrDDHsw0r3w2vk2+owKDDD28+WTaOecimpmOTcYW6G7HfRnLEdp99/UeFLIQz0gSM42VLURgA==}
 
-  '@ifc-lite/renderer@1.41.1':
-    resolution: {integrity: sha512-P8TpfY2eM6LDw3yZbLfdFWmkh4La+NsKNZ/Lxg6DfctG3BuCmGCE1GZ5ku8IGPVFh5qhfY+fYodhgh3U0Q4hbg==}
+  '@ifc-lite/renderer@7.1.0':
+    resolution: {integrity: sha512-deFsPWf21n4V6uXi3FfhPdxKZoAD3pHTAFdbauDykO/j+//Ai4v6Z2ztBLWbuik/B26WbMX9TAtgxFrTp6NVow==}
 
-  '@ifc-lite/spatial@1.14.13':
-    resolution: {integrity: sha512-45602hI2yLq6B1B4Qvkvwzx+cRSeyTi6MYevitguk/qEWmTccYscdlLpsmhJrdaMb6oWo4MYD157n886qAFNzA==}
+  '@ifc-lite/spatial@1.15.1':
+    resolution: {integrity: sha512-+nCrjF+SEkL2iDq1yRapBWpHtK3n6qmF4hxrvkM2LfK/6Gr7DcX0agL0WcLsbz6iLAq+JLk1JkdWQIuUDDSMxg==}
+
+  '@ifc-lite/wasm-lifecycle@0.2.0':
+    resolution: {integrity: sha512-PEmr5+DfXMnjZLzeupQtiW2b7RcxjmpgLvE73lqnzeq+DUQg9dOrfkyatOQOoLW+1r3gMD3CaOFJBIB7N6L5Kg==}
 
   '@ifc-lite/wasm@1.16.10':
     resolution: {integrity: sha512-wK2Ts522X28uEGcDJC/Qw9gXAllz3DBmKLU5XcIDJc47lHJZb65IMPLHP0Kyyh/HBqxWAU+qh1mqlkBD5VhtdQ==}
 
-  '@ifc-lite/wasm@4.4.0':
-    resolution: {integrity: sha512-bqx2pZ568ibt4TP7XSIU4koYx63mZQsx+RnMjqG9L2jrP2KwSHcIp2OXSIUeyCRo9xK14rkErkJdfUfafA+gnA==}
+  '@ifc-lite/wasm@12.2.0':
+    resolution: {integrity: sha512-REOyQ/iQGQEh4aV8aPYJudiT147+Kr93z9il2OTYYJuAVZH8RRb6BfZ8p1yLFXen/9U6qlAloB0I+/jtMAdaSw==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -482,12 +488,56 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@napi-rs/wasm-runtime@1.2.6':
-    resolution: {integrity: sha512-mRyDmEw9/fCDXCGfL1sbgIw/GUK0PVxRW4YwgPN61F3LQ+fSyoBFarJVzgGyhF6kRzEQZ0FejDqm4WLXSeqQmw==}
+  '@luma.gl/core@9.4.2':
+    resolution: {integrity: sha512-VFol6FUSHQeYR40NrkCM/mkP5DX7aI8pcDewxI8DBjtrcP4+ZJiJwnxWZnsMBzM4RuuvmDoHkPWCxj6Ob9yo+w==}
+
+  '@luma.gl/engine@9.4.2':
+    resolution: {integrity: sha512-gBAcn+b1jOwE4pDF5zbuzMxCa/KGY3Q2Gq0gNUPU1AZHNk4aDgOEQaY2sqMsaoGHkDXB+pxneJQPw5c6Q5mnHA==}
+    peerDependencies:
+      '@luma.gl/core': ~9.4.0
+      '@luma.gl/shadertools': ~9.4.0
+
+  '@luma.gl/experimental@9.4.2':
+    resolution: {integrity: sha512-i3m/THlWmk+GxVw7A1UAMAoMZECZpUm2WvIDXAAe2U9IQ0mnOYbo9aDQcFcrCcnxMpROSgk0lrjddca4Z0uC2Q==}
+    peerDependencies:
+      '@luma.gl/core': ~9.4.0
+      '@luma.gl/engine': ~9.4.0
+      '@luma.gl/shadertools': ~9.4.0
+
+  '@luma.gl/gpgpu@9.4.2':
+    resolution: {integrity: sha512-LoEqoViPZqMHqQzvq/txFuOLsxI6sn8xmv+IZyovRFBqcWaV184PE/8Ieufww0pjVyJMfubhUCQmGuGrOME8oA==}
+    peerDependencies:
+      '@luma.gl/core': ~9.4.0
+      '@luma.gl/engine': ~9.4.0
+      '@luma.gl/shadertools': ~9.4.0
+      '@luma.gl/webgpu': ~9.4.0
+
+  '@luma.gl/shadertools@9.4.2':
+    resolution: {integrity: sha512-0/6pLZSfnQnvcWdYePKKSwVet+gFtAAnKeGXNfxpgp3I8E3WsF/SbD6oEzgU7jdnRqONwGsoACWNpQHO0zZvIQ==}
+    peerDependencies:
+      '@luma.gl/core': ~9.4.0
+
+  '@luma.gl/splats@9.4.2':
+    resolution: {integrity: sha512-MbevszBEJ2W5P0yisbmGwAihwH3NzfaL/JuO851OnhqG/wk3sbIpS1PbaeMlHoljjBv5OBfe7sJKVRD/IsebAw==}
+
+  '@luma.gl/webgpu@9.4.2':
+    resolution: {integrity: sha512-24gDOmLyL81fVHxn+UXajnYN5jVln7XgB9fvobc1Yh3PAtXjlcAkmVTqYRvULVGeEamuqvqPDscAkaK/T+R1iQ==}
+    peerDependencies:
+      '@luma.gl/core': ~9.4.0
+      '@luma.gl/shadertools': ~9.4.0
+
+  '@math.gl/core@4.1.0':
+    resolution: {integrity: sha512-FrdHBCVG3QdrworwrUSzXIaK+/9OCRLscxI2OUy6sLOHyHgBMyfnEGs99/m3KNvs+95BsnQLWklVfpKfQzfwKA==}
+
+  '@math.gl/types@4.1.0':
+    resolution: {integrity: sha512-clYZdHcmRvMzVK5fjeDkQlHUzXQSNdZ7s4xOqC3nJPgz4C/TZkUecTo9YS4PruZqtDda/ag4erndP0MIn40dGA==}
+
+  '@napi-rs/wasm-runtime@1.2.7':
+    resolution: {integrity: sha512-zJccwplOAbgfZju95IUHazLnx9RAPtPN2YGJXI6UbrgeaR9QfPjGrQL6ERkSAtnVCA4Q+83ApGyaX5zdpCaKkQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
     peerDependencies:
-      '@emnapi/core': ^1.7.1 || 2.0.0-beta.2
-      '@emnapi/runtime': ^1.7.1 || 2.0.0-beta.2
+      '@emnapi/core': ^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3
+      '@emnapi/runtime': ^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3
 
   '@next/env@16.4.3':
     resolution: {integrity: sha512-a7tz1QCcWWkwC/rPJcPMJk/UNRu9CFhDd3OHYE5hddbJrs8BqRTalxI6GlKCWEGzRLHN+S/B7a4PAHCtm25aBQ==}
@@ -794,6 +844,15 @@ packages:
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
 
+  '@probe.gl/env@4.1.2':
+    resolution: {integrity: sha512-KIcdjrEiEZVIGX9nh7pZSmTMIKrd+wCb09gyXqpYYI4hs9WMqrQHvKZ7KD8ASutf6kwARwgd4WNQn8aucLSz3g==}
+
+  '@probe.gl/log@4.1.2':
+    resolution: {integrity: sha512-2LqSq4CHhc/HJQasHMPOzA6c7rprlGz8CCREGebo19jxcuKdvXQo0DEmlfId076U6UldMp6jGhWvDHEFLX111Q==}
+
+  '@probe.gl/stats@4.1.2':
+    resolution: {integrity: sha512-Hqc0UIHd0IZ2+JbovzTz7lYG7CY9D8yCB81zyP92Zl9UDSPcw2cLbTySW14keAQeAo1sjGjUw0+KHxr0Y2h/hA==}
+
   '@react-aria/focus@3.21.5':
     resolution: {integrity: sha512-V18fwCyf8zqgJdpLQeDU5ZRNd9TeOfBbhLgmX77Zr5ae9XwaoJ1R3SFJG1wCJX60t34AW+aLZSEEK+saQElf3Q==}
     peerDependencies:
@@ -936,8 +995,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rolldown/pluginutils@1.0.1':
-    resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+  '@rolldown/pluginutils@1.1.0':
+    resolution: {integrity: sha512-K+NU2HDCEem4sClgHH4ZZXwdJeNFkJo+hRk479DIwdIviAPN2hFJH1KHHwg8CxHQXvi0M5XY4deTXINfIiSG6w==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -1065,8 +1124,8 @@ packages:
   '@tauri-apps/api@2.11.0':
     resolution: {integrity: sha512-7CinYODhky9lmO23xHnUFv0Xt43fbtWMyxZcLcRBlFkcgXKuEirBvHpmtJ89YMhyeGcq20Wuc47Fa4XjyniywA==}
 
-  '@tauri-apps/api@2.11.1':
-    resolution: {integrity: sha512-M2FPuYND2m+wh5hfW9ZpSdxMPdEJovPBWwoHJmwUpysTYNHaOkVFN419m/K0LIgjb/7KU2vBgsUepJWugQCvAA==}
+  '@tauri-apps/api@2.12.4':
+    resolution: {integrity: sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==}
 
   '@tybys/wasm-util@0.10.4':
     resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
@@ -1100,6 +1159,9 @@ packages:
 
   '@types/node@26.6.6':
     resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
+
+  '@types/offscreencanvas@2019.7.3':
+    resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
 
   '@types/react-dom@19.3.0':
     resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
@@ -1137,6 +1199,9 @@ packages:
 
   '@vitest/utils@4.1.11':
     resolution: {integrity: sha512-zTCVGpyFsGWBhllOyKlTw/vnr6D9qxsfSDyfbyZmTyjHw5N/VuvzHpHoQjm2ZJzn4RJgx5w4r7V0er69CmLgPQ==}
+
+  '@webgpu/types@0.1.74':
+    resolution: {integrity: sha512-lgiI4hbuLcI9unnm2cL/tvCaQU45dp0xcLWJh5uB/9MBGvIA4F8XIk7nSiBeg+K4xWGYwgZKn80LmERI5CxoTA==}
 
   '@xyflow/react@12.12.0':
     resolution: {integrity: sha512-74oXI0Rgm1Eu33cHQAd74J6oVgCH9mbFyTVQbsGgp2kmWwh0HdtBr2VP04z8mbPD+M/xO69nqG5dDEt7/EN2rQ==}
@@ -2140,13 +2205,13 @@ snapshots:
 
   '@ifc-lite/data@2.5.0': {}
 
-  '@ifc-lite/data@3.2.3':
+  '@ifc-lite/data@6.4.0':
     dependencies:
-      '@ifc-lite/encoding': 1.16.0
+      '@ifc-lite/encoding': 2.4.0
 
   '@ifc-lite/encoding@1.14.6': {}
 
-  '@ifc-lite/encoding@1.16.0': {}
+  '@ifc-lite/encoding@2.4.0': {}
 
   '@ifc-lite/geometry@1.18.5':
     dependencies:
@@ -2155,18 +2220,22 @@ snapshots:
     optionalDependencies:
       '@tauri-apps/api': 2.11.0
 
-  '@ifc-lite/geometry@3.8.0':
+  '@ifc-lite/geometry@8.1.0':
     dependencies:
-      '@ifc-lite/data': 3.2.3
-      '@ifc-lite/wasm': 4.4.0
+      '@ifc-lite/data': 6.4.0
+      '@ifc-lite/load-trace': 0.3.0
+      '@ifc-lite/wasm': 12.2.0
+      '@ifc-lite/wasm-lifecycle': 0.2.0
     optionalDependencies:
-      '@tauri-apps/api': 2.11.1
+      '@tauri-apps/api': 2.12.4
 
   '@ifc-lite/ifcx@2.1.1':
     dependencies:
       '@ifc-lite/data': 1.17.0
       '@ifc-lite/mutations': 1.15.0
       '@ifc-lite/pointcloud': 0.3.1
+
+  '@ifc-lite/load-trace@0.3.0': {}
 
   '@ifc-lite/mutations@1.15.0':
     dependencies:
@@ -2183,18 +2252,26 @@ snapshots:
     dependencies:
       laz-perf: 0.0.6
 
-  '@ifc-lite/renderer@1.41.1':
+  '@ifc-lite/renderer@7.1.0(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))':
     dependencies:
-      '@ifc-lite/geometry': 3.8.0
-      '@ifc-lite/spatial': 1.14.13
+      '@ifc-lite/geometry': 8.1.0
+      '@ifc-lite/load-trace': 0.3.0
+      '@ifc-lite/spatial': 1.15.1
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/splats': 9.4.2(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))
+      '@luma.gl/webgpu': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
+    transitivePeerDependencies:
+      - '@luma.gl/shadertools'
 
-  '@ifc-lite/spatial@1.14.13':
+  '@ifc-lite/spatial@1.15.1':
     dependencies:
-      '@ifc-lite/geometry': 3.8.0
+      '@ifc-lite/geometry': 8.1.0
+
+  '@ifc-lite/wasm-lifecycle@0.2.0': {}
 
   '@ifc-lite/wasm@1.16.10': {}
 
-  '@ifc-lite/wasm@4.4.0': {}
+  '@ifc-lite/wasm@12.2.0': {}
 
   '@img/colour@1.1.0':
     optional: true
@@ -2322,7 +2399,75 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@napi-rs/wasm-runtime@1.2.6(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
+  '@luma.gl/core@9.4.2':
+    dependencies:
+      '@math.gl/types': 4.1.0
+      '@probe.gl/env': 4.1.2
+      '@probe.gl/log': 4.1.2
+      '@probe.gl/stats': 4.1.2
+      '@types/offscreencanvas': 2019.7.3
+
+  '@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/shadertools': 9.4.2(@luma.gl/core@9.4.2)
+      '@math.gl/core': 4.1.0
+      '@math.gl/types': 4.1.0
+      '@probe.gl/log': 4.1.2
+      '@probe.gl/stats': 4.1.2
+
+  '@luma.gl/experimental@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/engine': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
+      '@luma.gl/gpgpu': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))
+      '@luma.gl/shadertools': 9.4.2(@luma.gl/core@9.4.2)
+      '@math.gl/core': 4.1.0
+      '@math.gl/types': 4.1.0
+    transitivePeerDependencies:
+      - '@luma.gl/webgpu'
+
+  '@luma.gl/gpgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/engine': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
+      '@luma.gl/shadertools': 9.4.2(@luma.gl/core@9.4.2)
+      '@luma.gl/webgpu': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
+      '@math.gl/core': 4.1.0
+      '@math.gl/types': 4.1.0
+      '@probe.gl/log': 4.1.2
+      '@probe.gl/stats': 4.1.2
+
+  '@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@math.gl/core': 4.1.0
+      '@math.gl/types': 4.1.0
+
+  '@luma.gl/splats@9.4.2(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/engine': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))
+      '@luma.gl/experimental': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))
+      '@luma.gl/gpgpu': 9.4.2(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))
+      '@luma.gl/shadertools': 9.4.2(@luma.gl/core@9.4.2)
+    transitivePeerDependencies:
+      - '@luma.gl/webgpu'
+
+  '@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))':
+    dependencies:
+      '@luma.gl/core': 9.4.2
+      '@luma.gl/shadertools': 9.4.2(@luma.gl/core@9.4.2)
+      '@probe.gl/env': 4.1.2
+      '@webgpu/types': 0.1.74
+
+  '@math.gl/core@4.1.0':
+    dependencies:
+      '@math.gl/types': 4.1.0
+
+  '@math.gl/types@4.1.0': {}
+
+  '@napi-rs/wasm-runtime@1.2.7(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
       '@emnapi/runtime': 1.10.0
@@ -2473,6 +2618,14 @@ snapshots:
 
   '@panva/hkdf@1.2.1': {}
 
+  '@probe.gl/env@4.1.2': {}
+
+  '@probe.gl/log@4.1.2':
+    dependencies:
+      '@probe.gl/env': 4.1.2
+
+  '@probe.gl/stats@4.1.2': {}
+
   '@react-aria/focus@3.21.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@react-aria/interactions': 3.27.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2585,7 +2738,7 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.10.0
       '@emnapi/runtime': 1.10.0
-      '@napi-rs/wasm-runtime': 1.2.6(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
+      '@napi-rs/wasm-runtime': 1.2.7(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
     optional: true
 
   '@rolldown/binding-win32-arm64-msvc@1.0.2':
@@ -2594,7 +2747,7 @@ snapshots:
   '@rolldown/binding-win32-x64-msvc@1.0.2':
     optional: true
 
-  '@rolldown/pluginutils@1.0.1': {}
+  '@rolldown/pluginutils@1.1.0': {}
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -2696,7 +2849,7 @@ snapshots:
   '@tauri-apps/api@2.11.0':
     optional: true
 
-  '@tauri-apps/api@2.11.1':
+  '@tauri-apps/api@2.12.4':
     optional: true
 
   '@tybys/wasm-util@0.10.4':
@@ -2737,6 +2890,8 @@ snapshots:
   '@types/node@26.6.6':
     dependencies:
       undici-types: 8.9.0
+
+  '@types/offscreencanvas@2019.7.3': {}
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
@@ -2786,6 +2941,8 @@ snapshots:
       '@vitest/pretty-format': 4.1.11
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.1
+
+  '@webgpu/types@0.1.74': {}
 
   '@xyflow/react@12.12.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
@@ -3375,7 +3532,7 @@ snapshots:
   rolldown@1.0.2:
     dependencies:
       '@oxc-project/types': 0.132.0
-      '@rolldown/pluginutils': 1.0.1
+      '@rolldown/pluginutils': 1.1.0
     optionalDependencies:
       '@rolldown/binding-android-arm64': 1.0.2
       '@rolldown/binding-darwin-arm64': 1.0.2
